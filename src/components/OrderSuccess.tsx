@@ -1,8 +1,10 @@
 import { useCart } from '../contexts/CartContext';
+import { useLang } from '../contexts/LangContext';
 import './OrderSuccess.scss';
 
 export default function OrderSuccess() {
   const { lastOrder, closeSuccess } = useCart();
+  const { t } = useLang();
 
   if (!lastOrder) return null;
 
@@ -12,16 +14,16 @@ export default function OrderSuccess() {
       <div className="success-modal">
         <div className="success-modal__icon">✓</div>
         <h2 className="success-modal__title">
-          Спасибо за заказ, {lastOrder.customerName}!
+          {t('orderSuccessTitle')}, {lastOrder.customerName}!
         </h2>
         <p className="success-modal__subtitle">
-          Мы свяжемся с вами по номеру {lastOrder.customerPhone}.
+          {t('orderSuccessSubtitle')} {lastOrder.customerPhone}.
         </p>
         <p className="success-modal__sum">
-          Сумма заказа: {lastOrder.totalPrice} сум.
+          {t('orderSuccessSum')} {lastOrder.totalPrice} ⭐.
         </p>
         <button className="success-modal__btn" onClick={closeSuccess}>
-          Закрыть
+          {t('close')}
         </button>
       </div>
     </>
