@@ -8,6 +8,14 @@ export interface Product {
   price: number;
   nameKey: string;
   descKey: string;
+  name?: string;
+  description?: string;
+  type?: 'digital' | 'physical';
+  carousel?: boolean;
+  downloadUrl?: string;
+  licenseKey?: string;
+  weight?: number;
+  stock?: number;
 }
 
 export interface Translations {

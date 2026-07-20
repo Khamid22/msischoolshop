@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Панель администратора — MSI Bot Shop</title>
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="admin-header__left">
+      <span class="admin-header__logo">MSI</span>
+      <span class="admin-header__divider"></span>
+      <span class="admin-header__subtitle">Панель администратора</span>
+    </div>
+    <div class="admin-header__right">
+      <button class="admin-header__theme-btn" id="themeToggle" title="Сменить тему (тёмная / чёрно-белая)">☀</button>
+      <button class="admin-header__logout-btn" id="logoutBtn" title="Выйти">⏻ Выйти</button>
+      <a href="../index.html" class="admin-header__back-btn">На сайт →</a>
+    </div>
+  </header>
+
+  <nav class="admin-anchors" id="anchorNav">
+    <div class="admin-anchors__inner">
+      <a href="#cat-telegram" class="admin-anchors__link admin-anchors__link--active" data-anchor="cat-telegram">
+        <span class="admin-anchors__icon">★</span> Telegram
+      </a>
+      <a href="#cat-caps" class="admin-anchors__link" data-anchor="cat-caps">
+        <span class="admin-anchors__icon">◆</span> Кепки
+      </a>
+      <a href="#cat-tshirts" class="admin-anchors__link" data-anchor="cat-tshirts">
+        <span class="admin-anchors__icon">▣</span> Футболки
+      </a>
+      <a href="#cat-other" class="admin-anchors__link" data-anchor="cat-other">
+        <span class="admin-anchors__icon">●</span> Другое
+      </a>
+    </div>
+  </nav>
+
+  <main class="admin">
+
+    <!-- ADD / EDIT PRODUCT -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon" id="formIcon">＋</span>
+        <span id="formTitle">Добавление товара</span>
+      </h2>
+      <form class="admin-form" id="productForm">
+        <input type="hidden" id="editId" value="" />
+        <div class="admin-form__row">
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="pName">Название товара</label>
+            <input class="admin-form__input" type="text" id="pName" placeholder="T-Shirt Black Edition" required />
+          </div>
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="pPrice">Цена товара</label>
+            <input class="admin-form__input" type="number" id="pPrice" placeholder="750" min="0" required />
+          </div>
+        </div>
+        <div class="admin-form__row">
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="pImage">Ссылка на изображение</label>
+            <input class="admin-form__input" type="url" id="pImage" placeholder="https://example.com/image.png" required />
+          </div>
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="pType">Тип товара</label>
+            <select class="admin-form__select" id="pType" required>
+              <option value="" disabled selected>Выберите тип</option>
+              <option value="digital">Digital (Цифровой)</option>
+              <option value="physical">Physical (Физический)</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-dynamic-fields" id="dynamicFields">
+          <div class="admin-dynamic-fields__label">Дополнительные параметры</div>
+          <div class="admin-dynamic-fields__group" data-for="physical" style="display:flex;">
+            <div class="admin-form__row">
+              <div class="admin-form__field">
+                <label class="admin-form__label" for="pWeight">Вес товара (г)</label>
+                <input class="admin-form__input" type="number" id="pWeight" placeholder="250" min="0" />
+              </div>
+              <div class="admin-form__field">
+                <label class="admin-form__label" for="pStock">Количество на складе</label>
+                <input class="admin-form__input" type="number" id="pStock" placeholder="100" min="0" />
+              </div>
+            </div>
+          </div>
+          <div class="admin-dynamic-fields__group" data-for="digital" style="display:none;">
+            <div class="admin-form__field">
+              <label class="admin-form__label" for="pDownload">Ссылка на скачивание / Активацию</label>
+              <input class="admin-form__input" type="url" id="pDownload" placeholder="https://example.com/activate?key=..." />
+            </div>
+            <div class="admin-form__field">
+              <label class="admin-form__label" for="pLicense">Текстовый ключ / Лицензия</label>
+              <textarea class="admin-form__textarea" id="pLicense" placeholder="XXXXX-XXXXX-XXXXX" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="admin-form__row">
+          <div class="admin-form__field admin-form__field--checkbox">
+            <label class="admin-form__checkbox-label">
+              <input class="admin-form__checkbox" type="checkbox" id="pCarousel" />
+              <span class="admin-form__checkbox-custom"></span>
+              Отображать в карусели на главной
+            </label>
+          </div>
+        </div>
+        <div class="admin-form__field">
+          <label class="admin-form__label" for="pDesc">Описание товара</label>
+          <textarea class="admin-form__textarea" id="pDesc" placeholder="Подробное описание товара..." rows="4"></textarea>
+        </div>
+        <div class="admin-form__btns">
+          <button class="admin-btn admin-btn--primary" type="submit" id="submitBtn">Добавить товар</button>
+          <button class="admin-btn admin-btn--secondary" type="button" id="cancelEdit" style="display:none;">Отмена</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- CATALOG -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon">▦</span>
+        Каталог товаров
+      </h2>
+      <div class="admin-filters">
+        <div class="admin-filters__search">
+          <input class="admin-form__input" type="text" id="searchInput" placeholder="Поиск по названию..." />
+        </div>
+        <div class="admin-filters__group">
+          <select class="admin-form__select" id="filterType">
+            <option value="all">Все типы</option>
+            <option value="digital">Digital</option>
+            <option value="physical">Physical</option>
+          </select>
+          <input class="admin-form__input admin-form__input--small" type="number" id="filterMin" placeholder="Мин. цена" min="0" />
+          <input class="admin-form__input admin-form__input--small" type="number" id="filterMax" placeholder="Макс. цена" min="0" />
+          <button class="admin-btn admin-btn--secondary" type="button" id="applyFilters">Применить</button>
+        </div>
+      </div>
+      <div id="catalogCategories"></div>
+    </section>
+
+  </main>
+
+  <footer class="admin-footer">
+    <span>© 2026 MSI Bot Shop — Admin Panel</span>
+  </footer>
+
+  <script>
+    /* ============ AUTH ============ */
+    if (localStorage.getItem('msi_admin_auth') !== '1') {
+      window.location.href = './admin-login.html';
+    }
+
+    var AUTH_KEY = 'msi_admin_auth';
+    var STORE_KEY = 'msi_products';
+
+    /* ============ API (localStorage — swap to fetch for backend) ============ */
+    function apiGetProducts()  { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]') || []; }
+    function apiSaveProducts(l){ localStorage.setItem(STORE_KEY, JSON.stringify(l)); }
+    function apiLogout()       { localStorage.removeItem(AUTH_KEY); window.location.href = './admin-login.html'; }
+
+    /* ============ THEME ============ */
+    var themeBtn = document.getElementById('themeToggle');
+    themeBtn.addEventListener('click', function() {
+      var html = document.documentElement;
+      var dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      themeBtn.textContent = dark ? '☾' : '☀';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', apiLogout);
+
+    /* ============ DYNAMIC FIELDS ============ */
+    var pType = document.getElementById('pType');
+    var dynGroups = document.querySelectorAll('.admin-dynamic-fields__group');
+
+    function switchFields(type) {
+      dynGroups.forEach(function(g) {
+        var show = g.getAttribute('data-for') === type;
+        g.style.display = show ? 'flex' : 'none';
+        g.classList.toggle('admin-dynamic-fields__group--visible', show);
+        g.classList.toggle('admin-dynamic-fields__group--hidden', !show);
+      });
+    }
+    pType.addEventListener('change', function() { switchFields(pType.value); });
+    switchFields('physical');
+
+    /* ============ PRODUCT FORM ============ */
+    var form = document.getElementById('productForm');
+    var editId = document.getElementById('editId');
+    var formTitle = document.getElementById('formTitle');
+    var formIcon = document.getElementById('formIcon');
+    var submitBtn = document.getElementById('submitBtn');
+    var cancelBtn = document.getElementById('cancelEdit');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var data = {
+        name: document.getElementById('pName').value.trim(),
+        price: Number(document.getElementById('pPrice').value),
+        image: document.getElementById('pImage').value.trim(),
+        type: pType.value,
+        description: document.getElementById('pDesc').value.trim(),
+        carousel: document.getElementById('pCarousel').checked,
+        downloadUrl: document.getElementById('pDownload').value.trim(),
+        licenseKey: document.getElementById('pLicense').value.trim(),
+        weight: Number(document.getElementById('pWeight').value) || 0,
+        stock: Number(document.getElementById('pStock').value) || 0
+      };
+
+      var list = apiGetProducts();
+
+      if (editId.value) {
+        var idx = list.findIndex(function(p) { return p.id === editId.value; });
+        if (idx !== -1) Object.assign(list[idx], data);
+      } else {
+        data.id = 'product-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        data.nameKey = '';
+        data.descKey = '';
+        list.push(data);
+      }
+
+      apiSaveProducts(list);
+      resetForm();
+      renderCatalog();
+    });
+
+    cancelBtn.addEventListener('click', resetForm);
+
+    function resetForm() {
+      form.reset();
+      editId.value = '';
+      formTitle.textContent = 'Добавление товара';
+      formIcon.textContent = '＋';
+      submitBtn.textContent = 'Добавить товар';
+      cancelBtn.style.display = 'none';
+      switchFields('physical');
+    }
+
+    function startEdit(id) {
+      var p = apiGetProducts().find(function(x) { return x.id === id; });
+      if (!p) return;
+      editId.value = p.id;
+      document.getElementById('pName').value = p.name || '';
+      document.getElementById('pPrice').value = p.price || '';
+      document.getElementById('pImage').value = p.image || '';
+      pType.value = p.type || 'physical';
+      switchFields(p.type || 'physical');
+      document.getElementById('pDesc').value = p.description || '';
+      document.getElementById('pCarousel').checked = !!p.carousel;
+      document.getElementById('pDownload').value = p.downloadUrl || '';
+      document.getElementById('pLicense').value = p.licenseKey || '';
+      document.getElementById('pWeight').value = p.weight || '';
+      document.getElementById('pStock').value = p.stock || '';
+      formTitle.textContent = 'Редактирование товара';
+      formIcon.textContent = '✎';
+      submitBtn.textContent = 'Сохранить';
+      cancelBtn.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteProduct(id) {
+      if (!confirm('Удалить товар?')) return;
+      apiSaveProducts(apiGetProducts().filter(function(p) { return p.id !== id; }));
+      renderCatalog();
+    }
+
+    /* ============ CATALOG ============ */
+    var CATEGORIES = [
+      { id: 'cat-telegram', name: 'Telegram — Подарки и подписки', dot: 'blue' },
+      { id: 'cat-caps',     name: 'Кепки',                        dot: 'red' },
+      { id: 'cat-tshirts',  name: 'Футболки',                     dot: 'green' },
+      { id: 'cat-other',    name: 'Другое',                       dot: 'orange' }
+    ];
+
+    function categorize(p) {
+      var n = (p.name || '').toLowerCase();
+      if (p.type === 'digital') return 'cat-telegram';
+      if (n.indexOf('кепк') !== -1 || n.indexOf('cap') !== -1) return 'cat-caps';
+      if (n.indexOf('футболк') !== -1 || n.indexOf('t-shirt') !== -1 || n.indexOf('tshirt') !== -1) return 'cat-tshirts';
+      return 'cat-other';
+    }
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function renderCatalog() {
+      var products = apiGetProducts();
+      var search = document.getElementById('searchInput').value.toLowerCase();
+      var type = document.getElementById('filterType').value;
+      var minP = Number(document.getElementById('filterMin').value) || 0;
+      var maxP = Number(document.getElementById('filterMax').value) || Infinity;
+
+      var filtered = products.filter(function(p) {
+        if (search && (p.name || '').toLowerCase().indexOf(search) === -1) return false;
+        if (type !== 'all' && p.type !== type) return false;
+        if (p.price < minP || p.price > maxP) return false;
+        return true;
+      });
+
+      var groups = {};
+      filtered.forEach(function(p) { var c = categorize(p); (groups[c] = groups[c] || []).push(p); });
+
+      var html = '';
+      CATEGORIES.forEach(function(cat) {
+        var items = groups[cat.id];
+        if (!items || !items.length) return;
+        html += '<div class="admin-category scroll-reveal" id="' + cat.id + '">';
+        html += '<div class="admin-category__header">';
+        html += '<span class="admin-category__dot admin-category__dot--' + cat.dot + '"></span>';
+        html += '<h3 class="admin-category__title">' + cat.name + '</h3>';
+        html += '<span class="admin-category__count">' + items.length + ' товар(ов)</span>';
+        html += '</div>';
+        html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
+        html += '<th>Название</th><th>Тип</th><th>Цена</th><th>В карусели</th><th>Действия</th>';
+        html += '</tr></thead><tbody>';
+        items.forEach(function(p) {
+          var tag = p.type === 'digital'
+            ? '<span class="admin-tag admin-tag--digital">Digital</span>'
+            : '<span class="admin-tag admin-tag--physical">Physical</span>';
+          html += '<tr>';
+          html += '<td class="admin-table__name">' + esc(p.name || p.id) + '</td>';
+          html += '<td>' + tag + '</td>';
+          html += '<td class="admin-table__price">⭐ ' + p.price + '</td>';
+          html += '<td>' + (p.carousel ? '<span class="admin-table__check">✓</span>' : '—') + '</td>';
+          html += '<td class="admin-table__actions">';
+          html += '<button class="admin-btn admin-btn--edit" data-action="edit" data-id="' + p.id + '">Редактировать</button>';
+          html += '<button class="admin-btn admin-btn--danger" data-action="delete" data-id="' + p.id + '">Удалить</button>';
+          html += '</td></tr>';
+        });
+        html += '</tbody></table></div></div>';
+      });
+
+      document.getElementById('catalogCategories').innerHTML = html || '<div class="admin-empty">Нет товаров</div>';
+      initScrollReveal();
+    }
+
+    document.getElementById('catalogCategories').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      if (btn.dataset.action === 'edit') startEdit(btn.dataset.id);
+      if (btn.dataset.action === 'delete') deleteProduct(btn.dataset.id);
+    });
+
+    document.getElementById('applyFilters').addEventListener('click', renderCatalog);
+    document.getElementById('searchInput').addEventListener('input', renderCatalog);
+
+    /* ============ SCROLL REVEAL ============ */
+    function initScrollReveal() {
+      var els = document.querySelectorAll('.admin-category');
+      els.forEach(function(el, i) { el.style.transitionDelay = (i * 0.12) + 's'; });
+      new IntersectionObserver(function(entries) {
+        entries.forEach(function(en) { if (en.isIntersecting) en.target.classList.add('scroll-reveal--visible'); });
+      }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }).observe(document.getElementById('catalogCategories'));
+    }
+
+    /* ============ ANCHOR NAV ============ */
+    document.querySelectorAll('.admin-anchors__link').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var target = document.getElementById(link.getAttribute('href').slice(1));
+        if (!target) return;
+        var hH = document.querySelector('.admin-header').offsetHeight;
+        var aH = document.querySelector('.admin-anchors').offsetHeight;
+        window.scrollTo({ top: target.getBoundingClientRect().top + window.pageYOffset - hH - aH - 16, behavior: 'smooth' });
+      });
+    });
+
+    /* ============ INIT ============ */
+    renderCatalog();
+  </script>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LangProvider } from './contexts/LangContext';
 import { CartProvider } from './contexts/CartContext';
@@ -9,10 +10,17 @@ import CheckoutDrawer from './components/CheckoutDrawer';
 import OrderSuccess from './components/OrderSuccess';
 import AuthModal from './components/AuthModal';
 import ProfileDrawer from './components/ProfileDrawer';
-import { products } from './data/products';
+import { fetchProducts } from './api';
+import type { Product } from './types';
 import './styles/global.scss';
 
 export default function App() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
+
   return (
     <ThemeProvider>
       <LangProvider>
