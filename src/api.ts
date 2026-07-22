@@ -87,7 +87,7 @@ export async function deleteProduct(id: string): Promise<void> {
 
 export async function login(password: string): Promise<boolean> {
   // TODO: return fetch(`${API_URL}/auth/login`, { method: 'POST', body: JSON.stringify({ password }) }).then(r => r.ok)
-  if (password === 'admin1232026') {
+  if (password === '123456789') {
     lsSet(AUTH_KEY, true);
     return true;
   }

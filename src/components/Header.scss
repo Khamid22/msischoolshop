@@ -223,3 +223,60 @@
     }
   }
 }
+
+@media (max-width: 420px) {
+  .header {
+    padding: 8px 10px;
+
+    &__logo {
+      font-size: 0.9rem;
+      letter-spacing: -0.3px;
+    }
+
+    &__right {
+      gap: 4px;
+    }
+
+    &__lang-switcher {
+      border-width: 1px;
+    }
+
+    &__lang-btn {
+      padding: 3px 5px;
+      font-size: 0.65rem;
+    }
+
+    &__theme-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 0.75rem;
+      border-width: 1px;
+    }
+
+    &__cart-btn {
+      padding: 4px 6px;
+      border-width: 1px;
+    }
+
+    &__cart-icon {
+      font-size: 0.8rem;
+    }
+
+    &__user-btn {
+      padding: 4px 6px;
+      max-width: 28px;
+      border-width: 1px;
+    }
+
+    &__user-icon {
+      font-size: 0.8rem;
+    }
+
+    &__admin-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 0.75rem;
+      border-width: 1px;
+    }
+  }
+}

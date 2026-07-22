@@ -17,8 +17,16 @@
 
 @media (max-width: 480px) {
   .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 10px 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .grid {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px;
+    gap: 10px;
+    padding: 8px;
   }
 }
