@@ -1,6 +1,3 @@
-/* ============================================
-   ADMIN LOGIN — MSI DARK THEME
-   ============================================ */
 
 *,
 *::before,
@@ -56,7 +53,6 @@ body {
   position: relative;
 }
 
-/* --- Background grid effect --- */
 
 body::before {
   content: '';
@@ -70,9 +66,7 @@ body::before {
   z-index: 0;
 }
 
-/* ============================================
-   LOGIN CARD
-   ============================================ */
+
 
 .login-wrap {
   position: relative;
@@ -106,7 +100,7 @@ body::before {
   }
 }
 
-/* --- Red glow behind card --- */
+
 
 .login-card__glow {
   position: absolute;
@@ -126,7 +120,7 @@ body::before {
   50%      { opacity: 1; transform: translateX(-50%) scale(1.15); }
 }
 
-/* --- Logo block --- */
+
 
 .login-card__logo {
   display: flex;
@@ -156,9 +150,7 @@ body::before {
   text-transform: uppercase;
 }
 
-/* ============================================
-   FORM
-   ============================================ */
+
 
 .login-form {
   width: 100%;
@@ -300,8 +292,6 @@ body::before {
   transform: translateX(3px);
 }
 
-/* --- Back link --- */
-
 .login-card__back {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -314,9 +304,7 @@ body::before {
   color: var(--text);
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+
 
 @media (max-width: 480px) {
   .login-wrap {

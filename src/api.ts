@@ -4,7 +4,7 @@ import type { Product } from './types';
 //  CONFIG — swap BASE_URL for your backend
 // ============================================================
 
-const API_URL = '';  // e.g. 'https://api.msi-bot-shop.uz/v1'
+// const API_URL = '';  // e.g. 'https://api.msi-bot-shop.uz/v1'
 const AUTH_KEY = 'msi_admin_auth';
 
 // ============================================================
@@ -87,7 +87,7 @@ export async function deleteProduct(id: string): Promise<void> {
 
 export async function login(password: string): Promise<boolean> {
   // TODO: return fetch(`${API_URL}/auth/login`, { method: 'POST', body: JSON.stringify({ password }) }).then(r => r.ok)
-  if (password === 'msi2026admin') {
+  if (password === 'admin1232026') {
     lsSet(AUTH_KEY, true);
     return true;
   }

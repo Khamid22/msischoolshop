@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Вход в админ-панель — MSI Bot Shop</title>
-  <link rel="stylesheet" href="./admin-login.css" />
+  <link rel="stylesheet" href="/admin/admin-login.css" />
 </head>
 <body>
 
@@ -45,16 +45,15 @@
         </button>
       </form>
 
-      <a href="../index.html" class="login-card__back">← Вернуться на сайт</a>
+      <a href="/" class="login-card__back">← Вернуться на сайт</a>
     </div>
   </div>
 
   <script>
     var AUTH_KEY = 'msi_admin_auth';
-    var ADMIN_PASSWORD = 'msi2026admin'; // TODO: replace with backend auth
-
+    var ADMIN_PASSWORD = 'admin1232026';
     if (localStorage.getItem(AUTH_KEY) === '1') {
-      window.location.href = './admin.html';
+      window.location.href = '/admin.html';
     }
 
     var form = document.getElementById('loginForm');
@@ -68,10 +67,9 @@
       e.preventDefault();
       error.style.display = 'none';
 
-      // TODO: replace with fetch(`${API_URL}/auth/login`, ...)
       if (input.value === ADMIN_PASSWORD) {
         localStorage.setItem(AUTH_KEY, '1');
-        window.location.href = './admin.html';
+        window.location.href = '/admin.html';
       } else {
         error.style.display = 'block';
         input.value = '';

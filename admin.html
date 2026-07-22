@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Панель администратора — MSI Bot Shop</title>
-  <link rel="stylesheet" href="./admin.css" />
+  <link rel="stylesheet" href="/admin/admin.css" />
 </head>
 <body>
 
@@ -17,7 +17,7 @@
     <div class="admin-header__right">
       <button class="admin-header__theme-btn" id="themeToggle" title="Сменить тему (тёмная / чёрно-белая)">☀</button>
       <button class="admin-header__logout-btn" id="logoutBtn" title="Выйти">⏻ Выйти</button>
-      <a href="../index.html" class="admin-header__back-btn">На сайт →</a>
+      <a href="/" class="admin-header__back-btn">На сайт →</a>
     </div>
   </header>
 
@@ -150,7 +150,7 @@
   <script>
     /* ============ AUTH ============ */
     if (localStorage.getItem('msi_admin_auth') !== '1') {
-      window.location.href = './admin-login.html';
+      window.location.href = '/admin-login.html';
     }
 
     var AUTH_KEY = 'msi_admin_auth';
@@ -159,7 +159,7 @@
     /* ============ API (localStorage — swap to fetch for backend) ============ */
     function apiGetProducts()  { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]') || []; }
     function apiSaveProducts(l){ localStorage.setItem(STORE_KEY, JSON.stringify(l)); }
-    function apiLogout()       { localStorage.removeItem(AUTH_KEY); window.location.href = './admin-login.html'; }
+    function apiLogout()       { localStorage.removeItem(AUTH_KEY); window.location.href = '/admin-login.html'; }
 
     /* ============ THEME ============ */
     var themeBtn = document.getElementById('themeToggle');

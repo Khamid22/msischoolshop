@@ -48,7 +48,7 @@ export default function Header() {
           <span className="header__user-icon">◉</span>
           <span className="header__user-label">{user ? user.name : t('account')}</span>
         </button>
-        <a href="/src/pages/admin-login.html" className="header__admin-btn" title="Админ-панель">
+        <a href="/admin-login.html" className="header__admin-btn" title="Админ-панель">
           ⚙
         </a>
       </div>
