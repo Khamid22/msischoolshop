@@ -51,14 +51,16 @@
   &__image-wrap {
     position: relative;
     width: 100%;
-    max-height: 60vh;
-    overflow: hidden;
     border-bottom: 2px solid var(--border);
     background: var(--img-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &__image {
     width: 100%;
+    height: auto;
     display: block;
     object-fit: contain;
   }
