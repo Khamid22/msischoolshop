@@ -254,3 +254,62 @@
     }
   }
 }
+
+@media (max-width: 320px) {
+  .checkout-drawer {
+    &__header {
+      padding: 10px 12px;
+    }
+
+    &__title {
+      font-size: 0.85rem;
+    }
+
+    &__close {
+      width: 26px;
+      height: 26px;
+      font-size: 0.75rem;
+    }
+  }
+
+  .checkout-form {
+    padding: 10px;
+    gap: 12px;
+
+    &__summary {
+      padding: 8px;
+    }
+
+    &__summary-row {
+      font-size: 0.7rem;
+    }
+
+    &__summary-total {
+      font-size: 0.85rem;
+    }
+
+    &__label-text {
+      font-size: 0.65rem;
+    }
+
+    &__input {
+      padding: 8px;
+      font-size: 0.8rem;
+    }
+
+    &__delivery-btn {
+      padding: 6px 3px;
+      font-size: 0.65rem;
+    }
+
+    &__error {
+      font-size: 0.65rem;
+      padding: 5px 8px;
+    }
+
+    &__submit {
+      padding: 12px;
+      font-size: 0.8rem;
+    }
+  }
+}

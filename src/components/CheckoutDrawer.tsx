@@ -2,8 +2,15 @@ import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import type { DeliveryMethod } from '../types';
+import type { DeliveryMethod, Product } from '../types';
 import './CheckoutDrawer.scss';
+
+function getDiscountedPrice(product: Product): number {
+  if (product.discount && product.discount > 0) {
+    return Math.round(product.price * (1 - product.discount / 100));
+  }
+  return product.price;
+}
 
 const DELIVERY_OPTIONS: DeliveryMethod[] = ['courier', 'pickup', 'post'];
 
@@ -62,7 +69,7 @@ export default function CheckoutDrawer() {
                   {t(item.product.nameKey)} × {item.quantity}
                 </span>
                 <span className="checkout-form__summary-price">
-                  {t('currency')}{item.product.price * item.quantity}
+                  {t('currency')}{getDiscountedPrice(item.product) * item.quantity}
                 </span>
               </div>
             ))}

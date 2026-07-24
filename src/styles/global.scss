@@ -57,3 +57,9 @@ textarea {
   appearance: none;
   border-radius: 0;
 }
+
+@media (max-width: 320px) {
+  html {
+    font-size: 14px;
+  }
+}

@@ -6,10 +6,26 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+  position: relative;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px var(--shadow);
+  }
+
+  &__badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    background: #e60012;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border-radius: 4px;
+    z-index: 2;
+    letter-spacing: 0.5px;
   }
 
   &__image-wrap {
@@ -62,11 +78,29 @@
     gap: 8px;
   }
 
+  &__price-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
   &__price {
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--text);
     flex-shrink: 0;
+
+    &--sale {
+      color: #e60012;
+    }
+  }
+
+  &__price-old {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: line-through;
   }
 
   &__btn {
@@ -156,6 +190,50 @@
     &__btn {
       padding: 4px 6px;
       font-size: 0.6rem;
+    }
+  }
+}
+
+@media (max-width: 320px) {
+  .card {
+    &__badge {
+      padding: 2px 5px;
+      font-size: 0.6rem;
+      top: 4px;
+      right: 4px;
+    }
+
+    &__body {
+      padding: 6px;
+    }
+
+    &__title {
+      font-size: 0.75rem;
+      margin-bottom: 1px;
+    }
+
+    &__desc {
+      font-size: 0.62rem;
+      margin-bottom: 6px;
+      -webkit-line-clamp: 1;
+    }
+
+    &__footer {
+      gap: 4px;
+    }
+
+    &__price {
+      font-size: 0.8rem;
+    }
+
+    &__price-old {
+      font-size: 0.6rem;
+    }
+
+    &__btn {
+      padding: 3px 5px;
+      font-size: 0.55rem;
+      border-width: 1px;
     }
   }
 }

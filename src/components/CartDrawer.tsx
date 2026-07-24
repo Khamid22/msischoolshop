@@ -2,6 +2,13 @@ import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import './CartDrawer.scss';
 
+function getDiscountedPrice(product: { price: number; discount?: number }): number {
+  if (product.discount && product.discount > 0) {
+    return Math.round(product.price * (1 - product.discount / 100));
+  }
+  return product.price;
+}
+
 export default function CartDrawer() {
   const { items, isOpen, close, removeItem, updateQuantity, clearCart, totalItems, totalPrice, openCheckout } = useCart();
   const { t } = useLang();
@@ -33,7 +40,7 @@ export default function CartDrawer() {
                   />
                   <div className="cart-item__info">
                     <span className="cart-item__name">{t(item.product.nameKey)}</span>
-                    <span className="cart-item__price">{t('currency')}{item.product.price}</span>
+                    <span className="cart-item__price">{t('currency')}{getDiscountedPrice(item.product)}</span>
                     <div className="cart-item__controls">
                       <button
                         className="cart-item__qty-btn"

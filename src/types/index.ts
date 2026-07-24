@@ -16,6 +16,14 @@ export interface Product {
   licenseKey?: string;
   weight?: number;
   stock?: number;
+  discount?: number;
+}
+
+export interface FilterState {
+  type: 'all' | 'digital' | 'physical';
+  minPrice: number;
+  maxPrice: number;
+  search: string;
 }
 
 export interface Translations {

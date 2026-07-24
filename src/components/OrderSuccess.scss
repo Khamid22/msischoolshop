@@ -115,6 +115,39 @@
   }
 }
 
+@media (max-width: 320px) {
+  .success-modal {
+    padding: 16px 12px;
+
+    &__icon {
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      border-width: 2px;
+      margin-bottom: 10px;
+    }
+
+    &__title {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    &__subtitle {
+      font-size: 0.78rem;
+    }
+
+    &__sum {
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
+
+    &__btn {
+      padding: 10px;
+      font-size: 0.78rem;
+    }
+  }
+}
+
 @keyframes slideUpMobile {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }

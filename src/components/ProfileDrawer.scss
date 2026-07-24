@@ -227,3 +227,60 @@
     }
   }
 }
+
+@media (max-width: 320px) {
+  .profile-drawer {
+    &__header {
+      padding: 10px 12px;
+    }
+
+    &__title {
+      font-size: 0.85rem;
+    }
+
+    &__close {
+      width: 26px;
+      height: 26px;
+      font-size: 0.75rem;
+    }
+
+    &__avatar {
+      padding: 12px 10px 10px;
+    }
+
+    &__avatar-circle {
+      width: 42px;
+      height: 42px;
+      font-size: 1rem;
+      border-width: 2px;
+    }
+
+    &__avatar-name {
+      font-size: 0.85rem;
+    }
+  }
+
+  .profile-form {
+    padding: 10px;
+    gap: 8px;
+
+    &__label-text {
+      font-size: 0.65rem;
+    }
+
+    &__input {
+      padding: 8px;
+      font-size: 0.8rem;
+    }
+
+    &__submit {
+      padding: 10px;
+      font-size: 0.75rem;
+    }
+
+    &__logout {
+      padding: 7px;
+      font-size: 0.65rem;
+    }
+  }
+}

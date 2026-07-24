@@ -200,6 +200,56 @@
   }
 }
 
+@media (max-width: 320px) {
+  .auth-modal {
+    &__header {
+      padding: 10px 12px 0;
+    }
+
+    &__tabs {
+      border-width: 1px;
+    }
+
+    &__tab {
+      padding: 5px 10px;
+      font-size: 0.7rem;
+    }
+
+    &__close {
+      width: 26px;
+      height: 26px;
+      font-size: 0.7rem;
+    }
+
+    &__body {
+      padding: 10px;
+    }
+  }
+
+  .auth-form {
+    gap: 8px;
+
+    &__label-text {
+      font-size: 0.65rem;
+    }
+
+    &__input {
+      padding: 8px;
+      font-size: 0.8rem;
+    }
+
+    &__error {
+      font-size: 0.65rem;
+      padding: 5px 8px;
+    }
+
+    &__submit {
+      padding: 10px;
+      font-size: 0.75rem;
+    }
+  }
+}
+
 @keyframes slideUpMobile {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }

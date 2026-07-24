@@ -354,3 +354,79 @@
     }
   }
 }
+
+@media (max-width: 320px) {
+  .cart-drawer {
+    &__header {
+      padding: 8px 10px;
+    }
+
+    &__title {
+      font-size: 0.85rem;
+    }
+
+    &__close {
+      width: 24px;
+      height: 24px;
+      font-size: 0.7rem;
+    }
+
+    &__footer {
+      padding: 8px 10px;
+      gap: 6px;
+    }
+
+    &__total {
+      font-size: 0.8rem;
+    }
+
+    &__total-price {
+      font-size: 1rem;
+    }
+
+    &__checkout {
+      padding: 10px;
+      font-size: 0.75rem;
+    }
+
+    &__clear {
+      padding: 7px;
+      font-size: 0.65rem;
+    }
+  }
+
+  .cart-item {
+    padding: 6px 10px;
+    gap: 6px;
+
+    &__img {
+      width: 40px;
+      height: 30px;
+    }
+
+    &__name {
+      font-size: 0.68rem;
+    }
+
+    &__price {
+      font-size: 0.65rem;
+    }
+
+    &__qty-btn {
+      width: 20px;
+      height: 20px;
+      font-size: 0.7rem;
+    }
+
+    &__qty {
+      font-size: 0.7rem;
+      min-width: 14px;
+    }
+
+    &__remove {
+      width: 20px;
+      height: 20px;
+      font-size: 0.55rem;
+    }
+  }
+}

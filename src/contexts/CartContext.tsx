@@ -2,6 +2,13 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Product, CartItem, Order, DeliveryMethod } from '../types';
 
+function getDiscountedPrice(product: Product): number {
+  if (product.discount && product.discount > 0) {
+    return Math.round(product.price * (1 - product.discount / 100));
+  }
+  return product.price;
+}
+
 interface CartContextType {
   items: CartItem[];
   isOpen: boolean;
@@ -87,7 +94,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const order: Order = {
       id: crypto.randomUUID(),
       items: [...items],
-      totalPrice: items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
+      totalPrice: items.reduce((sum, i) => sum + getDiscountedPrice(i.product) * i.quantity, 0),
       ...data,
       createdAt: new Date().toISOString(),
     };
@@ -113,7 +120,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalPrice = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const totalPrice = items.reduce((sum, i) => sum + getDiscountedPrice(i.product) * i.quantity, 0);
 
   return (
     <CartContext.Provider

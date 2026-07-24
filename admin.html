@@ -21,23 +21,6 @@
     </div>
   </header>
 
-  <nav class="admin-anchors" id="anchorNav">
-    <div class="admin-anchors__inner">
-      <a href="#cat-telegram" class="admin-anchors__link admin-anchors__link--active" data-anchor="cat-telegram">
-        <span class="admin-anchors__icon">★</span> Telegram
-      </a>
-      <a href="#cat-caps" class="admin-anchors__link" data-anchor="cat-caps">
-        <span class="admin-anchors__icon">◆</span> Кепки
-      </a>
-      <a href="#cat-tshirts" class="admin-anchors__link" data-anchor="cat-tshirts">
-        <span class="admin-anchors__icon">▣</span> Футболки
-      </a>
-      <a href="#cat-other" class="admin-anchors__link" data-anchor="cat-other">
-        <span class="admin-anchors__icon">●</span> Другое
-      </a>
-    </div>
-  </nav>
-
   <main class="admin">
 
     <!-- ADD / EDIT PRODUCT -->
@@ -60,8 +43,33 @@
         </div>
         <div class="admin-form__row">
           <div class="admin-form__field">
-            <label class="admin-form__label" for="pImage">Ссылка на изображение</label>
-            <input class="admin-form__input" type="url" id="pImage" placeholder="https://example.com/image.png" required />
+            <label class="admin-form__label" for="pDiscount">Скидка (%)</label>
+            <input class="admin-form__input" type="number" id="pDiscount" placeholder="0" min="0" max="100" />
+          </div>
+          <div class="admin-form__field">
+            <label class="admin-form__label">&nbsp;</label>
+            <div class="admin-form__discount-preview" id="discountPreview" style="display:none;">
+              <span class="admin-form__discount-old" id="discountOldPrice"></span>
+              <span class="admin-form__discount-new" id="discountNewPrice"></span>
+            </div>
+          </div>
+        </div>
+        <div class="admin-form__row">
+          <div class="admin-form__field">
+            <label class="admin-form__label">Изображение товара</label>
+            <div class="admin-upload" id="uploadZone">
+              <input type="file" id="pImageFile" accept="image/*" class="admin-upload__input" />
+              <div class="admin-upload__dropzone" id="uploadDropzone">
+                <span class="admin-upload__icon">📷</span>
+                <span class="admin-upload__text">Нажмите или перетащите фото</span>
+                <span class="admin-upload__hint">JPG, PNG, SVG — до 5 МБ</span>
+              </div>
+              <div class="admin-upload__preview" id="uploadPreview" style="display:none;">
+                <img id="uploadPreviewImg" class="admin-upload__preview-img" />
+                <button type="button" class="admin-upload__remove" id="uploadRemove">✕</button>
+              </div>
+            </div>
+            <input type="hidden" id="pImage" value="" />
           </div>
           <div class="admin-form__field">
             <label class="admin-form__label" for="pType">Тип товара</label>
@@ -187,6 +195,57 @@
     pType.addEventListener('change', function() { switchFields(pType.value); });
     switchFields('physical');
 
+    /* ============ IMAGE UPLOAD ============ */
+    var uploadInput = document.getElementById('pImageFile');
+    var uploadDropzone = document.getElementById('uploadDropzone');
+    var uploadPreview = document.getElementById('uploadPreview');
+    var uploadPreviewImg = document.getElementById('uploadPreviewImg');
+    var uploadRemove = document.getElementById('uploadRemove');
+    var pImageHidden = document.getElementById('pImage');
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой (макс. 5 МБ)'); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        pImageHidden.value = e.target.result;
+        uploadPreviewImg.src = e.target.result;
+        uploadDropzone.style.display = 'none';
+        uploadPreview.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    uploadInput.addEventListener('change', function() {
+      if (uploadInput.files && uploadInput.files[0]) handleFile(uploadInput.files[0]);
+    });
+
+    uploadDropzone.addEventListener('click', function() { uploadInput.click(); });
+
+    uploadDropzone.addEventListener('dragover', function(e) { e.preventDefault(); uploadDropzone.classList.add('admin-upload__dropzone--hover'); });
+    uploadDropzone.addEventListener('dragleave', function() { uploadDropzone.classList.remove('admin-upload__dropzone--hover'); });
+    uploadDropzone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadDropzone.classList.remove('admin-upload__dropzone--hover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+
+    uploadRemove.addEventListener('click', function() {
+      pImageHidden.value = '';
+      uploadInput.value = '';
+      uploadPreviewImg.src = '';
+      uploadDropzone.style.display = '';
+      uploadPreview.style.display = 'none';
+    });
+
+    function clearUpload() {
+      pImageHidden.value = '';
+      uploadInput.value = '';
+      uploadPreviewImg.src = '';
+      uploadDropzone.style.display = '';
+      uploadPreview.style.display = 'none';
+    }
+
     /* ============ PRODUCT FORM ============ */
     var form = document.getElementById('productForm');
     var editId = document.getElementById('editId');
@@ -197,6 +256,13 @@
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+      if (!document.getElementById('pImage').value.trim()) {
+        alert('Добавьте изображение товара');
+        return;
+      }
+      var discount = Number(document.getElementById('pDiscount').value) || 0;
+      if (discount < 0) discount = 0;
+      if (discount > 100) discount = 100;
       var data = {
         name: document.getElementById('pName').value.trim(),
         price: Number(document.getElementById('pPrice').value),
@@ -207,7 +273,8 @@
         downloadUrl: document.getElementById('pDownload').value.trim(),
         licenseKey: document.getElementById('pLicense').value.trim(),
         weight: Number(document.getElementById('pWeight').value) || 0,
-        stock: Number(document.getElementById('pStock').value) || 0
+        stock: Number(document.getElementById('pStock').value) || 0,
+        discount: discount
       };
 
       var list = apiGetProducts();
@@ -237,6 +304,8 @@
       submitBtn.textContent = 'Добавить товар';
       cancelBtn.style.display = 'none';
       switchFields('physical');
+      updateDiscountPreview();
+      clearUpload();
     }
 
     function startEdit(id) {
@@ -245,7 +314,14 @@
       editId.value = p.id;
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pPrice').value = p.price || '';
-      document.getElementById('pImage').value = p.image || '';
+      pImageHidden.value = p.image || '';
+      if (p.image) {
+        uploadPreviewImg.src = p.image;
+        uploadDropzone.style.display = 'none';
+        uploadPreview.style.display = 'flex';
+      } else {
+        clearUpload();
+      }
       pType.value = p.type || 'physical';
       switchFields(p.type || 'physical');
       document.getElementById('pDesc').value = p.description || '';
@@ -254,6 +330,8 @@
       document.getElementById('pLicense').value = p.licenseKey || '';
       document.getElementById('pWeight').value = p.weight || '';
       document.getElementById('pStock').value = p.stock || '';
+      document.getElementById('pDiscount').value = p.discount || '';
+      updateDiscountPreview();
       formTitle.textContent = 'Редактирование товара';
       formIcon.textContent = '✎';
       submitBtn.textContent = 'Сохранить';
@@ -268,20 +346,6 @@
     }
 
     /* ============ CATALOG ============ */
-    var CATEGORIES = [
-      { id: 'cat-telegram', name: 'Telegram — Подарки и подписки', dot: 'blue' },
-      { id: 'cat-caps',     name: 'Кепки',                        dot: 'red' },
-      { id: 'cat-tshirts',  name: 'Футболки',                     dot: 'green' },
-      { id: 'cat-other',    name: 'Другое',                       dot: 'orange' }
-    ];
-
-    function categorize(p) {
-      var n = (p.name || '').toLowerCase();
-      if (p.type === 'digital') return 'cat-telegram';
-      if (n.indexOf('кепк') !== -1 || n.indexOf('cap') !== -1) return 'cat-caps';
-      if (n.indexOf('футболк') !== -1 || n.indexOf('t-shirt') !== -1 || n.indexOf('tshirt') !== -1) return 'cat-tshirts';
-      return 'cat-other';
-    }
 
     function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
@@ -299,41 +363,41 @@
         return true;
       });
 
-      var groups = {};
-      filtered.forEach(function(p) { var c = categorize(p); (groups[c] = groups[c] || []).push(p); });
-
       var html = '';
-      CATEGORIES.forEach(function(cat) {
-        var items = groups[cat.id];
-        if (!items || !items.length) return;
-        html += '<div class="admin-category scroll-reveal" id="' + cat.id + '">';
-        html += '<div class="admin-category__header">';
-        html += '<span class="admin-category__dot admin-category__dot--' + cat.dot + '"></span>';
-        html += '<h3 class="admin-category__title">' + cat.name + '</h3>';
-        html += '<span class="admin-category__count">' + items.length + ' товар(ов)</span>';
-        html += '</div>';
+      if (filtered.length) {
         html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
-        html += '<th>Название</th><th>Тип</th><th>Цена</th><th>В карусели</th><th>Действия</th>';
+        html += '<th>Название</th><th>Тип</th><th>Цена</th><th>Скидка</th><th>В карусели</th><th>Действия</th>';
         html += '</tr></thead><tbody>';
-        items.forEach(function(p) {
+        filtered.forEach(function(p) {
           var tag = p.type === 'digital'
             ? '<span class="admin-tag admin-tag--digital">Digital</span>'
             : '<span class="admin-tag admin-tag--physical">Physical</span>';
+          var discount = p.discount || 0;
+          var priceHtml = '';
+          if (discount > 0) {
+            var newPrice = Math.round(p.price * (1 - discount / 100));
+            priceHtml = '<span class="admin-table__price-old">⭐ ' + p.price + '</span> <span class="admin-table__price-sale">⭐ ' + newPrice + '</span>';
+          } else {
+            priceHtml = '⭐ ' + p.price;
+          }
+          var discountHtml = discount > 0
+            ? '<span class="admin-tag admin-tag--discount">-' + discount + '%</span>'
+            : '—';
           html += '<tr>';
           html += '<td class="admin-table__name">' + esc(p.name || p.id) + '</td>';
           html += '<td>' + tag + '</td>';
-          html += '<td class="admin-table__price">⭐ ' + p.price + '</td>';
+          html += '<td class="admin-table__price">' + priceHtml + '</td>';
+          html += '<td>' + discountHtml + '</td>';
           html += '<td>' + (p.carousel ? '<span class="admin-table__check">✓</span>' : '—') + '</td>';
           html += '<td class="admin-table__actions">';
           html += '<button class="admin-btn admin-btn--edit" data-action="edit" data-id="' + p.id + '">Редактировать</button>';
           html += '<button class="admin-btn admin-btn--danger" data-action="delete" data-id="' + p.id + '">Удалить</button>';
           html += '</td></tr>';
         });
-        html += '</tbody></table></div></div>';
-      });
+        html += '</tbody></table></div>';
+      }
 
       document.getElementById('catalogCategories').innerHTML = html || '<div class="admin-empty">Нет товаров</div>';
-      initScrollReveal();
     }
 
     document.getElementById('catalogCategories').addEventListener('click', function(e) {
@@ -346,26 +410,27 @@
     document.getElementById('applyFilters').addEventListener('click', renderCatalog);
     document.getElementById('searchInput').addEventListener('input', renderCatalog);
 
-    /* ============ SCROLL REVEAL ============ */
-    function initScrollReveal() {
-      var els = document.querySelectorAll('.admin-category');
-      var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(en) { if (en.isIntersecting) en.target.classList.add('scroll-reveal--visible'); });
-      }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
-      els.forEach(function(el, i) { el.style.transitionDelay = (i * 0.12) + 's'; observer.observe(el); });
+    /* ============ DISCOUNT PREVIEW ============ */
+    var pDiscount = document.getElementById('pDiscount');
+    var discountPreview = document.getElementById('discountPreview');
+    var discountOldPrice = document.getElementById('discountOldPrice');
+    var discountNewPrice = document.getElementById('discountNewPrice');
+
+    function updateDiscountPreview() {
+      var price = Number(document.getElementById('pPrice').value) || 0;
+      var disc = Number(pDiscount.value) || 0;
+      if (disc > 0 && price > 0) {
+        var newPrice = Math.round(price * (1 - disc / 100));
+        discountOldPrice.textContent = '⭐ ' + price;
+        discountNewPrice.textContent = '⭐ ' + newPrice;
+        discountPreview.style.display = 'flex';
+      } else {
+        discountPreview.style.display = 'none';
+      }
     }
 
-    /* ============ ANCHOR NAV ============ */
-    document.querySelectorAll('.admin-anchors__link').forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        var target = document.getElementById(link.getAttribute('href').slice(1));
-        if (!target) return;
-        var hH = document.querySelector('.admin-header').offsetHeight;
-        var aH = document.querySelector('.admin-anchors').offsetHeight;
-        window.scrollTo({ top: target.getBoundingClientRect().top + window.pageYOffset - hH - aH - 16, behavior: 'smooth' });
-      });
-    });
+    pDiscount.addEventListener('input', updateDiscountPreview);
+    document.getElementById('pPrice').addEventListener('input', updateDiscountPreview);
 
     /* ============ INIT ============ */
     renderCatalog();

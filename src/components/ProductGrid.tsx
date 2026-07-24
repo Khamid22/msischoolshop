@@ -1,17 +1,51 @@
-import type { Product } from '../types';
+import type { Product, FilterState } from '../types';
 import ProductCard from './ProductCard';
 import './ProductGrid.scss';
 
 interface Props {
   products: Product[];
+  filters: FilterState;
+  onOpenProduct: (product: Product) => void;
 }
 
-export default function ProductGrid({ products }: Props) {
+export default function ProductGrid({ products, filters, onOpenProduct }: Props) {
+  const filtered = products.filter((product) => {
+    if (filters.type !== 'all' && product.type !== filters.type) {
+      return false;
+    }
+
+    const price = product.discount && product.discount > 0
+      ? Math.round(product.price * (1 - product.discount / 100))
+      : product.price;
+
+    if (filters.minPrice > 0 && price < filters.minPrice) {
+      return false;
+    }
+    if (filters.maxPrice > 0 && price > filters.maxPrice) {
+      return false;
+    }
+
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const name = (product.name || '').toLowerCase();
+      const desc = (product.description || '').toLowerCase();
+      if (!name.includes(searchLower) && !desc.includes(searchLower)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   return (
     <section className="grid">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+      {filtered.length === 0 ? (
+        <div className="grid__empty">Товары не найдены</div>
+      ) : (
+        filtered.map((product) => (
+          <ProductCard key={product.id} product={product} onOpen={onOpenProduct} />
+        ))
+      )}
     </section>
   );
 }
