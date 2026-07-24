@@ -2,7 +2,7 @@ import type { Translations } from '../types';
 
 export const translations: Translations = {
   ru: {
-    shopTitle: 'Telegram Shop',
+    shopTitle: 'MSI Bot Shop',
     currency: '⭐',
     addToCart: 'В корзину',
     cart: 'Корзина',
@@ -73,7 +73,7 @@ export const translations: Translations = {
     'products.cap3Desc': 'Кепка MSI Bot Shop, вариант 3',
   },
   uz: {
-    shopTitle: "Telegram Do'kon",
+    shopTitle: "MSI Bot Shop",
     currency: '⭐',
     addToCart: 'Savatga',
     cart: 'Savat',
@@ -144,7 +144,7 @@ export const translations: Translations = {
     'products.cap3Desc': 'Kepka MSI Bot Shop, variant 3',
   },
   en: {
-    shopTitle: 'Telegram Shop',
+    shopTitle: 'MSI Bot Shop',
     currency: '⭐',
     addToCart: 'Add to Cart',
     cart: 'Cart',

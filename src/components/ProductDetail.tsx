@@ -18,15 +18,15 @@ export default function ProductDetail({ product, allProducts, onClose, onOpenPro
   const recommended = useMemo(() => {
     if (!product) return [];
     return allProducts
-      .filter((p) => p.id !== product!.id)
+      .filter((p) => p.id !== product.id)
       .sort(() => Math.random() - 0.5)
       .slice(0, 4);
   }, [product, allProducts]);
 
   if (!product) return null;
 
-  const displayName = product.name || t(product.nameKey);
-  const displayDesc = product.description || t(product.descKey);
+  const displayName = t(product.nameKey) || product.name;
+  const displayDesc = t(product.descKey) || product.description;
   const hasDiscount = product.discount && product.discount > 0;
   const discountedPrice = hasDiscount
     ? Math.round(product.price * (1 - product.discount! / 100))

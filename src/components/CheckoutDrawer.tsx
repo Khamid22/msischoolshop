@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +24,16 @@ export default function CheckoutDrawer() {
   const [address, setAddress] = useState(user?.address || '');
   const [delivery, setDelivery] = useState<DeliveryMethod>('courier');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isCheckoutOpen) {
+      setName(user?.name || '');
+      setPhone(user?.phone || '');
+      setAddress(user?.address || '');
+      setDelivery('courier');
+      setError('');
+    }
+  }, [isCheckoutOpen, user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

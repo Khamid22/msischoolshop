@@ -70,8 +70,8 @@
     top: 12px;
     left: 12px;
     padding: 5px 10px;
-    background: #e60012;
-    color: #fff;
+    background: var(--text);
+    color: var(--bg);
     font-size: 0.8rem;
     font-weight: 800;
     border-radius: 6px;
@@ -130,14 +130,14 @@
     color: var(--text);
 
     &--sale {
-      color: #e60012;
+      color: var(--accent);
     }
   }
 
   &__save {
     padding: 3px 8px;
-    background: rgba(230, 0, 18, 0.1);
-    color: #e60012;
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent);
     font-size: 0.72rem;
     font-weight: 700;
     border-radius: 4px;
@@ -229,8 +229,8 @@
     top: 2px;
     right: 2px;
     padding: 1px 4px;
-    background: #e60012;
-    color: #fff;
+    background: var(--text);
+    color: var(--bg);
     font-size: 0.55rem;
     font-weight: 800;
     border-radius: 3px;
@@ -272,7 +272,7 @@
     color: var(--text);
 
     &--sale {
-      color: #e60012;
+      color: var(--accent);
     }
   }
 

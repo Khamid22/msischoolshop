@@ -123,8 +123,8 @@
     top: 8px;
     right: 8px;
     padding: 3px 7px;
-    background: #e60012;
-    color: #fff;
+    background: var(--text);
+    color: var(--bg);
     font-size: 0.65rem;
     font-weight: 800;
     border-radius: 4px;
@@ -197,7 +197,7 @@
     color: var(--text);
 
     &--sale {
-      color: #e60012;
+      color: var(--accent);
     }
   }
 

@@ -36,10 +36,10 @@ export default function CartDrawer() {
                   <img
                     className="cart-item__img"
                     src={item.product.image}
-                    alt={t(item.product.nameKey)}
+                    alt={t(item.product.nameKey) || item.product.name}
                   />
                   <div className="cart-item__info">
-                    <span className="cart-item__name">{t(item.product.nameKey)}</span>
+                    <span className="cart-item__name">{t(item.product.nameKey) || item.product.name}</span>
                     <span className="cart-item__price">{t('currency')}{getDiscountedPrice(item.product)}</span>
                     <div className="cart-item__controls">
                       <button

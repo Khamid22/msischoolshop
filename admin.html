@@ -24,7 +24,7 @@
   <main class="admin">
 
     <!-- ADD / EDIT PRODUCT -->
-    <section class="admin-section">
+    <section class="admin-section" id="productFormSection" style="display:none;">
       <h2 class="admin-section__title">
         <span class="admin-section__icon" id="formIcon">＋</span>
         <span id="formTitle">Добавление товара</span>
@@ -126,7 +126,7 @@
     </section>
 
     <!-- ADD / EDIT BANNER -->
-    <section class="admin-section">
+    <section class="admin-section" id="bannerFormSection" style="display:none;">
       <h2 class="admin-section__title">
         <span class="admin-section__icon" id="bannerFormIcon">＋</span>
         <span id="bannerFormTitle">Добавление баннера</span>
@@ -168,7 +168,7 @@
             <label class="admin-form__label" for="bIcon">Иконка (эмодзи)</label>
             <input class="admin-form__input" type="text" id="bIcon" placeholder="💎" />
             <label class="admin-form__label" for="bAccent" style="margin-top:10px;">Цвет акцента</label>
-            <input class="admin-form__input" type="color" id="bAccent" value="#0088cc" style="height:42px;padding:4px;" />
+            <input class="admin-form__input" type="color" id="bAccent" value="#666666" style="height:42px;padding:4px;" />
           </div>
         </div>
         <div class="admin-form__row">
@@ -192,6 +192,7 @@
       <h2 class="admin-section__title">
         <span class="admin-section__icon">◧</span>
         Баннеры на главной
+        <button class="admin-section__add-btn" id="addBannerBtn" style="margin-left:auto;">＋ Добавить баннер</button>
       </h2>
       <div id="bannerList"></div>
     </section>
@@ -201,6 +202,7 @@
       <h2 class="admin-section__title">
         <span class="admin-section__icon">▦</span>
         Каталог товаров
+        <button class="admin-section__add-btn" id="addProductBtn" style="margin-left:auto;">＋ Добавить товар</button>
       </h2>
       <div class="admin-filters">
         <div class="admin-filters__search">
@@ -377,6 +379,7 @@
       switchFields('physical');
       updateDiscountPreview();
       clearUpload();
+      document.getElementById('productFormSection').style.display = 'none';
     }
 
     function startEdit(id) {
@@ -407,13 +410,15 @@
       formIcon.textContent = '✎';
       submitBtn.textContent = 'Сохранить';
       cancelBtn.style.display = 'inline-flex';
+      document.getElementById('productFormSection').style.display = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function deleteProduct(id) {
-      if (!confirm('Удалить товар?')) return;
-      apiSaveProducts(apiGetProducts().filter(function(p) { return p.id !== id; }));
-      renderCatalog();
+      showDeleteModal(function() {
+        apiSaveProducts(apiGetProducts().filter(function(p) { return p.id !== id; }));
+        renderCatalog();
+      });
     }
 
     /* ============ CATALOG ============ */
@@ -437,7 +442,7 @@
       var html = '';
       if (filtered.length) {
         html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
-        html += '<th>Название</th><th>Тип</th><th>Цена</th><th>Скидка</th><th>В карусели</th><th>Действия</th>';
+        html += '<th>' + 'Название' + '</th><th>' + 'Тип' + '</th><th>' + 'Цена' + '</th><th>' + 'Скидка' + '</th><th>' + 'В карусели' + '</th><th>' + 'Действия' + '</th>';
         html += '</tr></thead><tbody>';
         filtered.forEach(function(p) {
           var tag = p.type === 'digital'
@@ -461,14 +466,14 @@
           html += '<td>' + discountHtml + '</td>';
           html += '<td>' + (p.carousel ? '<span class="admin-table__check">✓</span>' : '—') + '</td>';
           html += '<td class="admin-table__actions">';
-          html += '<button class="admin-btn admin-btn--edit" data-action="edit" data-id="' + p.id + '">Редактировать</button>';
-          html += '<button class="admin-btn admin-btn--danger" data-action="delete" data-id="' + p.id + '">Удалить</button>';
+          html += '<button class="admin-btn admin-btn--edit" data-action="edit" data-id="' + p.id + '">' + 'Редактировать' + '</button>';
+          html += '<button class="admin-btn admin-btn--danger" data-action="delete" data-id="' + p.id + '">' + 'Удалить' + '</button>';
           html += '</td></tr>';
         });
         html += '</tbody></table></div>';
       }
 
-      document.getElementById('catalogCategories').innerHTML = html || '<div class="admin-empty">Нет товаров</div>';
+      document.getElementById('catalogCategories').innerHTML = html || '<div class="admin-empty">' + 'Нет товаров' + '</div>';
     }
 
     document.getElementById('catalogCategories').addEventListener('click', function(e) {
@@ -506,9 +511,9 @@
     /* ============ BANNER API ============ */
     var BANNER_KEY = 'msi_banners';
     var DEFAULT_BANNERS = [
-      { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#0088cc', icon: '💎', active: true },
-      { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#f59e0b', icon: '⭐', active: true },
-      { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#8b5cf6', icon: '👕', active: true },
+      { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#666666', icon: '💎', active: true },
+      { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: '⭐', active: true },
+      { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#333333', icon: '👕', active: true },
     ];
 
     function apiGetBanners() {
@@ -617,8 +622,9 @@
       bannerSubmitBtn.textContent = 'Добавить баннер';
       bannerCancelBtn.style.display = 'none';
       document.getElementById('bActive').checked = true;
-      document.getElementById('bAccent').value = '#0088cc';
+      document.getElementById('bAccent').value = '#666666';
       clearBannerUpload();
+      document.getElementById('bannerFormSection').style.display = 'none';
     }
 
     function startBannerEdit(id) {
@@ -637,19 +643,21 @@
         clearBannerUpload();
       }
       document.getElementById('bIcon').value = b.icon || '';
-      document.getElementById('bAccent').value = b.accent || '#0088cc';
+      document.getElementById('bAccent').value = b.accent || '#666666';
       document.getElementById('bActive').checked = b.active !== false;
       bannerFormTitle.textContent = 'Редактирование баннера';
       bannerFormIcon.textContent = '✎';
       bannerSubmitBtn.textContent = 'Сохранить';
       bannerCancelBtn.style.display = 'inline-flex';
+      document.getElementById('bannerFormSection').style.display = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function deleteBanner(id) {
-      if (!confirm('Удалить баннер?')) return;
-      apiSaveBanners(apiGetBanners().filter(function(b) { return b.id !== id; }));
-      renderBannerList();
+      showDeleteModal(function() {
+        apiSaveBanners(apiGetBanners().filter(function(b) { return b.id !== id; }));
+        renderBannerList();
+      });
     }
 
     /* ============ BANNER LIST ============ */
@@ -658,7 +666,7 @@
       var html = '';
       if (banners.length) {
         html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
-        html += '<th>Превью</th><th>Заголовок</th><th>Акцент</th><th>Статус</th><th>Действия</th>';
+          html += '<th>Превью</th><th>Заголовок</th><th>Цвет акцента</th><th>Статус</th><th>Действия</th>';
         html += '</tr></thead><tbody>';
         banners.forEach(function(b) {
           var statusHtml = b.active !== false
@@ -673,8 +681,8 @@
           html += '<td><span class="admin-color-dot" style="background:' + esc(b.accent) + '"></span></td>';
           html += '<td>' + statusHtml + '</td>';
           html += '<td class="admin-table__actions">';
-          html += '<button class="admin-btn admin-btn--edit" data-action="edit-banner" data-id="' + b.id + '">Редактировать</button>';
-          html += '<button class="admin-btn admin-btn--danger" data-action="delete-banner" data-id="' + b.id + '">Удалить</button>';
+          html += '<button class="admin-btn admin-btn--edit" data-action="edit-banner" data-id="' + b.id + '">' + 'Редактировать' + '</button>';
+          html += '<button class="admin-btn admin-btn--danger" data-action="delete-banner" data-id="' + b.id + '">' + 'Удалить' + '</button>';
           html += '</td></tr>';
         });
         html += '</tbody></table></div>';
@@ -691,8 +699,61 @@
     });
 
     /* ============ INIT ============ */
-    renderCatalog();
     renderBannerList();
+    renderCatalog();
+
+  </script>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="admin-modal" id="deleteModal">
+    <div class="admin-modal__overlay" id="deleteModalOverlay"></div>
+    <div class="admin-modal__content">
+      <div class="admin-modal__icon">🗑</div>
+      <h3 class="admin-modal__title">Удалить?</h3>
+      <p class="admin-modal__text">Это действие нельзя отменить</p>
+      <div class="admin-modal__btns">
+        <button class="admin-btn admin-btn--secondary" id="deleteCancelBtn">Отмена</button>
+        <button class="admin-btn admin-btn--danger" id="deleteConfirmBtn">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============ DELETE MODAL ============ */
+    var deleteModal = document.getElementById('deleteModal');
+    var deleteCallback = null;
+
+    function showDeleteModal(callback) {
+      deleteCallback = callback;
+      deleteModal.classList.add('admin-modal--visible');
+    }
+
+    function hideDeleteModal() {
+      deleteModal.classList.remove('admin-modal--visible');
+      deleteCallback = null;
+    }
+
+    document.getElementById('deleteConfirmBtn').addEventListener('click', function() {
+      var cb = deleteCallback;
+      hideDeleteModal();
+      if (cb) cb();
+    });
+
+    document.getElementById('deleteCancelBtn').addEventListener('click', hideDeleteModal);
+    document.getElementById('deleteModalOverlay').addEventListener('click', hideDeleteModal);
+
+    /* ============ ADD BUTTONS ============ */
+    document.getElementById('addProductBtn').addEventListener('click', function() {
+      resetForm();
+      document.getElementById('productFormSection').style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.getElementById('addBannerBtn').addEventListener('click', function() {
+      resetBannerForm();
+      document.getElementById('bannerFormSection').style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   </script>
 
 </body>

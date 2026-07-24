@@ -19,8 +19,8 @@
     top: 8px;
     right: 8px;
     padding: 4px 8px;
-    background: #e60012;
-    color: #fff;
+    background: var(--text);
+    color: var(--bg);
     font-size: 0.7rem;
     font-weight: 800;
     border-radius: 4px;
@@ -92,7 +92,7 @@
     flex-shrink: 0;
 
     &--sale {
-      color: #e60012;
+      color: var(--accent);
     }
   }
 

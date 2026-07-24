@@ -12,8 +12,8 @@ export default function ProductCard({ product, onOpen }: Props) {
   const { t } = useLang();
   const { addItem } = useCart();
 
-  const displayName = product.name || t(product.nameKey);
-  const displayDesc = product.description || t(product.descKey);
+  const displayName = t(product.nameKey) || product.name;
+  const displayDesc = t(product.descKey) || product.description;
   const hasDiscount = product.discount && product.discount > 0;
   const discountedPrice = hasDiscount
     ? Math.round(product.price * (1 - product.discount! / 100))

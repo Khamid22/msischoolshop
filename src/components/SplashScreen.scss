@@ -48,7 +48,7 @@
 
     &--m {
       animation-delay: 0.2s;
-      color: #e60012;
+      color: #ffffff;
     }
 
     &--s {
@@ -58,14 +58,14 @@
 
     &--i {
       animation-delay: 0.6s;
-      color: #e60012;
+      color: #ffffff;
     }
   }
 
   &__line {
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #e60012, #ffffff, #e60012);
+    background: linear-gradient(90deg, #ffffff, #666666, #ffffff);
     animation: splashLine 0.6s ease 0.8s forwards;
   }
 

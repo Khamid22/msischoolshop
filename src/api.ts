@@ -24,9 +24,9 @@ const DEFAULT_PRODUCTS: Product[] = [
 ];
 
 const DEFAULT_BANNERS: Banner[] = [
-  { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#0088cc', icon: '💎', active: true, productIds: ['tg-premium-6m', 'tg-premium-12m'] },
-  { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#f59e0b', icon: '⭐', active: true, productIds: ['tg-gift-25', 'tg-gift-50', 'tg-gift-150'] },
-  { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#8b5cf6', icon: '👕', active: true, productIds: ['tshirt-1', 'cap-1', 'cap-2', 'cap-3'] },
+  { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#666666', icon: '💎', active: true, productIds: ['tg-premium-6m', 'tg-premium-12m'] },
+  { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: '⭐', active: true, productIds: ['tg-gift-25', 'tg-gift-50', 'tg-gift-150'] },
+  { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#333333', icon: '👕', active: true, productIds: ['tshirt-1', 'cap-1', 'cap-2', 'cap-3'] },
 ];
 
 // ============================================================
