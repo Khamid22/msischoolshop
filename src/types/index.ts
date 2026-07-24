@@ -57,3 +57,15 @@ export interface Order {
 }
 
 export type DeliveryMethod = 'courier' | 'pickup' | 'post';
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  accent: string;
+  icon: string;
+  active: boolean;
+  productIds?: string[];
+}

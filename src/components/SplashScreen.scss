@@ -1,0 +1,136 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+
+  &--enter,
+  &--hold {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &--exit {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  &__back {
+    position: absolute;
+    inset: 0;
+    background: #0a0a0a;
+  }
+
+  &__content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__logo {
+    display: flex;
+    gap: 4px;
+  }
+
+  &__letter {
+    font-size: 5rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -2px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: splashLetter 0.5s ease forwards;
+
+    &--m {
+      animation-delay: 0.2s;
+      color: #e60012;
+    }
+
+    &--s {
+      animation-delay: 0.4s;
+      color: #ffffff;
+    }
+
+    &--i {
+      animation-delay: 0.6s;
+      color: #e60012;
+    }
+  }
+
+  &__line {
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #e60012, #ffffff, #e60012);
+    animation: splashLine 0.6s ease 0.8s forwards;
+  }
+
+  &__tagline {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: splashFade 0.5s ease 1.1s forwards;
+  }
+}
+
+@keyframes splashLetter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splashLine {
+  to {
+    width: 200px;
+  }
+}
+
+@keyframes splashFade {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .splash {
+    &__letter {
+      font-size: 3.5rem;
+      letter-spacing: -1px;
+    }
+
+    &__tagline {
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+    }
+
+    &__content {
+      gap: 10px;
+    }
+  }
+}
+
+@media (max-width: 320px) {
+  .splash {
+    &__letter {
+      font-size: 2.8rem;
+      letter-spacing: -0.5px;
+    }
+
+    &__tagline {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+    }
+
+    &__logo {
+      gap: 3px;
+    }
+  }
+}

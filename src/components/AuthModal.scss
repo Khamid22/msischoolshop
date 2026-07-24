@@ -164,6 +164,25 @@
   }
 }
 
+@media (max-width: 768px) {
+  .auth-modal {
+    width: 380px;
+
+    &__body {
+      padding: 14px;
+    }
+
+    &__tab {
+      padding: 6px 14px;
+      font-size: 0.78rem;
+    }
+  }
+
+  .auth-form {
+    gap: 10px;
+  }
+}
+
 @media (max-width: 480px) {
   .auth-modal {
     max-width: 100vw;

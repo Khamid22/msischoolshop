@@ -1,14 +1,28 @@
 import type { Product, FilterState } from '../types';
+import { useLang } from '../contexts/LangContext';
 import ProductCard from './ProductCard';
+import SkeletonCard from './SkeletonCard';
 import './ProductGrid.scss';
 
 interface Props {
   products: Product[];
   filters: FilterState;
+  loading: boolean;
   onOpenProduct: (product: Product) => void;
 }
 
-export default function ProductGrid({ products, filters, onOpenProduct }: Props) {
+export default function ProductGrid({ products, filters, loading, onOpenProduct }: Props) {
+  const { t } = useLang();
+  if (loading) {
+    return (
+      <section className="grid">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </section>
+    );
+  }
+
   const filtered = products.filter((product) => {
     if (filters.type !== 'all' && product.type !== filters.type) {
       return false;
@@ -40,7 +54,7 @@ export default function ProductGrid({ products, filters, onOpenProduct }: Props)
   return (
     <section className="grid">
       {filtered.length === 0 ? (
-        <div className="grid__empty">Товары не найдены</div>
+        <div className="grid__empty">{t('noProducts')}</div>
       ) : (
         filtered.map((product) => (
           <ProductCard key={product.id} product={product} onOpen={onOpenProduct} />

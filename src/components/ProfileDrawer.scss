@@ -190,6 +190,30 @@
   }
 }
 
+@media (max-width: 768px) {
+  .profile-drawer {
+    width: 360px;
+
+    &__header {
+      padding: 13px 15px;
+    }
+
+    &__avatar {
+      padding: 18px 15px 13px;
+    }
+
+    &__avatar-circle {
+      width: 52px;
+      height: 52px;
+      font-size: 1.3rem;
+    }
+  }
+
+  .profile-form {
+    padding: 15px;
+  }
+}
+
 @media (max-width: 480px) {
   .profile-drawer {
     width: 100%;

@@ -245,6 +245,29 @@
   }
 }
 
+@media (max-width: 768px) {
+  .cart-drawer {
+    width: 360px;
+
+    &__header {
+      padding: 13px 15px;
+    }
+
+    &__title {
+      font-size: 0.95rem;
+    }
+  }
+
+  .cart-item {
+    padding: 11px 15px;
+
+    &__img {
+      width: 52px;
+      height: 40px;
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .cart-drawer {
     width: 100%;

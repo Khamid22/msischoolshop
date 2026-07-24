@@ -1,4 +1,4 @@
-import type { Product } from './types';
+import type { Product, Banner } from './types';
 
 // ============================================================
 //  CONFIG — swap BASE_URL for your backend
@@ -23,6 +23,12 @@ const DEFAULT_PRODUCTS: Product[] = [
   { id: 'cap-3', image: '/images/cap-3.svg', price: 400, nameKey: 'products.cap3', descKey: 'products.cap3Desc', type: 'physical', name: 'Cap — Phantom', description: 'Кепка MSI Bot Shop, вариант 3.' },
 ];
 
+const DEFAULT_BANNERS: Banner[] = [
+  { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#0088cc', icon: '💎', active: true, productIds: ['tg-premium-6m', 'tg-premium-12m'] },
+  { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#f59e0b', icon: '⭐', active: true, productIds: ['tg-gift-25', 'tg-gift-50', 'tg-gift-150'] },
+  { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#8b5cf6', icon: '👕', active: true, productIds: ['tshirt-1', 'cap-1', 'cap-2', 'cap-3'] },
+];
+
 // ============================================================
 //  HELPERS (localStorage — replace with fetch when backend ready)
 // ============================================================
@@ -41,6 +47,22 @@ function seed() {
     lsSet('msi_products', DEFAULT_PRODUCTS);
     lsSet('msi_products_seeded', true);
   }
+  if (!lsGet('msi_banners_seeded', false)) {
+    lsSet('msi_banners', DEFAULT_BANNERS);
+    lsSet('msi_banners_seeded', true);
+  }
+
+  const stored = lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS);
+  const defaults = DEFAULT_BANNERS;
+  let changed = false;
+  for (const def of defaults) {
+    const s = stored.find((b) => b.id === def.id);
+    if (s && (!s.productIds || s.productIds.length === 0) && def.productIds && def.productIds.length > 0) {
+      s.productIds = def.productIds;
+      changed = true;
+    }
+  }
+  if (changed) lsSet('msi_banners', stored);
 }
 
 // ============================================================
@@ -79,6 +101,40 @@ export async function deleteProduct(id: string): Promise<void> {
   // TODO: fetch(`${API_URL}/products/${id}`, { method: 'DELETE' })
   const list = lsGet<Product[]>('msi_products', DEFAULT_PRODUCTS).filter((p) => p.id !== id);
   lsSet('msi_products', list);
+}
+
+// ============================================================
+//  BANNERS API
+// ============================================================
+
+export async function fetchBanners(): Promise<Banner[]> {
+  seed();
+  return lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS);
+}
+
+export async function createBanner(data: Omit<Banner, 'id'>): Promise<Banner> {
+  const banner: Banner = {
+    ...data,
+    id: 'banner-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+  };
+  const list = lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS);
+  list.push(banner);
+  lsSet('msi_banners', list);
+  return banner;
+}
+
+export async function updateBanner(id: string, data: Partial<Banner>): Promise<Banner | null> {
+  const list = lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS);
+  const idx = list.findIndex((b) => b.id === id);
+  if (idx === -1) return null;
+  list[idx] = { ...list[idx], ...data };
+  lsSet('msi_banners', list);
+  return list[idx];
+}
+
+export async function deleteBanner(id: string): Promise<void> {
+  const list = lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS).filter((b) => b.id !== id);
+  lsSet('msi_banners', list);
 }
 
 // ============================================================

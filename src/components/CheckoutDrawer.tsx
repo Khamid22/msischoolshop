@@ -50,11 +50,9 @@ export default function CheckoutDrawer() {
     });
   };
 
-  if (!isCheckoutOpen) return null;
-
   return (
     <>
-      <div className="checkout-overlay" onClick={closeCheckout} />
+      <div className={`checkout-overlay ${isCheckoutOpen ? 'checkout-overlay--open' : ''}`} onClick={closeCheckout} />
       <aside className={`checkout-drawer ${isCheckoutOpen ? 'checkout-drawer--open' : ''}`}>
         <div className="checkout-drawer__header">
           <h2 className="checkout-drawer__title">{t('checkoutTitle')}</h2>

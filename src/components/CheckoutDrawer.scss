@@ -226,6 +226,25 @@
   }
 }
 
+@media (max-width: 768px) {
+  .checkout-drawer {
+    width: 400px;
+
+    &__header {
+      padding: 13px 15px;
+    }
+  }
+
+  .checkout-form {
+    padding: 15px;
+
+    &__delivery-btn {
+      padding: 7px 5px;
+      font-size: 0.72rem;
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .checkout-drawer {
     width: 100%;

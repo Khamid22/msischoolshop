@@ -1,0 +1,313 @@
+.banner-skeleton {
+  position: relative;
+  width: 100%;
+  border-bottom: 2px solid var(--border);
+  overflow: hidden;
+
+  &__track {
+    position: relative;
+    width: 100%;
+    height: 180px;
+  }
+
+  &__slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 60px;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--border) 20%, transparent) 50%,
+        transparent 100%
+      );
+      animation: bannerSkeletonShimmer 1.5s infinite;
+    }
+  }
+
+  &__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--img-bg);
+    flex-shrink: 0;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--border) 30%, transparent) 50%,
+        transparent 100%
+      );
+      animation: bannerSkeletonShimmer 1.5s infinite;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  &__title,
+  &__subtitle,
+  &__desc {
+    border-radius: 4px;
+    background: var(--img-bg);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--border) 30%, transparent) 50%,
+        transparent 100%
+      );
+      animation: bannerSkeletonShimmer 1.5s infinite;
+    }
+  }
+
+  &__title {
+    width: 55%;
+    height: 22px;
+  }
+
+  &__subtitle {
+    width: 40%;
+    height: 14px;
+  }
+
+  &__desc {
+    width: 70%;
+    height: 12px;
+
+    &--short {
+      width: 45%;
+    }
+  }
+
+  &__dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--img-bg);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--border) 30%, transparent) 50%,
+        transparent 100%
+      );
+      animation: bannerSkeletonShimmer 1.5s infinite;
+    }
+  }
+}
+
+@keyframes bannerSkeletonShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .banner-skeleton {
+    &__track {
+      height: 160px;
+    }
+
+    &__content {
+      padding: 20px 48px;
+      gap: 16px;
+    }
+
+    &__icon {
+      width: 52px;
+      height: 52px;
+    }
+
+    &__title {
+      width: 50%;
+      height: 18px;
+    }
+
+    &__subtitle {
+      width: 35%;
+      height: 12px;
+    }
+
+    &__desc {
+      height: 10px;
+
+      &--short {
+        width: 40%;
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .banner-skeleton {
+    &__track {
+      height: 150px;
+    }
+
+    &__content {
+      padding: 16px 48px;
+      gap: 16px;
+    }
+
+    &__icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    &__title {
+      width: 50%;
+      height: 16px;
+    }
+
+    &__subtitle {
+      width: 35%;
+      height: 11px;
+    }
+
+    &__desc {
+      height: 10px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-skeleton {
+    &__track {
+      height: 130px;
+    }
+
+    &__content {
+      padding: 12px 40px;
+      gap: 12px;
+    }
+
+    &__icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    &__title {
+      width: 50%;
+      height: 14px;
+    }
+
+    &__subtitle {
+      width: 35%;
+      height: 10px;
+    }
+
+    &__desc {
+      height: 9px;
+    }
+
+    &__dots {
+      bottom: 6px;
+      gap: 6px;
+    }
+
+    &__dot {
+      width: 6px;
+      height: 6px;
+    }
+  }
+}
+
+@media (max-width: 320px) {
+  .banner-skeleton {
+    &__track {
+      height: 110px;
+    }
+
+    &__content {
+      padding: 10px 32px;
+      gap: 10px;
+    }
+
+    &__icon {
+      width: 30px;
+      height: 30px;
+    }
+
+    &__title {
+      width: 50%;
+      height: 12px;
+    }
+
+    &__subtitle {
+      width: 30%;
+      height: 9px;
+    }
+
+    &__desc {
+      height: 8px;
+
+      &--short {
+        width: 35%;
+      }
+    }
+
+    &__dots {
+      bottom: 4px;
+      gap: 5px;
+    }
+
+    &__dot {
+      width: 5px;
+      height: 5px;
+    }
+  }
+}

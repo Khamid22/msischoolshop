@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LangProvider } from './contexts/LangContext';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
+import SplashScreen from './components/SplashScreen';
 import Header from './components/Header';
+import Banner from './components/Banner';
+import BannerProductsModal from './components/BannerProductsModal';
 import ProductFilters from './components/ProductFilters';
 import ProductGrid from './components/ProductGrid';
 import ProductDetail from './components/ProductDetail';
@@ -13,7 +16,7 @@ import OrderSuccess from './components/OrderSuccess';
 import AuthModal from './components/AuthModal';
 import ProfileDrawer from './components/ProfileDrawer';
 import { fetchProducts } from './api';
-import type { Product, FilterState } from './types';
+import type { Product, FilterState, Banner as BannerType } from './types';
 import './styles/global.scss';
 
 const DEFAULT_FILTERS: FilterState = {
@@ -24,13 +27,24 @@ const DEFAULT_FILTERS: FilterState = {
 };
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedBanner, setSelectedBanner] = useState<BannerType | null>(null);
+
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+  }, []);
 
   useEffect(() => {
-    fetchProducts().then(setProducts);
-  }, []);
+    if (showSplash) return;
+    fetchProducts().then((data) => {
+      setProducts(data);
+      setLoading(false);
+    });
+  }, [showSplash]);
 
   const filteredCount = products.filter((product) => {
     if (filters.type !== 'all' && product.type !== filters.type) return false;
@@ -48,12 +62,21 @@ export default function App() {
     return true;
   }).length;
 
+  if (showSplash) {
+    return (
+      <ThemeProvider>
+        <SplashScreen onFinish={handleSplashFinish} />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider>
       <LangProvider>
         <CartProvider>
           <AuthProvider>
             <Header />
+            <Banner onBannerClick={setSelectedBanner} />
             <ProductFilters
               filters={filters}
               onChange={setFilters}
@@ -62,6 +85,7 @@ export default function App() {
             <ProductGrid
               products={products}
               filters={filters}
+              loading={loading}
               onOpenProduct={setSelectedProduct}
             />
             <ProductDetail
@@ -75,6 +99,12 @@ export default function App() {
             <OrderSuccess />
             <AuthModal />
             <ProfileDrawer />
+            <BannerProductsModal
+              banner={selectedBanner}
+              allProducts={products}
+              onClose={() => setSelectedBanner(null)}
+              onOpenProduct={(p) => { setSelectedBanner(null); setSelectedProduct(p); }}
+            />
           </AuthProvider>
         </CartProvider>
       </LangProvider>

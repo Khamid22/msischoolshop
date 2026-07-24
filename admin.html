@@ -125,6 +125,77 @@
       </form>
     </section>
 
+    <!-- ADD / EDIT BANNER -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon" id="bannerFormIcon">＋</span>
+        <span id="bannerFormTitle">Добавление баннера</span>
+      </h2>
+      <form class="admin-form" id="bannerForm">
+        <input type="hidden" id="bannerEditId" value="" />
+        <div class="admin-form__row">
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="bTitle">Заголовок</label>
+            <input class="admin-form__input" type="text" id="bTitle" placeholder="Telegram Premium" required />
+          </div>
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="bSubtitle">Подзаголовок</label>
+            <input class="admin-form__input" type="text" id="bSubtitle" placeholder="Подписка на 6 и 12 месяцев" required />
+          </div>
+        </div>
+        <div class="admin-form__field">
+          <label class="admin-form__label" for="bDesc">Описание</label>
+          <input class="admin-form__input" type="text" id="bDesc" placeholder="Получите все премиум-функции Telegram" />
+        </div>
+        <div class="admin-form__row">
+          <div class="admin-form__field">
+            <label class="admin-form__label">Фото баннера</label>
+            <div class="admin-upload" id="bannerUploadZone">
+              <input type="file" id="bImageFile" accept="image/*" class="admin-upload__input" />
+              <div class="admin-upload__dropzone" id="bannerUploadDropzone">
+                <span class="admin-upload__icon">📷</span>
+                <span class="admin-upload__text">Нажмите или перетащите фото</span>
+                <span class="admin-upload__hint">JPG, PNG, SVG — до 5 МБ</span>
+              </div>
+              <div class="admin-upload__preview" id="bannerUploadPreview" style="display:none;">
+                <img id="bannerUploadPreviewImg" class="admin-upload__preview-img" />
+                <button type="button" class="admin-upload__remove" id="bannerUploadRemove">✕</button>
+              </div>
+            </div>
+            <input type="hidden" id="bImage" value="" />
+          </div>
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="bIcon">Иконка (эмодзи)</label>
+            <input class="admin-form__input" type="text" id="bIcon" placeholder="💎" />
+            <label class="admin-form__label" for="bAccent" style="margin-top:10px;">Цвет акцента</label>
+            <input class="admin-form__input" type="color" id="bAccent" value="#0088cc" style="height:42px;padding:4px;" />
+          </div>
+        </div>
+        <div class="admin-form__row">
+          <div class="admin-form__field admin-form__field--checkbox">
+            <label class="admin-form__checkbox-label">
+              <input class="admin-form__checkbox" type="checkbox" id="bActive" checked />
+              <span class="admin-form__checkbox-custom"></span>
+              Активен (показывать на сайте)
+            </label>
+          </div>
+        </div>
+        <div class="admin-form__btns">
+          <button class="admin-btn admin-btn--primary" type="submit" id="bannerSubmitBtn">Добавить баннер</button>
+          <button class="admin-btn admin-btn--secondary" type="button" id="bannerCancelEdit" style="display:none;">Отмена</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- BANNER LIST -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon">◧</span>
+        Баннеры на главной
+      </h2>
+      <div id="bannerList"></div>
+    </section>
+
     <!-- CATALOG -->
     <section class="admin-section">
       <h2 class="admin-section__title">
@@ -432,8 +503,196 @@
     pDiscount.addEventListener('input', updateDiscountPreview);
     document.getElementById('pPrice').addEventListener('input', updateDiscountPreview);
 
+    /* ============ BANNER API ============ */
+    var BANNER_KEY = 'msi_banners';
+    var DEFAULT_BANNERS = [
+      { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#0088cc', icon: '💎', active: true },
+      { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#f59e0b', icon: '⭐', active: true },
+      { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#8b5cf6', icon: '👕', active: true },
+    ];
+
+    function apiGetBanners() {
+      var stored = localStorage.getItem(BANNER_KEY);
+      if (!stored) {
+        localStorage.setItem(BANNER_KEY, JSON.stringify(DEFAULT_BANNERS));
+        return DEFAULT_BANNERS.slice();
+      }
+      try { return JSON.parse(stored) || []; } catch { return []; }
+    }
+    function apiSaveBanners(l) { localStorage.setItem(BANNER_KEY, JSON.stringify(l)); }
+
+    /* ============ BANNER IMAGE UPLOAD ============ */
+    var bannerUploadInput = document.getElementById('bImageFile');
+    var bannerUploadDropzone = document.getElementById('bannerUploadDropzone');
+    var bannerUploadPreview = document.getElementById('bannerUploadPreview');
+    var bannerUploadPreviewImg = document.getElementById('bannerUploadPreviewImg');
+    var bannerUploadRemove = document.getElementById('bannerUploadRemove');
+    var bImageHidden = document.getElementById('bImage');
+
+    function handleBannerFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой (макс. 5 МБ)'); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        bImageHidden.value = e.target.result;
+        bannerUploadPreviewImg.src = e.target.result;
+        bannerUploadDropzone.style.display = 'none';
+        bannerUploadPreview.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    bannerUploadInput.addEventListener('change', function() {
+      if (bannerUploadInput.files && bannerUploadInput.files[0]) handleBannerFile(bannerUploadInput.files[0]);
+    });
+    bannerUploadDropzone.addEventListener('click', function() { bannerUploadInput.click(); });
+    bannerUploadDropzone.addEventListener('dragover', function(e) { e.preventDefault(); bannerUploadDropzone.classList.add('admin-upload__dropzone--hover'); });
+    bannerUploadDropzone.addEventListener('dragleave', function() { bannerUploadDropzone.classList.remove('admin-upload__dropzone--hover'); });
+    bannerUploadDropzone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      bannerUploadDropzone.classList.remove('admin-upload__dropzone--hover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleBannerFile(e.dataTransfer.files[0]);
+    });
+    bannerUploadRemove.addEventListener('click', function() {
+      bImageHidden.value = '';
+      bannerUploadInput.value = '';
+      bannerUploadPreviewImg.src = '';
+      bannerUploadDropzone.style.display = '';
+      bannerUploadPreview.style.display = 'none';
+    });
+
+    function clearBannerUpload() {
+      bImageHidden.value = '';
+      bannerUploadInput.value = '';
+      bannerUploadPreviewImg.src = '';
+      bannerUploadDropzone.style.display = '';
+      bannerUploadPreview.style.display = 'none';
+    }
+
+    /* ============ BANNER FORM ============ */
+    var bannerForm = document.getElementById('bannerForm');
+    var bannerEditId = document.getElementById('bannerEditId');
+    var bannerFormTitle = document.getElementById('bannerFormTitle');
+    var bannerFormIcon = document.getElementById('bannerFormIcon');
+    var bannerSubmitBtn = document.getElementById('bannerSubmitBtn');
+    var bannerCancelBtn = document.getElementById('bannerCancelEdit');
+
+    bannerForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var data = {
+        title: document.getElementById('bTitle').value.trim(),
+        subtitle: document.getElementById('bSubtitle').value.trim(),
+        description: document.getElementById('bDesc').value.trim(),
+        image: bImageHidden.value.trim(),
+        icon: document.getElementById('bIcon').value.trim() || '🏷',
+        accent: document.getElementById('bAccent').value,
+        active: document.getElementById('bActive').checked
+      };
+
+      if (!data.title) { alert('Введите заголовок'); return; }
+      if (!data.subtitle) { alert('Введите подзаголовок'); return; }
+
+      var list = apiGetBanners();
+
+      if (bannerEditId.value) {
+        var idx = list.findIndex(function(b) { return b.id === bannerEditId.value; });
+        if (idx !== -1) Object.assign(list[idx], data);
+      } else {
+        data.id = 'banner-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        list.push(data);
+      }
+
+      apiSaveBanners(list);
+      resetBannerForm();
+      renderBannerList();
+    });
+
+    bannerCancelBtn.addEventListener('click', resetBannerForm);
+
+    function resetBannerForm() {
+      bannerForm.reset();
+      bannerEditId.value = '';
+      bannerFormTitle.textContent = 'Добавление баннера';
+      bannerFormIcon.textContent = '＋';
+      bannerSubmitBtn.textContent = 'Добавить баннер';
+      bannerCancelBtn.style.display = 'none';
+      document.getElementById('bActive').checked = true;
+      document.getElementById('bAccent').value = '#0088cc';
+      clearBannerUpload();
+    }
+
+    function startBannerEdit(id) {
+      var b = apiGetBanners().find(function(x) { return x.id === id; });
+      if (!b) return;
+      bannerEditId.value = b.id;
+      document.getElementById('bTitle').value = b.title || '';
+      document.getElementById('bSubtitle').value = b.subtitle || '';
+      document.getElementById('bDesc').value = b.description || '';
+      bImageHidden.value = b.image || '';
+      if (b.image) {
+        bannerUploadPreviewImg.src = b.image;
+        bannerUploadDropzone.style.display = 'none';
+        bannerUploadPreview.style.display = 'flex';
+      } else {
+        clearBannerUpload();
+      }
+      document.getElementById('bIcon').value = b.icon || '';
+      document.getElementById('bAccent').value = b.accent || '#0088cc';
+      document.getElementById('bActive').checked = b.active !== false;
+      bannerFormTitle.textContent = 'Редактирование баннера';
+      bannerFormIcon.textContent = '✎';
+      bannerSubmitBtn.textContent = 'Сохранить';
+      bannerCancelBtn.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteBanner(id) {
+      if (!confirm('Удалить баннер?')) return;
+      apiSaveBanners(apiGetBanners().filter(function(b) { return b.id !== id; }));
+      renderBannerList();
+    }
+
+    /* ============ BANNER LIST ============ */
+    function renderBannerList() {
+      var banners = apiGetBanners();
+      var html = '';
+      if (banners.length) {
+        html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
+        html += '<th>Превью</th><th>Заголовок</th><th>Акцент</th><th>Статус</th><th>Действия</th>';
+        html += '</tr></thead><tbody>';
+        banners.forEach(function(b) {
+          var statusHtml = b.active !== false
+            ? '<span class="admin-tag admin-tag--physical">Активен</span>'
+            : '<span class="admin-tag admin-tag--digital">Скрыт</span>';
+          var imgHtml = b.image
+            ? '<img class="admin-banner-thumb" src="' + esc(b.image) + '" alt="" />'
+            : '<span class="admin-banner-noimg">' + esc(b.icon || '🏷') + '</span>';
+          html += '<tr>';
+          html += '<td>' + imgHtml + '</td>';
+          html += '<td class="admin-table__name">' + esc(b.icon || '') + ' ' + esc(b.title) + '<br><small style="color:var(--text-muted)">' + esc(b.subtitle) + '</small></td>';
+          html += '<td><span class="admin-color-dot" style="background:' + esc(b.accent) + '"></span></td>';
+          html += '<td>' + statusHtml + '</td>';
+          html += '<td class="admin-table__actions">';
+          html += '<button class="admin-btn admin-btn--edit" data-action="edit-banner" data-id="' + b.id + '">Редактировать</button>';
+          html += '<button class="admin-btn admin-btn--danger" data-action="delete-banner" data-id="' + b.id + '">Удалить</button>';
+          html += '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      document.getElementById('bannerList').innerHTML = html || '<div class="admin-empty">Нет баннеров</div>';
+    }
+
+    document.getElementById('bannerList').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      if (btn.dataset.action === 'edit-banner') startBannerEdit(btn.dataset.id);
+      if (btn.dataset.action === 'delete-banner') deleteBanner(btn.dataset.id);
+    });
+
     /* ============ INIT ============ */
     renderCatalog();
+    renderBannerList();
   </script>
 
 </body>

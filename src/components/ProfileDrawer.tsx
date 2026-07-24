@@ -23,8 +23,6 @@ export default function ProfileDrawer() {
     }
   }, [user, isProfileOpen]);
 
-  if (!isProfileOpen || !user) return null;
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({ name: name.trim(), email: email.trim(), phone: phone.trim(), address: address.trim() });
@@ -34,13 +32,15 @@ export default function ProfileDrawer() {
 
   return (
     <>
-      <div className="profile-overlay" onClick={closeProfile} />
+      <div className={`profile-overlay ${isProfileOpen ? 'profile-overlay--open' : ''}`} onClick={closeProfile} />
       <aside className={`profile-drawer ${isProfileOpen ? 'profile-drawer--open' : ''}`}>
         <div className="profile-drawer__header">
           <h2 className="profile-drawer__title">{t('myProfile')}</h2>
           <button className="profile-drawer__close" onClick={closeProfile}>✕</button>
         </div>
 
+        {user && (
+        <>
         <div className="profile-drawer__avatar">
           <div className="profile-drawer__avatar-circle">
             {user.name.charAt(0).toUpperCase()}
@@ -95,6 +95,8 @@ export default function ProfileDrawer() {
             {t('logout')}
           </button>
         </form>
+        </>
+        )}
       </aside>
     </>
   );

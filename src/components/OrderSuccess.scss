@@ -88,6 +88,21 @@
   }
 }
 
+@media (max-width: 768px) {
+  .success-modal {
+    width: 380px;
+    padding: 24px 20px;
+
+    &__title {
+      font-size: 1.15rem;
+    }
+
+    &__subtitle {
+      font-size: 0.85rem;
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .success-modal {
     max-width: 100vw;

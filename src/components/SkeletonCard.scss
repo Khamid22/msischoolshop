@@ -1,0 +1,194 @@
+.skeleton {
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card-bg);
+
+  &__image {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: var(--img-bg);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--border) 30%, transparent) 50%,
+        transparent 100%
+      );
+      animation: skeletonShimmer 1.5s infinite;
+    }
+  }
+
+  &__body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__title,
+  &__desc,
+  &__price,
+  &__btn {
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--border) 30%, transparent) 50%,
+        transparent 100%
+      );
+      animation: skeletonShimmer 1.5s infinite;
+    }
+  }
+
+  &__title {
+    width: 70%;
+    height: 16px;
+    background: var(--img-bg);
+  }
+
+  &__desc {
+    width: 100%;
+    height: 12px;
+    background: var(--img-bg);
+
+    &--short {
+      width: 55%;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  &__price {
+    width: 60px;
+    height: 20px;
+    background: var(--img-bg);
+  }
+
+  &__btn {
+    width: 70px;
+    height: 30px;
+    background: var(--img-bg);
+    border-radius: 6px;
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 960px) {
+  .skeleton {
+    &__body {
+      padding: 12px;
+    }
+
+    &__title {
+      height: 15px;
+    }
+
+    &__desc {
+      height: 11px;
+    }
+
+    &__btn {
+      height: 28px;
+      width: 65px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .skeleton {
+    &__body {
+      padding: 10px;
+    }
+
+    &__title {
+      height: 14px;
+    }
+
+    &__desc {
+      height: 10px;
+    }
+
+    &__btn {
+      height: 26px;
+      width: 60px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton {
+    border-width: 1px;
+
+    &__body {
+      padding: 8px;
+      gap: 6px;
+    }
+
+    &__title {
+      height: 13px;
+    }
+
+    &__desc {
+      height: 9px;
+    }
+
+    &__btn {
+      height: 24px;
+      width: 55px;
+    }
+  }
+}
+
+@media (max-width: 320px) {
+  .skeleton {
+    &__body {
+      padding: 6px;
+      gap: 5px;
+    }
+
+    &__title {
+      height: 11px;
+    }
+
+    &__desc {
+      height: 7px;
+    }
+
+    &__price {
+      height: 14px;
+      width: 44px;
+    }
+
+    &__btn {
+      height: 20px;
+      width: 46px;
+    }
+  }
+}

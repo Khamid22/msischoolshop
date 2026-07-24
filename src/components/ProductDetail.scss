@@ -315,6 +315,53 @@
   }
 }
 
+@media (max-width: 768px) {
+  .detail {
+    width: 92vw;
+    max-width: 480px;
+    border-radius: 10px;
+
+    &__body {
+      padding: 18px;
+      gap: 10px;
+    }
+
+    &__title {
+      font-size: 1.2rem;
+    }
+
+    &__desc {
+      font-size: 0.85rem;
+    }
+
+    &__price {
+      font-size: 1.35rem;
+    }
+
+    &__add-btn {
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
+    &__recommended {
+      padding: 14px 18px 18px;
+    }
+
+    &__rec-grid {
+      gap: 8px;
+    }
+
+    &__rec-card {
+      padding: 7px;
+    }
+
+    &__rec-img-wrap {
+      width: 48px;
+      height: 48px;
+    }
+  }
+}
+
 @media (max-width: 540px) {
   .detail {
     width: 95vw;
