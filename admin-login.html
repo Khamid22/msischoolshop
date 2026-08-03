@@ -52,9 +52,6 @@
   <script>
     var AUTH_KEY = 'msi_admin_auth';
     var ADMIN_PASSWORD = '123456789';
-    if (localStorage.getItem(AUTH_KEY) === '1') {
-      window.location.href = '/admin.html';
-    }
 
     var form = document.getElementById('loginForm');
     var input = document.getElementById('adminPassword');
@@ -68,7 +65,7 @@
       error.style.display = 'none';
 
       if (input.value === ADMIN_PASSWORD) {
-        localStorage.setItem(AUTH_KEY, '1');
+        sessionStorage.setItem(AUTH_KEY, '1');
         window.location.href = '/admin.html';
       } else {
         error.style.display = 'block';

@@ -381,7 +381,7 @@
 
   <script>
     /* ============ AUTH ============ */
-    if (localStorage.getItem('msi_admin_auth') !== '1') {
+    if (sessionStorage.getItem('msi_admin_auth') !== '1') {
       window.location.href = '/admin-login.html';
     }
 
@@ -400,7 +400,7 @@
       }
     }
     function apiSaveProducts(l){ return lsSetSafe(STORE_KEY, l); }
-    function apiLogout()       { localStorage.removeItem(AUTH_KEY); window.location.href = '/admin-login.html'; }
+    function apiLogout()       { sessionStorage.removeItem(AUTH_KEY); window.location.href = '/admin-login.html'; }
 
     /* ============ THEME ============ */
     var themeBtn = document.getElementById('themeToggle');
