@@ -47,6 +47,8 @@ export default function Banner({ onBannerClick }: Props) {
 
   if (slides.length === 0) return null;
 
+  const hasText = (s: BannerType) => !!(s.title || s.subtitle || s.description);
+
   return (
     <div
       className="banner"
@@ -61,16 +63,18 @@ export default function Banner({ onBannerClick }: Props) {
             style={{ '--slide-accent': slide.accent } as React.CSSProperties}
             onClick={() => onBannerClick?.(slide)}
           >
-            <div className="banner__content">
+            <div className={`banner__content ${hasText(slide) ? 'banner__content--text' : 'banner__content--image-only'}`}>
               {slide.image ? (
                 <img className="banner__bg-image" src={slide.image} alt="" />
               ) : null}
-              <span className="banner__icon">{slide.icon}</span>
-              <div className="banner__text">
-                <h2 className="banner__title">{slide.title}</h2>
-                <p className="banner__subtitle">{slide.subtitle}</p>
-                <p className="banner__description">{slide.description}</p>
-              </div>
+              {slide.icon && <span className="banner__icon">{slide.icon}</span>}
+              {hasText(slide) && (
+                <div className="banner__text">
+                  {slide.title && <h2 className="banner__title">{slide.title}</h2>}
+                  {slide.subtitle && <p className="banner__subtitle">{slide.subtitle}</p>}
+                  {slide.description && <p className="banner__description">{slide.description}</p>}
+                </div>
+              )}
             </div>
           </div>
         ))}

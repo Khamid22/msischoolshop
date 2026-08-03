@@ -1,9 +1,11 @@
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
+import { useAuth } from '../contexts/AuthContext';
 import './OrderSuccess.scss';
 
 export default function OrderSuccess() {
   const { lastOrder, closeSuccess } = useCart();
+  const { user } = useAuth();
   const { t } = useLang();
 
   if (!lastOrder) return null;
@@ -20,7 +22,10 @@ export default function OrderSuccess() {
           {t('orderSuccessSubtitle')} {lastOrder.customerPhone}.
         </p>
         <p className="success-modal__sum">
-          {t('orderSuccessSum')} {lastOrder.totalPrice} ⭐.
+          {t('orderSuccessSum')} {lastOrder.totalPrice} {t('currency')}.
+        </p>
+        <p className="success-modal__balance">
+          {t('balance')}: {t('currency')} {user?.balance ?? 0}
         </p>
         <button className="success-modal__btn" onClick={closeSuccess}>
           {t('close')}

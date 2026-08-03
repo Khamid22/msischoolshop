@@ -1,5 +1,19 @@
 export type Language = 'ru' | 'uz' | 'en';
 
+export type View = 'shop' | 'catalog' | 'news';
+
+export type NotificationType = 'welcome' | 'spend' | 'topup';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  amount: number;
+  note?: string;
+  createdAt: string;
+  read: boolean;
+}
+
 export type Theme = 'light' | 'dark';
 
 export interface Product {
@@ -43,6 +57,8 @@ export interface User {
   email: string;
   phone: string;
   address: string;
+  avatar?: string;
+  balance: number;
 }
 
 export interface Order {
@@ -54,6 +70,8 @@ export interface Order {
   deliveryAddress: string;
   deliveryMethod: DeliveryMethod;
   createdAt: string;
+  userId?: string;
+  customerEmail?: string;
 }
 
 export type DeliveryMethod = 'courier' | 'pickup' | 'post';
@@ -68,4 +86,13 @@ export interface Banner {
   icon: string;
   active: boolean;
   productIds?: string[];
+}
+
+export interface News {
+  id: string;
+  title: string;
+  description: string;
+  image?: string;
+  date: string;
+  active: boolean;
 }

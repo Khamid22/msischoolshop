@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
+import { coinsToSum } from '../utils/currency';
 import type { DeliveryMethod, Product } from '../types';
 import './CheckoutDrawer.scss';
 
@@ -18,6 +19,8 @@ export default function CheckoutDrawer() {
   const { items, isCheckoutOpen, closeCheckout, submitOrder, totalPrice } = useCart();
   const { user } = useAuth();
   const { t } = useLang();
+
+  const insufficient = !!user && user.balance < totalPrice;
 
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -52,12 +55,15 @@ export default function CheckoutDrawer() {
       return;
     }
 
-    submitOrder({
+    const ok = submitOrder({
       customerName: name.trim(),
       customerPhone: phone.trim(),
       deliveryAddress: delivery === 'pickup' ? t('deliveryPickupPoint') : address.trim(),
       deliveryMethod: delivery,
     });
+    if (!ok) {
+      setError(t('insufficientBalance'));
+    }
   };
 
   return (
@@ -83,9 +89,25 @@ export default function CheckoutDrawer() {
             ))}
             <div className="checkout-form__summary-total">
               <span>{t('total')}</span>
-              <span>{t('currency')}{totalPrice}</span>
+              <span>
+                <small className="checkout-form__summary-sum">≈ {coinsToSum(totalPrice)}</small>{' '}
+                {t('currency')}{totalPrice}
+              </span>
             </div>
+            {user && (
+              <div className={`checkout-form__summary-balance ${insufficient ? 'checkout-form__summary-balance--low' : ''}`}>
+                <span>{t('balance')}</span>
+                <span>
+                  <small className="checkout-form__summary-sum">≈ {coinsToSum(user.balance)}</small>{' '}
+                  {t('currency')} {user.balance}
+                </span>
+              </div>
+            )}
           </div>
+
+          {insufficient && (
+            <div className="checkout-form__insufficient">{t('insufficientBalance')}</div>
+          )}
 
           <div className="checkout-form__fields">
             <label className="checkout-form__label">
@@ -143,7 +165,7 @@ export default function CheckoutDrawer() {
 
           {error && <span className="checkout-form__error">{error}</span>}
 
-          <button className="checkout-form__submit" type="submit">
+          <button className="checkout-form__submit" type="submit" disabled={insufficient}>
             {t('placeOrder')} — {t('currency')}{totalPrice}
           </button>
         </form>

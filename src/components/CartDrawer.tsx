@@ -1,5 +1,6 @@
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
+import { coinsToSum } from '../utils/currency';
 import './CartDrawer.scss';
 
 function getDiscountedPrice(product: { price: number; discount?: number }): number {
@@ -70,7 +71,10 @@ export default function CartDrawer() {
             <div className="cart-drawer__footer">
               <div className="cart-drawer__total">
                 <span>{t('total')}</span>
-                <span className="cart-drawer__total-price">{t('currency')}{totalPrice}</span>
+                <span className="cart-drawer__total-right">
+                  <span className="cart-drawer__total-sum">≈ {coinsToSum(totalPrice)}</span>
+                  <span className="cart-drawer__total-price">{t('currency')}{totalPrice}</span>
+                </span>
               </div>
               <button className="cart-drawer__checkout" onClick={openCheckout}>{t('checkout')}</button>
               <button className="cart-drawer__clear" onClick={clearCart}>

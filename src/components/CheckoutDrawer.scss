@@ -120,6 +120,37 @@
     margin-top: 4px;
   }
 
+  &__summary-sum {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  &__summary-balance {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+    border-top: 1px dashed var(--border);
+    padding-top: 8px;
+
+    &--low {
+      color: var(--text-muted);
+    }
+  }
+
+  &__insufficient {
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: var(--hover);
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
   &__fields {
     display: flex;
     flex-direction: column;
@@ -222,6 +253,12 @@
 
     &:hover {
       opacity: 0.85;
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
     }
   }
 }

@@ -7,7 +7,7 @@
   &__track {
     position: relative;
     width: 100%;
-    height: 180px;
+    height: 240px;
   }
 
   &__slide {
@@ -159,7 +159,7 @@
 @media (max-width: 768px) {
   .banner-skeleton {
     &__track {
-      height: 160px;
+      height: 200px;
     }
 
     &__content {
@@ -195,7 +195,7 @@
 @media (max-width: 640px) {
   .banner-skeleton {
     &__track {
-      height: 150px;
+      height: 180px;
     }
 
     &__content {
@@ -227,7 +227,7 @@
 @media (max-width: 480px) {
   .banner-skeleton {
     &__track {
-      height: 130px;
+      height: 160px;
     }
 
     &__content {
@@ -269,7 +269,7 @@
 @media (max-width: 320px) {
   .banner-skeleton {
     &__track {
-      height: 110px;
+      height: 140px;
     }
 
     &__content {

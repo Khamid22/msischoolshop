@@ -56,8 +56,13 @@ export default function ProductGrid({ products, filters, loading, onOpenProduct 
       {filtered.length === 0 ? (
         <div className="grid__empty">{t('noProducts')}</div>
       ) : (
-        filtered.map((product) => (
-          <ProductCard key={product.id} product={product} onOpen={onOpenProduct} />
+        filtered.map((product, i) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onOpen={onOpenProduct}
+            enterDelay={Math.min(i * 45, 450)}
+          />
         ))
       )}
     </section>

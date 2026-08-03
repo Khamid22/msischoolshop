@@ -1,6 +1,8 @@
 import type { Product, Banner } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import FavoriteButton from './FavoriteButton';
 import './BannerProductsModal.scss';
 
 interface Props {
@@ -13,6 +15,15 @@ interface Props {
 export default function BannerProductsModal({ banner, allProducts, onClose, onOpenProduct }: Props) {
   const { t } = useLang();
   const { addItem } = useCart();
+  const { user, openAuth } = useAuth();
+
+  const handleAdd = (product: Product) => {
+    if (!user) {
+      openAuth();
+      return;
+    }
+    addItem(product);
+  };
 
   if (!banner) return null;
 
@@ -25,10 +36,10 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
       <div className="banner-modal-overlay" onClick={onClose} />
       <div className="banner-modal">
         <div className="banner-modal__header" style={{ '--modal-accent': banner.accent } as React.CSSProperties}>
-          <span className="banner-modal__icon">{banner.icon}</span>
+          {banner.icon && <span className="banner-modal__icon">{banner.icon}</span>}
           <div className="banner-modal__title-wrap">
-            <h2 className="banner-modal__title">{banner.title}</h2>
-            <p className="banner-modal__subtitle">{banner.subtitle}</p>
+            <h2 className="banner-modal__title">{banner.title || t('shopTitle')}</h2>
+            {banner.subtitle && <p className="banner-modal__subtitle">{banner.subtitle}</p>}
           </div>
           <button className="banner-modal__close" onClick={onClose}>✕</button>
         </div>
@@ -54,6 +65,7 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
                   {hasDiscount && (
                     <div className="banner-modal__badge">-{product.discount}%</div>
                   )}
+                  <FavoriteButton product={product} />
                   <div className="banner-modal__img-wrap">
                     <img className="banner-modal__img" src={product.image} alt={displayName} loading="lazy" />
                   </div>
@@ -71,7 +83,7 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
                       </div>
                       <button
                         className="banner-modal__btn"
-                        onClick={(e) => { e.stopPropagation(); addItem(product); }}
+                        onClick={(e) => { e.stopPropagation(); handleAdd(product); }}
                       >
                         {t('addToCart')}
                       </button>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Product, CartItem, Order, DeliveryMethod } from '../types';
+import { useAuth } from './AuthContext';
 
 function getDiscountedPrice(product: Product): number {
   if (product.discount && product.discount > 0) {
@@ -27,7 +28,7 @@ interface CartContextType {
     customerPhone: string;
     deliveryAddress: string;
     deliveryMethod: DeliveryMethod;
-  }) => void;
+  }) => boolean;
   closeSuccess: () => void;
   totalItems: number;
   totalPrice: number;
@@ -44,6 +45,7 @@ function saveOrder(order: Order) {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user, spendStars } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -91,13 +93,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     deliveryAddress: string;
     deliveryMethod: DeliveryMethod;
   }) => {
+    if (!user) return false;
+    const totalPrice = items.reduce((sum, i) => sum + getDiscountedPrice(i.product) * i.quantity, 0);
+    if (user.balance < totalPrice) return false;
+
     const order: Order = {
       id: crypto.randomUUID(),
       items: [...items],
-      totalPrice: items.reduce((sum, i) => sum + getDiscountedPrice(i.product) * i.quantity, 0),
+      totalPrice,
       ...data,
+      userId: user.id,
+      customerEmail: user.email,
       createdAt: new Date().toISOString(),
     };
+
+    if (!spendStars(totalPrice, items.map((i) => (i.product.name || i.product.nameKey)).join(', '))) return false;
 
     saveOrder(order);
     console.log('📦 Order submitted:', order);
@@ -112,7 +122,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLastOrder(order);
     setItems([]);
     setIsCheckoutOpen(false);
-  }, [items]);
+    return true;
+  }, [items, user, spendStars]);
 
   const closeSuccess = useCallback(() => {
     setLastOrder(null);

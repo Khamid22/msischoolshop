@@ -1,0 +1,51 @@
+.fav-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: var(--hover);
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.85);
+  }
+
+  &--active {
+    color: #ff4d6d;
+    border-color: #ff4d6d;
+    animation: heartPop 0.35s ease;
+  }
+}
+
+@keyframes heartPop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .fav-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+    border-width: 1px;
+    top: 6px;
+    left: 6px;
+  }
+}

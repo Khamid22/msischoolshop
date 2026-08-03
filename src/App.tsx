@@ -3,20 +3,23 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { LangProvider } from './contexts/LangContext';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 import SplashScreen from './components/SplashScreen';
 import Header from './components/Header';
-import Banner from './components/Banner';
-import BannerProductsModal from './components/BannerProductsModal';
-import ProductFilters from './components/ProductFilters';
-import ProductGrid from './components/ProductGrid';
+import ShopPage from './components/ShopPage';
+import CatalogPage from './components/CatalogPage';
+import NewsPage from './components/NewsPage';
 import ProductDetail from './components/ProductDetail';
 import CartDrawer from './components/CartDrawer';
+import FavoritesDrawer from './components/FavoritesDrawer';
 import CheckoutDrawer from './components/CheckoutDrawer';
 import OrderSuccess from './components/OrderSuccess';
 import AuthModal from './components/AuthModal';
 import ProfileDrawer from './components/ProfileDrawer';
+import BannerProductsModal from './components/BannerProductsModal';
 import { fetchProducts } from './api';
-import type { Product, FilterState, Banner as BannerType } from './types';
+import type { Product, FilterState, Banner as BannerType, View } from './types';
 import './styles/global.scss';
 
 const DEFAULT_FILTERS: FilterState = {
@@ -33,6 +36,7 @@ export default function App() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<BannerType | null>(null);
+  const [view, setView] = useState<View>('shop');
 
   const handleSplashFinish = useCallback(() => {
     setShowSplash(false);
@@ -46,22 +50,6 @@ export default function App() {
     });
   }, [showSplash]);
 
-  const filteredCount = products.filter((product) => {
-    if (filters.type !== 'all' && product.type !== filters.type) return false;
-    const price = product.discount && product.discount > 0
-      ? Math.round(product.price * (1 - product.discount / 100))
-      : product.price;
-    if (filters.minPrice > 0 && price < filters.minPrice) return false;
-    if (filters.maxPrice > 0 && price > filters.maxPrice) return false;
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      const name = (product.name || '').toLowerCase();
-      const desc = (product.description || '').toLowerCase();
-      if (!name.includes(q) && !desc.includes(q)) return false;
-    }
-    return true;
-  }).length;
-
   if (showSplash) {
     return (
       <ThemeProvider>
@@ -73,40 +61,54 @@ export default function App() {
   return (
     <ThemeProvider>
       <LangProvider>
-        <CartProvider>
-          <AuthProvider>
-            <Header />
-            <Banner onBannerClick={setSelectedBanner} />
-            <ProductFilters
-              filters={filters}
-              onChange={setFilters}
-              productCount={filteredCount}
-            />
-            <ProductGrid
-              products={products}
-              filters={filters}
-              loading={loading}
-              onOpenProduct={setSelectedProduct}
-            />
-            <ProductDetail
-              product={selectedProduct}
-              allProducts={products}
-              onClose={() => setSelectedProduct(null)}
-              onOpenProduct={setSelectedProduct}
-            />
-            <CartDrawer />
-            <CheckoutDrawer />
-            <OrderSuccess />
-            <AuthModal />
-            <ProfileDrawer />
-            <BannerProductsModal
-              banner={selectedBanner}
-              allProducts={products}
-              onClose={() => setSelectedBanner(null)}
-              onOpenProduct={(p) => { setSelectedBanner(null); setSelectedProduct(p); }}
-            />
-          </AuthProvider>
-        </CartProvider>
+        <AuthProvider>
+          <NotificationsProvider>
+            <FavoritesProvider>
+              <CartProvider>
+                <Header view={view} onViewChange={setView} />
+              <div className="app-view" key={view}>
+                {view === 'shop' && (
+                  <ShopPage
+                    products={products}
+                    loading={loading}
+                    onOpenProduct={setSelectedProduct}
+                    onBannerClick={setSelectedBanner}
+                    onOpenCatalog={() => setView('catalog')}
+                  />
+                )}
+                {view === 'catalog' && (
+                  <CatalogPage
+                    products={products}
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    loading={loading}
+                    onOpenProduct={setSelectedProduct}
+                  />
+                )}
+                {view === 'news' && <NewsPage />}
+              </div>
+              <ProductDetail
+                product={selectedProduct}
+                allProducts={products}
+                onClose={() => setSelectedProduct(null)}
+                onOpenProduct={setSelectedProduct}
+              />
+              <CartDrawer />
+              <FavoritesDrawer />
+              <CheckoutDrawer />
+              <OrderSuccess />
+              <AuthModal />
+              <ProfileDrawer />
+              <BannerProductsModal
+                banner={selectedBanner}
+                allProducts={products}
+                onClose={() => setSelectedBanner(null)}
+                onOpenProduct={(p) => { setSelectedBanner(null); setSelectedProduct(p); }}
+              />
+            </CartProvider>
+          </FavoritesProvider>
+        </NotificationsProvider>
+        </AuthProvider>
       </LangProvider>
     </ThemeProvider>
   );

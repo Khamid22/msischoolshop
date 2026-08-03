@@ -1,16 +1,29 @@
 import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import FavoriteButton from './FavoriteButton';
 import './ProductCard.scss';
 
 interface Props {
   product: Product;
   onOpen: (product: Product) => void;
+  enterDelay?: number;
 }
 
-export default function ProductCard({ product, onOpen }: Props) {
+export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const { t } = useLang();
   const { addItem } = useCart();
+  const { user, openAuth } = useAuth();
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      openAuth();
+      return;
+    }
+    addItem(product);
+  };
 
   const displayName = t(product.nameKey) || product.name;
   const displayDesc = t(product.descKey) || product.description;
@@ -20,10 +33,15 @@ export default function ProductCard({ product, onOpen }: Props) {
     : product.price;
 
   return (
-    <article className="card" onClick={() => onOpen(product)}>
+    <article
+      className={`card ${enterDelay !== undefined ? 'card--enter' : ''}`}
+      style={enterDelay !== undefined ? { animationDelay: `${enterDelay}ms` } : undefined}
+      onClick={() => onOpen(product)}
+    >
       {hasDiscount && (
         <div className="card__badge">-{product.discount}%</div>
       )}
+      <FavoriteButton product={product} />
       <div className="card__image-wrap">
         <img
           className="card__image"
@@ -44,7 +62,7 @@ export default function ProductCard({ product, onOpen }: Props) {
               {t('currency')}{discountedPrice}
             </span>
           </div>
-          <button className="card__btn" onClick={(e) => { e.stopPropagation(); addItem(product); }}>
+          <button className="card__btn" onClick={handleAdd}>
             {t('addToCart')}
           </button>
         </div>

@@ -1,4 +1,4 @@
-import type { Product, Banner } from './types';
+import type { Product, Banner, News, Order } from './types';
 
 // ============================================================
 //  CONFIG — swap BASE_URL for your backend
@@ -14,9 +14,9 @@ const AUTH_KEY = 'msi_admin_auth';
 const DEFAULT_PRODUCTS: Product[] = [
   { id: 'tg-premium-6m', image: '/images/telegram-premium.svg', price: 150, nameKey: 'products.prem6', descKey: 'products.prem6Desc', type: 'digital', name: 'Telegram Premium 6 мес.', description: 'Премиум-подписка на 6 месяцев.' },
   { id: 'tg-premium-12m', image: '/images/telegram-premium.svg', price: 250, nameKey: 'products.prem12', descKey: 'products.prem12Desc', type: 'digital', name: 'Telegram Premium 12 мес.', description: 'Премиум-подписка на год.' },
-  { id: 'tg-gift-25', image: '/images/telegram-gift-stars.svg', price: 25, nameKey: 'products.gift25', descKey: 'products.gift25Desc', type: 'digital', name: 'Gift 25 Stars', description: 'Подарок на 25 звёзд.' },
-  { id: 'tg-gift-50', image: '/images/telegram-gift-stars.svg', price: 50, nameKey: 'products.gift50', descKey: 'products.gift50Desc', type: 'digital', name: 'Gift 50 Stars', description: 'Подарок на 50 звёзд.' },
-  { id: 'tg-gift-150', image: '/images/telegram-gift-stars.svg', price: 150, nameKey: 'products.gift150', descKey: 'products.gift150Desc', type: 'digital', name: 'Gift 150 Stars', description: 'Премиум-подарок на 150 звёзд.' },
+  { id: 'tg-gift-25', image: '/images/telegram-gift-stars.svg', price: 25, nameKey: 'products.gift25', descKey: 'products.gift25Desc', type: 'digital', name: 'Gift 25 MSI Coin', description: 'Подарок на 25 MSI Coin.' },
+  { id: 'tg-gift-50', image: '/images/telegram-gift-stars.svg', price: 50, nameKey: 'products.gift50', descKey: 'products.gift50Desc', type: 'digital', name: 'Gift 50 MSI Coin', description: 'Подарок на 50 MSI Coin.' },
+  { id: 'tg-gift-150', image: '/images/telegram-gift-stars.svg', price: 150, nameKey: 'products.gift150', descKey: 'products.gift150Desc', type: 'digital', name: 'Gift 150 MSI Coin', description: 'Премиум-подарок на 150 MSI Coin.' },
   { id: 'tshirt-1', image: '/images/tshirt-black.svg', price: 750, nameKey: 'products.tshirt1', descKey: 'products.tshirt1Desc', type: 'physical', name: 'T-Shirt Black Edition', description: 'Стильная футболка MSI Bot Shop.' },
   { id: 'cap-1', image: '/images/cap-1.svg', price: 400, nameKey: 'products.cap1', descKey: 'products.cap1Desc', type: 'physical', name: 'Cap — Stealth', description: 'Кепка MSI Bot Shop, вариант 1.' },
   { id: 'cap-2', image: '/images/cap-2.svg', price: 400, nameKey: 'products.cap2', descKey: 'products.cap2Desc', type: 'physical', name: 'Cap — Shadow', description: 'Кепка MSI Bot Shop, вариант 2.' },
@@ -25,8 +25,14 @@ const DEFAULT_PRODUCTS: Product[] = [
 
 const DEFAULT_BANNERS: Banner[] = [
   { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#666666', icon: '💎', active: true, productIds: ['tg-premium-6m', 'tg-premium-12m'] },
-  { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: '⭐', active: true, productIds: ['tg-gift-25', 'tg-gift-50', 'tg-gift-150'] },
+  { id: 'banner-2', title: 'MSI Coin', subtitle: 'Подарочные MSI Coin', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: 'Ⓒ', active: true, productIds: ['tg-gift-25', 'tg-gift-50', 'tg-gift-150'] },
   { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#333333', icon: '👕', active: true, productIds: ['tshirt-1', 'cap-1', 'cap-2', 'cap-3'] },
+];
+
+const DEFAULT_NEWS: News[] = [
+  { id: 'news-1', title: 'Добро пожаловать в MSI Bot Shop!', description: 'Мы запустили наш магазин. Покупайте цифровые товары и мерч за MSI Coin прямо на сайте. Каждому новому пользователю начисляется стартовый баланс.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
+  { id: 'news-2', title: 'Telegram Premium уже в продаже', description: 'Подписки Telegram Premium на 6 и 12 месяцев доступны для покупки. Активация происходит автоматически после оплаты.', image: '/images/telegram-premium.svg', date: new Date().toISOString(), active: true },
+  { id: 'news-3', title: 'Курс MSI Coin: 30 ◆ = 5 000 сум', description: '1 MSI Coin = 167 сум. Покупайте товары за MSI Coin — эквивалент в сумах показывается рядом с каждой ценой.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
 ];
 
 // ============================================================
@@ -51,6 +57,10 @@ function seed() {
     lsSet('msi_banners', DEFAULT_BANNERS);
     lsSet('msi_banners_seeded', true);
   }
+  if (!lsGet('msi_news_seeded', false)) {
+    lsSet('msi_news', DEFAULT_NEWS);
+    lsSet('msi_news_seeded', true);
+  }
 
   const stored = lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS);
   const defaults = DEFAULT_BANNERS;
@@ -61,8 +71,38 @@ function seed() {
       s.productIds = def.productIds;
       changed = true;
     }
+    if (s && s.title === 'Gift Stars') {
+      s.title = def.title;
+      s.subtitle = def.subtitle;
+      s.icon = def.icon;
+      changed = true;
+    } else if (s && (s.icon === '●' || s.icon === '◆')) {
+      s.icon = def.icon;
+      changed = true;
+    }
   }
   if (changed) lsSet('msi_banners', stored);
+
+  const products = lsGet<Product[]>('msi_products', DEFAULT_PRODUCTS);
+  let pChanged = false;
+  for (const def of DEFAULT_PRODUCTS) {
+    const p = products.find((x) => x.id === def.id);
+    if (p && p.name && (p.name.startsWith('Gift ') && p.name.endsWith(' Stars'))) {
+      p.name = def.name;
+      p.description = def.description;
+      pChanged = true;
+    }
+  }
+  if (pChanged) lsSet('msi_products', products);
+
+  const news = lsGet<News[]>('msi_news', DEFAULT_NEWS);
+  if (news.some((n) => n.id === 'news-1') && !news.some((n) => n.id === 'news-3')) {
+    const rateNews = DEFAULT_NEWS.find((n) => n.id === 'news-3');
+    if (rateNews) {
+      news.unshift(rateNews);
+      lsSet('msi_news', news);
+    }
+  }
 }
 
 // ============================================================
@@ -135,6 +175,48 @@ export async function updateBanner(id: string, data: Partial<Banner>): Promise<B
 export async function deleteBanner(id: string): Promise<void> {
   const list = lsGet<Banner[]>('msi_banners', DEFAULT_BANNERS).filter((b) => b.id !== id);
   lsSet('msi_banners', list);
+}
+
+// ============================================================
+//  NEWS API
+// ============================================================
+
+export async function fetchNews(): Promise<News[]> {
+  seed();
+  return lsGet<News[]>('msi_news', DEFAULT_NEWS);
+}
+
+export async function createNews(data: Omit<News, 'id'>): Promise<News> {
+  const news: News = {
+    ...data,
+    id: 'news-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+  };
+  const list = lsGet<News[]>('msi_news', DEFAULT_NEWS);
+  list.unshift(news);
+  lsSet('msi_news', list);
+  return news;
+}
+
+export async function updateNews(id: string, data: Partial<News>): Promise<News | null> {
+  const list = lsGet<News[]>('msi_news', DEFAULT_NEWS);
+  const idx = list.findIndex((n) => n.id === id);
+  if (idx === -1) return null;
+  list[idx] = { ...list[idx], ...data };
+  lsSet('msi_news', list);
+  return list[idx];
+}
+
+export async function deleteNews(id: string): Promise<void> {
+  const list = lsGet<News[]>('msi_news', DEFAULT_NEWS).filter((n) => n.id !== id);
+  lsSet('msi_news', list);
+}
+
+// ============================================================
+//  ORDERS API
+// ============================================================
+
+export async function fetchOrders(): Promise<Order[]> {
+  return lsGet<Order[]>('msi_orders', []);
 }
 
 // ============================================================

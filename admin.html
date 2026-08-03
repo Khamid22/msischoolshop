@@ -23,6 +23,56 @@
 
   <main class="admin">
 
+    <!-- ANALYTICS -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon">◔</span>
+        Аналитика продаж
+        <button class="admin-btn admin-btn--secondary" id="analyticsRefresh" style="margin-left:auto;">↻ Обновить</button>
+        <button class="admin-btn admin-btn--danger" id="analyticsClear" style="margin-left:8px;">🗑 Удалить всё</button>
+      </h2>
+
+      <div class="admin-stats">
+        <div class="admin-stats__card">
+          <span class="admin-stats__value" id="statTotalStars">0</span>
+          <span class="admin-stats__label">Потрачено MSI Coin</span>
+        </div>
+        <div class="admin-stats__card">
+          <span class="admin-stats__value" id="statOrders">0</span>
+          <span class="admin-stats__label">Заказов</span>
+        </div>
+        <div class="admin-stats__card">
+          <span class="admin-stats__value" id="statAvg">0</span>
+          <span class="admin-stats__label">Средний чек</span>
+        </div>
+        <div class="admin-stats__card">
+          <span class="admin-stats__value" id="statProducts">0</span>
+          <span class="admin-stats__label">Товаров продано</span>
+        </div>
+      </div>
+
+      <div class="admin-charts">
+        <div class="admin-chart">
+          <h3 class="admin-chart__title">Потрачено MSI Coin по товарам</h3>
+          <div class="admin-chart__legend" id="pieLegend"></div>
+          <div class="admin-chart__canvas-wrap">
+            <canvas id="pieChart" height="240"></canvas>
+          </div>
+        </div>
+        <div class="admin-chart">
+          <h3 class="admin-chart__title">Потрачено MSI Coin по периодам</h3>
+          <div class="admin-chart__controls" id="barRangeControls">
+            <button class="admin-btn admin-btn--secondary" data-range="7">7 дней</button>
+            <button class="admin-btn admin-btn--secondary" data-range="30">30 дней</button>
+            <button class="admin-btn admin-btn--secondary admin-btn--active" data-range="all">Всё время</button>
+          </div>
+          <div class="admin-chart__canvas-wrap">
+            <canvas id="barChart" height="240"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ADD / EDIT PRODUCT -->
     <section class="admin-section" id="productFormSection" style="display:none;">
       <h2 class="admin-section__title">
@@ -135,16 +185,16 @@
         <input type="hidden" id="bannerEditId" value="" />
         <div class="admin-form__row">
           <div class="admin-form__field">
-            <label class="admin-form__label" for="bTitle">Заголовок</label>
-            <input class="admin-form__input" type="text" id="bTitle" placeholder="Telegram Premium" required />
+            <label class="admin-form__label" for="bTitle">Заголовок <span class="admin-form__optional">(необязательно)</span></label>
+            <input class="admin-form__input" type="text" id="bTitle" placeholder="Telegram Premium" />
           </div>
           <div class="admin-form__field">
-            <label class="admin-form__label" for="bSubtitle">Подзаголовок</label>
-            <input class="admin-form__input" type="text" id="bSubtitle" placeholder="Подписка на 6 и 12 месяцев" required />
+            <label class="admin-form__label" for="bSubtitle">Подзаголовок <span class="admin-form__optional">(необязательно)</span></label>
+            <input class="admin-form__input" type="text" id="bSubtitle" placeholder="Подписка на 6 и 12 месяцев" />
           </div>
         </div>
         <div class="admin-form__field">
-          <label class="admin-form__label" for="bDesc">Описание</label>
+          <label class="admin-form__label" for="bDesc">Описание <span class="admin-form__optional">(необязательно)</span></label>
           <input class="admin-form__input" type="text" id="bDesc" placeholder="Получите все премиум-функции Telegram" />
         </div>
         <div class="admin-form__row">
@@ -197,6 +247,67 @@
       <div id="bannerList"></div>
     </section>
 
+    <!-- NEWS LIST -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon">📰</span>
+        Новости
+        <button class="admin-section__add-btn" id="addNewsBtn" style="margin-left:auto;">＋ Добавить новость</button>
+      </h2>
+      <div id="newsList"></div>
+    </section>
+
+    <!-- ADD / EDIT NEWS -->
+    <section class="admin-section" id="newsFormSection" style="display:none;">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon" id="newsFormIcon">＋</span>
+        <span id="newsFormTitle">Добавление новости</span>
+      </h2>
+      <form class="admin-form" id="newsForm">
+        <input type="hidden" id="newsEditId" value="" />
+        <div class="admin-form__row">
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="nTitle">Заголовок</label>
+            <input class="admin-form__input" type="text" id="nTitle" placeholder="Telegram Premium уже в продаже" required />
+          </div>
+        </div>
+        <div class="admin-form__field">
+          <label class="admin-form__label">Фото новости <span class="admin-form__optional">(необязательно)</span></label>
+          <div class="admin-upload" id="newsUploadZone">
+            <input type="file" id="nImageFile" accept="image/*" class="admin-upload__input" />
+            <div class="admin-upload__dropzone" id="newsUploadDropzone">
+              <span class="admin-upload__icon">📷</span>
+              <span class="admin-upload__text">Нажмите или перетащите фото</span>
+              <span class="admin-upload__hint">JPG, PNG, SVG — до 5 МБ</span>
+            </div>
+            <div class="admin-upload__preview" id="newsUploadPreview" style="display:none;">
+              <img id="newsUploadPreviewImg" class="admin-upload__preview-img" />
+              <button type="button" class="admin-upload__remove" id="newsUploadRemove">✕</button>
+            </div>
+          </div>
+          <input type="hidden" id="nImage" value="" />
+        </div>
+        <div class="admin-form__field">
+          <label class="admin-form__label" for="nDesc">Текст новости</label>
+          <textarea class="admin-form__textarea" id="nDesc" placeholder="Подробный текст новости..." rows="6" required></textarea>
+        </div>
+        <div class="admin-form__row">
+          <div class="admin-form__field admin-form__field--checkbox">
+            <label class="admin-form__checkbox-label">
+              <input class="admin-form__checkbox" type="checkbox" id="nActive" checked />
+              <span class="admin-form__checkbox-custom"></span>
+              Активна (показывать на сайте)
+            </label>
+          </div>
+        </div>
+        <div class="admin-form__btns">
+          <button class="admin-btn admin-btn--primary" type="submit" id="newsSubmitBtn">Добавить новость</button>
+          <button class="admin-btn admin-btn--secondary" type="button" id="newsCancelEdit" style="display:none;">Отмена</button>
+        </div>
+        <div class="admin-form__msg" id="newsFormMsg" style="display:none;"></div>
+      </form>
+    </section>
+
     <!-- CATALOG -->
     <section class="admin-section">
       <h2 class="admin-section__title">
@@ -222,6 +333,46 @@
       <div id="catalogCategories"></div>
     </section>
 
+    <!-- ORDERS -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon">📦</span>
+        История заказов
+        <button class="admin-btn admin-btn--secondary" id="ordersRefresh" style="margin-left:auto;">↻ Обновить</button>
+      </h2>
+      <div id="ordersList"></div>
+    </section>
+
+    <!-- USERS / STARS -->
+    <section class="admin-section">
+      <h2 class="admin-section__title">
+        <span class="admin-section__icon">👤</span>
+        Пользователи и MSI Coin
+        <button class="admin-btn admin-btn--danger" id="writeoffAllBtn" style="margin-left:auto;">⇩ Списать все</button>
+      </h2>
+      <form class="admin-form" id="grantForm">
+        <div class="admin-form__row">
+          <div class="admin-form__field admin-form__field--grow admin-grant__field">
+            <label class="admin-form__label" for="grantNick">Ник или email пользователя</label>
+            <input class="admin-form__input" type="text" id="grantNick" placeholder="Например: Aza, @username, email" autocomplete="off" required />
+            <div class="admin-grant__suggest" id="grantSuggest"></div>
+          </div>
+          <div class="admin-form__field">
+            <label class="admin-form__label" for="grantAmount">Количество MSI Coin</label>
+            <input class="admin-form__input" type="number" id="grantAmount" min="1" step="1" placeholder="500" required />
+          </div>
+          <div class="admin-form__field admin-form__field--auto">
+            <button class="admin-btn admin-btn--primary" type="submit" name="grantAction" value="grant" style="flex:1;">＋ Начислить</button>
+            <button class="admin-btn admin-btn--danger" type="submit" name="grantAction" value="withdraw" style="flex:1;">− Списать</button>
+          </div>
+        </div>
+        <div class="admin-form__msg" id="grantMsg"></div>
+      </form>
+      <div class="admin-grant-log-title">Журнал операций</div>
+      <div id="grantLog"></div>
+      <div id="usersList"></div>
+    </section>
+
   </main>
 
   <footer class="admin-footer">
@@ -239,7 +390,16 @@
 
     /* ============ API (localStorage — swap to fetch for backend) ============ */
     function apiGetProducts()  { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]') || []; }
-    function apiSaveProducts(l){ localStorage.setItem(STORE_KEY, JSON.stringify(l)); }
+    function lsSetSafe(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (err) {
+        alert('Ошибка сохранения: не хватает места в хранилище браузера. Сожмите фото или удалите старые записи.');
+        return false;
+      }
+    }
+    function apiSaveProducts(l){ return lsSetSafe(STORE_KEY, l); }
     function apiLogout()       { localStorage.removeItem(AUTH_KEY); window.location.href = '/admin-login.html'; }
 
     /* ============ THEME ============ */
@@ -249,6 +409,7 @@
       var dark = html.getAttribute('data-theme') === 'dark';
       html.setAttribute('data-theme', dark ? 'light' : 'dark');
       themeBtn.textContent = dark ? '☾' : '☀';
+      if (typeof renderAnalytics === 'function') renderAnalytics();
     });
 
     document.getElementById('logoutBtn').addEventListener('click', apiLogout);
@@ -276,15 +437,44 @@
     var uploadRemove = document.getElementById('uploadRemove');
     var pImageHidden = document.getElementById('pImage');
 
+    function setUploadImage(dataUrl) {
+      pImageHidden.value = dataUrl;
+      uploadPreviewImg.src = dataUrl;
+      uploadDropzone.style.display = 'none';
+      uploadPreview.style.display = 'flex';
+    }
+
+    function compressImage(src, fileType) {
+      if (fileType === 'image/svg+xml') return src;
+      return new Promise(function(resolve) {
+        var img = new Image();
+        img.onload = function() {
+          try {
+            var maxSize = 900;
+            var scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            var out = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(out.length < src.length ? out : src);
+          } catch (e) {
+            resolve(src);
+          }
+        };
+        img.onerror = function() { resolve(src); };
+        img.src = src;
+      });
+    }
+
     function handleFile(file) {
       if (!file || !file.type.startsWith('image/')) return;
       if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой (макс. 5 МБ)'); return; }
       var reader = new FileReader();
       reader.onload = function(e) {
-        pImageHidden.value = e.target.result;
-        uploadPreviewImg.src = e.target.result;
-        uploadDropzone.style.display = 'none';
-        uploadPreview.style.display = 'flex';
+        compressImage(e.target.result, file.type).then(function(dataUrl) {
+          setUploadImage(dataUrl);
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -362,7 +552,7 @@
         list.push(data);
       }
 
-      apiSaveProducts(list);
+      if (!apiSaveProducts(list)) return;
       resetForm();
       renderCatalog();
     });
@@ -452,9 +642,9 @@
           var priceHtml = '';
           if (discount > 0) {
             var newPrice = Math.round(p.price * (1 - discount / 100));
-            priceHtml = '<span class="admin-table__price-old">⭐ ' + p.price + '</span> <span class="admin-table__price-sale">⭐ ' + newPrice + '</span>';
+            priceHtml = '<span class="admin-table__price-old">Ⓒ ' + p.price + '</span> <span class="admin-table__price-sale">Ⓒ ' + newPrice + '</span>';
           } else {
-            priceHtml = '⭐ ' + p.price;
+            priceHtml = 'Ⓒ ' + p.price;
           }
           var discountHtml = discount > 0
             ? '<span class="admin-tag admin-tag--discount">-' + discount + '%</span>'
@@ -497,8 +687,8 @@
       var disc = Number(pDiscount.value) || 0;
       if (disc > 0 && price > 0) {
         var newPrice = Math.round(price * (1 - disc / 100));
-        discountOldPrice.textContent = '⭐ ' + price;
-        discountNewPrice.textContent = '⭐ ' + newPrice;
+        discountOldPrice.textContent = 'Ⓒ ' + price;
+        discountNewPrice.textContent = 'Ⓒ ' + newPrice;
         discountPreview.style.display = 'flex';
       } else {
         discountPreview.style.display = 'none';
@@ -512,19 +702,19 @@
     var BANNER_KEY = 'msi_banners';
     var DEFAULT_BANNERS = [
       { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#666666', icon: '💎', active: true },
-      { id: 'banner-2', title: 'Gift Stars', subtitle: 'Подарочные звёзды', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: '⭐', active: true },
+      { id: 'banner-2', title: 'MSI Coin', subtitle: 'Подарочные MSI Coin', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: 'Ⓒ', active: true },
       { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#333333', icon: '👕', active: true },
     ];
 
     function apiGetBanners() {
       var stored = localStorage.getItem(BANNER_KEY);
       if (!stored) {
-        localStorage.setItem(BANNER_KEY, JSON.stringify(DEFAULT_BANNERS));
+        lsSetSafe(BANNER_KEY, DEFAULT_BANNERS);
         return DEFAULT_BANNERS.slice();
       }
       try { return JSON.parse(stored) || []; } catch { return []; }
     }
-    function apiSaveBanners(l) { localStorage.setItem(BANNER_KEY, JSON.stringify(l)); }
+    function apiSaveBanners(l) { lsSetSafe(BANNER_KEY, l); }
 
     /* ============ BANNER IMAGE UPLOAD ============ */
     var bannerUploadInput = document.getElementById('bImageFile');
@@ -594,8 +784,7 @@
         active: document.getElementById('bActive').checked
       };
 
-      if (!data.title) { alert('Введите заголовок'); return; }
-      if (!data.subtitle) { alert('Введите подзаголовок'); return; }
+      if (!data.title && !data.image) { alert('Добавьте заголовок или изображение баннера'); return; }
 
       var list = apiGetBanners();
 
@@ -698,9 +887,947 @@
       if (btn.dataset.action === 'delete-banner') deleteBanner(btn.dataset.id);
     });
 
+    /* ============ NEWS API ============ */
+    var NEWS_KEY = 'msi_news';
+    var DEFAULT_NEWS = [
+      { id: 'news-1', title: 'Добро пожаловать в MSI Bot Shop!', description: 'Мы запустили наш магазин. Покупайте цифровые товары и мерч за MSI Coin прямо на сайте. Каждому новому пользователю начисляется стартовый баланс.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
+      { id: 'news-2', title: 'Telegram Premium уже в продаже', description: 'Подписки Telegram Premium на 6 и 12 месяцев доступны для покупки. Активация происходит автоматически после оплаты.', image: '/images/telegram-premium.svg', date: new Date().toISOString(), active: true },
+      { id: 'news-3', title: 'Курс MSI Coin: 30 ◆ = 5 000 сум', description: '1 MSI Coin = 167 сум. Покупайте товары за MSI Coin — эквивалент в сумах показывается рядом с каждой ценой.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
+    ];
+
+    function apiGetNews() {
+      var stored = localStorage.getItem(NEWS_KEY);
+      if (!stored) {
+        lsSetSafe(NEWS_KEY, DEFAULT_NEWS);
+        return DEFAULT_NEWS.slice();
+      }
+      try { return JSON.parse(stored) || []; } catch { return []; }
+    }
+    function apiSaveNews(l) { lsSetSafe(NEWS_KEY, l); }
+
+    function formatNewsDate(iso) {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    /* ============ NEWS IMAGE UPLOAD ============ */
+    var newsUploadInput = document.getElementById('nImageFile');
+    var newsUploadDropzone = document.getElementById('newsUploadDropzone');
+    var newsUploadPreview = document.getElementById('newsUploadPreview');
+    var newsUploadPreviewImg = document.getElementById('newsUploadPreviewImg');
+    var newsUploadRemove = document.getElementById('newsUploadRemove');
+    var nImageHidden = document.getElementById('nImage');
+
+    function handleNewsFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой (макс. 5 МБ)'); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        nImageHidden.value = e.target.result;
+        newsUploadPreviewImg.src = e.target.result;
+        newsUploadDropzone.style.display = 'none';
+        newsUploadPreview.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    newsUploadInput.addEventListener('change', function() {
+      if (newsUploadInput.files && newsUploadInput.files[0]) handleNewsFile(newsUploadInput.files[0]);
+    });
+    newsUploadDropzone.addEventListener('click', function() { newsUploadInput.click(); });
+    newsUploadDropzone.addEventListener('dragover', function(e) { e.preventDefault(); newsUploadDropzone.classList.add('admin-upload__dropzone--hover'); });
+    newsUploadDropzone.addEventListener('dragleave', function() { newsUploadDropzone.classList.remove('admin-upload__dropzone--hover'); });
+    newsUploadDropzone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      newsUploadDropzone.classList.remove('admin-upload__dropzone--hover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleNewsFile(e.dataTransfer.files[0]);
+    });
+    newsUploadRemove.addEventListener('click', function() {
+      nImageHidden.value = '';
+      newsUploadInput.value = '';
+      newsUploadPreviewImg.src = '';
+      newsUploadDropzone.style.display = '';
+      newsUploadPreview.style.display = 'none';
+    });
+
+    function clearNewsUpload() {
+      nImageHidden.value = '';
+      newsUploadInput.value = '';
+      newsUploadPreviewImg.src = '';
+      newsUploadDropzone.style.display = '';
+      newsUploadPreview.style.display = 'none';
+    }
+
+    /* ============ NEWS FORM ============ */
+    var newsForm = document.getElementById('newsForm');
+    var newsEditId = document.getElementById('newsEditId');
+    var newsFormTitle = document.getElementById('newsFormTitle');
+    var newsFormIcon = document.getElementById('newsFormIcon');
+    var newsSubmitBtn = document.getElementById('newsSubmitBtn');
+    var newsCancelBtn = document.getElementById('newsCancelEdit');
+
+    newsForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var isEdit = !!newsEditId.value;
+      var title = document.getElementById('nTitle').value.trim();
+      var description = document.getElementById('nDesc').value.trim();
+      if (!title) { alert('Введите заголовок новости'); return; }
+      if (!description) { alert('Введите текст новости'); return; }
+
+      var data = {
+        title: title,
+        description: description,
+        image: nImageHidden.value.trim(),
+        active: document.getElementById('nActive').checked
+      };
+
+      var list = apiGetNews();
+
+      if (newsEditId.value) {
+        var idx = list.findIndex(function(n) { return n.id === newsEditId.value; });
+        if (idx !== -1) {
+          data.date = list[idx].date;
+          Object.assign(list[idx], data);
+        }
+      } else {
+        data.id = 'news-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        data.date = new Date().toISOString();
+        list.unshift(data);
+      }
+
+      apiSaveNews(list);
+      resetNewsForm();
+      renderNewsList();
+      flashNewsMsg(isEdit ? 'Новость обновлена' : 'Новость добавлена');
+    });
+
+    function flashNewsMsg(text) {
+      var m = document.getElementById('newsFormMsg');
+      m.textContent = text;
+      m.className = 'admin-form__msg admin-form__msg--ok';
+      m.style.display = 'block';
+      clearTimeout(flashNewsMsg._t);
+      flashNewsMsg._t = setTimeout(function() { m.style.display = 'none'; }, 2500);
+    }
+
+    newsCancelBtn.addEventListener('click', resetNewsForm);
+
+    function resetNewsForm() {
+      newsForm.reset();
+      newsEditId.value = '';
+      newsFormTitle.textContent = 'Добавление новости';
+      newsFormIcon.textContent = '＋';
+      newsSubmitBtn.textContent = 'Добавить новость';
+      newsCancelBtn.style.display = 'none';
+      document.getElementById('nActive').checked = true;
+      clearNewsUpload();
+      document.getElementById('newsFormSection').style.display = 'none';
+    }
+
+    function startNewsEdit(id) {
+      var n = apiGetNews().find(function(x) { return x.id === id; });
+      if (!n) return;
+      newsEditId.value = n.id;
+      document.getElementById('nTitle').value = n.title || '';
+      document.getElementById('nDesc').value = n.description || '';
+      nImageHidden.value = n.image || '';
+      if (n.image) {
+        newsUploadPreviewImg.src = n.image;
+        newsUploadDropzone.style.display = 'none';
+        newsUploadPreview.style.display = 'flex';
+      } else {
+        clearNewsUpload();
+      }
+      document.getElementById('nActive').checked = n.active !== false;
+      newsFormTitle.textContent = 'Редактирование новости';
+      newsFormIcon.textContent = '✎';
+      newsSubmitBtn.textContent = 'Сохранить';
+      newsCancelBtn.style.display = 'inline-flex';
+      document.getElementById('newsFormSection').style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteNews(id) {
+      showDeleteModal(function() {
+        apiSaveNews(apiGetNews().filter(function(n) { return n.id !== id; }));
+        renderNewsList();
+      });
+    }
+
+    /* ============ NEWS LIST ============ */
+    function renderNewsList() {
+      var news = apiGetNews();
+      var html = '';
+      if (news.length) {
+        html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
+        html += '<th>Превью</th><th>Заголовок</th><th>Дата</th><th>Статус</th><th>Действия</th>';
+        html += '</tr></thead><tbody>';
+        news.forEach(function(n) {
+          var statusHtml = n.active !== false
+            ? '<span class="admin-tag admin-tag--physical">Активна</span>'
+            : '<span class="admin-tag admin-tag--digital">Скрыта</span>';
+          var imgHtml = n.image
+            ? '<img class="admin-banner-thumb" src="' + esc(n.image) + '" alt="" />'
+            : '<span class="admin-banner-noimg">📰</span>';
+          html += '<tr>';
+          html += '<td>' + imgHtml + '</td>';
+          html += '<td class="admin-table__name">' + esc(n.title) + '</td>';
+          html += '<td class="admin-table__muted">' + esc(formatNewsDate(n.date)) + '</td>';
+          html += '<td>' + statusHtml + '</td>';
+          html += '<td class="admin-table__actions">';
+          html += '<button class="admin-btn admin-btn--edit" data-action="edit-news" data-id="' + n.id + '">' + 'Редактировать' + '</button>';
+          html += '<button class="admin-btn admin-btn--danger" data-action="delete-news" data-id="' + n.id + '">' + 'Удалить' + '</button>';
+          html += '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      document.getElementById('newsList').innerHTML = html || '<div class="admin-empty">Нет новостей</div>';
+    }
+
+    document.getElementById('newsList').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      if (btn.dataset.action === 'edit-news') startNewsEdit(btn.dataset.id);
+      if (btn.dataset.action === 'delete-news') deleteNews(btn.dataset.id);
+    });
+
+    document.getElementById('addNewsBtn').addEventListener('click', function() {
+      resetNewsForm();
+      document.getElementById('newsFormSection').style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    /* ============ ANALYTICS ============ */
+    function apiGetOrders() {
+      try { return JSON.parse(localStorage.getItem('msi_orders') || '[]') || []; }
+      catch { return []; }
+    }
+
+    function cssVar(name, fallback) {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+      return (v && v.trim()) ? v.trim() : fallback;
+    }
+
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+    function dayKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+    function monthKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1); }
+
+    function itemSpent(it) {
+      if (!it || !it.product) return 0;
+      var price = Number(it.product.price) || 0;
+      var disc = it.product.discount && it.product.discount > 0 ? Number(it.product.discount) : 0;
+      if (disc > 0) price = Math.round(price * (1 - disc / 100));
+      return price * (Number(it.quantity) || 1);
+    }
+
+    function setupCanvas(canvas) {
+      if (!canvas || !canvas.getContext) return null;
+      var dpr = window.devicePixelRatio || 1;
+      var width = canvas.clientWidth || canvas.parentElement.clientWidth || 400;
+      var logicalHeight = Number(canvas.getAttribute('height')) || 240;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(logicalHeight * dpr);
+      var ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return ctx;
+    }
+
+    function niceMax(value) {
+      if (value <= 0) return 10;
+      var exp = Math.floor(Math.log10(value));
+      var base = Math.pow(10, exp);
+      var f = value / base;
+      var nice;
+      if (f <= 1) nice = 1;
+      else if (f <= 2) nice = 2;
+      else if (f <= 5) nice = 5;
+      else nice = 10;
+      return nice * base;
+    }
+
+    function pieSliceColor(i, accent) {
+      var grays = ['#dcdcdc', '#a8a8a8', '#8c8c8c', '#c2c2c2', '#969696', '#747474', '#e6e6e6', '#b6b6b6', '#5a5a5a'];
+      if (i === 0) return accent;
+      return grays[(i - 1) % grays.length];
+    }
+
+    function alphaHex(hex, a) {
+      var m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+      if (!m) return hex;
+      var r = parseInt(m[1].substr(0, 2), 16);
+      var g = parseInt(m[1].substr(2, 2), 16);
+      var b = parseInt(m[1].substr(4, 2), 16);
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+
+    function contrastColor(hex) {
+      var m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+      if (!m) return '#ffffff';
+      var r = parseInt(m[1].substr(0, 2), 16);
+      var g = parseInt(m[1].substr(2, 2), 16);
+      var b = parseInt(m[1].substr(4, 2), 16);
+      return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? '#000000' : '#ffffff';
+    }
+
+    function drawPie() {
+      var canvas = document.getElementById('pieChart');
+      var legend = document.getElementById('pieLegend');
+      var ctx = setupCanvas(canvas);
+      if (!ctx) return;
+
+      var orders = apiGetOrders();
+      var byProduct = {};
+      var total = 0;
+      var totalProducts = 0;
+      orders.forEach(function(o) {
+        (o.items || []).forEach(function(it) {
+          var spent = itemSpent(it);
+          var name = (it.product && (it.product.name || it.product.nameKey)) || 'Товар';
+          byProduct[name] = (byProduct[name] || 0) + spent;
+          total += spent;
+          totalProducts += Number(it.quantity) || 1;
+        });
+      });
+
+      var W = canvas.clientWidth || 400;
+      var H = Number(canvas.getAttribute('height')) || 240;
+      ctx.clearRect(0, 0, W, H);
+
+      var textColor = cssVar('--text-primary', '#f0f0f0');
+      var muted = cssVar('--text-muted', '#666666');
+      var bgCard = cssVar('--bg-card', '#161616');
+      var accent = cssVar('--accent', '#ffffff');
+
+      if (total <= 0) {
+        ctx.fillStyle = muted;
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Нет данных — заказы ещё не поступали', W / 2, H / 2);
+        return;
+      }
+
+      var entries = Object.keys(byProduct).map(function(k) { return { name: k, value: byProduct[k] }; });
+      entries.sort(function(a, b) { return b.value - a.value; });
+      var top = entries.slice(0, 8);
+      var rest = entries.slice(8);
+      if (rest.length) top.push({ name: 'Другое', value: rest.reduce(function(s, e) { return s + e.value; }, 0) });
+
+      var cx = W * 0.34;
+      var cy = H / 2;
+      var radius = Math.min(H / 2 - 14, W * 0.27);
+      if (radius < 20) radius = 20;
+
+      var gap = 0.022;
+      var start = -Math.PI / 2;
+      top.forEach(function(entry, i) {
+        var angle = (entry.value / total) * Math.PI * 2;
+        var color = pieSliceColor(i, accent);
+        var a0 = start + gap;
+        var a1 = start + angle - gap;
+        if (a1 <= a0) { a0 = start; a1 = start + angle; }
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, a0, a1);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = bgCard;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        var mid = start + angle / 2;
+        if (angle > 0.42) {
+          var pct = Math.round((entry.value / total) * 100);
+          ctx.fillStyle = contrastColor(color);
+          ctx.font = '700 11px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(pct + '%', cx + Math.cos(mid) * radius * 0.72, cy + Math.sin(mid) * radius * 0.72);
+        }
+        start += angle;
+      });
+
+      ctx.fillStyle = bgCard;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = textColor;
+      ctx.font = '800 15px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText('Ⓒ ' + total, cx, cy - 2);
+      ctx.font = '600 10px system-ui, sans-serif';
+      ctx.fillStyle = muted;
+      ctx.fillText('потрачено', cx, cy + 14);
+
+      var legendHtml = '';
+      top.forEach(function(entry, i) {
+        var pct = Math.round((entry.value / total) * 100);
+        legendHtml += '<div class="admin-chart__legend-item">';
+        legendHtml += '<span class="admin-chart__legend-dot" style="background:' + pieSliceColor(i, accent) + ';"></span>';
+        legendHtml += '<span class="admin-chart__legend-name" title="' + esc(entry.name) + '">' + esc(entry.name) + '</span>';
+        legendHtml += '<span class="admin-chart__legend-value">' + pct + '% · Ⓒ ' + entry.value + '</span>';
+        legendHtml += '</div>';
+      });
+      legend.innerHTML = legendHtml;
+    }
+
+    var barState = null;
+
+    function drawBar(range, hoverIndex) {
+      var canvas = document.getElementById('barChart');
+      var ctx = setupCanvas(canvas);
+      if (!ctx) return;
+
+      var orders = apiGetOrders();
+      var buckets = {};
+      var keys = [];
+      var now = new Date();
+
+      if (range === 'all') {
+        orders.forEach(function(o) {
+          var d = new Date(o.createdAt);
+          if (isNaN(d.getTime())) return;
+          var key = monthKey(d);
+          buckets[key] = (buckets[key] || 0) + (Number(o.totalPrice) || 0);
+        });
+        keys = Object.keys(buckets).sort();
+      } else {
+        var days = Number(range) || 7;
+        for (var i = days - 1; i >= 0; i--) {
+          var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+          var key = dayKey(d);
+          buckets[key] = 0;
+        }
+        orders.forEach(function(o) {
+          var d = new Date(o.createdAt);
+          if (isNaN(d.getTime())) return;
+          var key = dayKey(d);
+          if (buckets[key] !== undefined) buckets[key] += Number(o.totalPrice) || 0;
+        });
+        keys = Object.keys(buckets);
+      }
+
+      var W = canvas.clientWidth || 400;
+      var H = Number(canvas.getAttribute('height')) || 240;
+      ctx.clearRect(0, 0, W, H);
+
+      var muted = cssVar('--text-muted', '#666666');
+      if (keys.length === 0) {
+        ctx.fillStyle = muted;
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Нет данных', W / 2, H / 2);
+        barState = null;
+        return;
+      }
+
+      var padL = 44, padR = 12, padT = 20, padB = 34;
+      var plotW = W - padL - padR;
+      var plotH = H - padT - padB;
+      var maxVal = 0;
+      keys.forEach(function(k) { if (buckets[k] > maxVal) maxVal = buckets[k]; });
+      var yMax = niceMax(maxVal);
+
+      var gridColor = cssVar('--border', '#2a2a2a');
+      var textColor = cssVar('--text-secondary', '#999999');
+      var textPrimary = cssVar('--text-primary', '#f0f0f0');
+      var bgCard = cssVar('--bg-card', '#161616');
+      var accent = cssVar('--accent', '#ffffff');
+      var labelEvery = 1;
+      if (keys.length > 15) labelEvery = Math.ceil(keys.length / 12);
+      if (keys.length > 40) labelEvery = Math.ceil(keys.length / 8);
+
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textBaseline = 'middle';
+
+      ctx.save();
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 1;
+      for (var g = 0; g <= 4; g++) {
+        var v = (yMax / 4) * g;
+        var y = padT + plotH - (plotH * (v / yMax));
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(W - padR, y);
+        ctx.stroke();
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'right';
+        ctx.fillText(v, padL - 6, y);
+      }
+      ctx.restore();
+
+      var slot = plotW / keys.length;
+      var barW = Math.max(3, slot * 0.55);
+
+      keys.forEach(function(k, i) {
+        var x = padL + slot * i + (slot - barW) / 2;
+        var h = (buckets[k] / yMax) * plotH;
+        var y = padT + plotH - h;
+
+        var grad = ctx.createLinearGradient(0, y, 0, padT + plotH);
+        grad.addColorStop(0, alphaHex(accent, hoverIndex === i ? 1 : 0.9));
+        grad.addColorStop(1, alphaHex(accent, 0.2));
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        var r = Math.min(barW / 2, 6);
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, barW, h, Math.min(r, h));
+        } else {
+          ctx.rect(x, y, barW, h);
+        }
+        ctx.fill();
+
+        if (hoverIndex === i) {
+          ctx.strokeStyle = alphaHex(accent, 0.95);
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        if (buckets[k] > 0) {
+          ctx.fillStyle = hoverIndex === i ? textPrimary : textColor;
+          ctx.font = '700 10px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(buckets[k], x + barW / 2, y - 8);
+        }
+
+        if (i % labelEvery === 0) {
+          var label;
+          if (range === 'all') {
+            var parts = k.split('-');
+            label = parts[1] + '.' + parts[0].slice(2);
+          } else {
+            label = k.slice(5).split('-').reverse().join('.');
+          }
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(label, x + barW / 2, padT + plotH + 16);
+        }
+      });
+
+      if (hoverIndex != null && hoverIndex >= 0 && hoverIndex < keys.length) {
+        var hk = keys[hoverIndex];
+        var hv = buckets[hk];
+        var hx = padL + slot * hoverIndex + slot / 2;
+        var hLabel = range === 'all' ? hk : hk.slice(5).split('-').reverse().join('.');
+        var tip = hLabel + ': Ⓒ ' + hv;
+        ctx.font = '600 10px system-ui, sans-serif';
+        var tw = ctx.measureText(tip).width + 16;
+        var th = 20;
+        var tx = Math.max(padL, Math.min(hx - tw / 2, W - padR - tw));
+        var ty = padT + plotH - (hv / yMax) * plotH - th - 26;
+        if (ty < padT) ty = padT + plotH - (hv / yMax) * plotH + 8;
+        ctx.fillStyle = bgCard;
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (ctx.roundRect) { ctx.roundRect(tx, ty, tw, th, 4); } else { ctx.rect(tx, ty, tw, th); }
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = textPrimary;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tip, tx + tw / 2, ty + th / 2);
+      }
+
+      barState = { keys: keys, buckets: buckets, range: range };
+    }
+
+    (function() {
+      var c = document.getElementById('barChart');
+      if (!c) return;
+      c.addEventListener('mousemove', function(e) {
+        if (!barState || !barState.keys.length) return;
+        var rect = c.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var W = c.clientWidth || 400;
+        var slot = (W - 44 - 12) / barState.keys.length;
+        var i = Math.floor((x - 44) / slot);
+        if (i < 0 || i >= barState.keys.length) i = -1;
+        drawBar(barState.range, i);
+      });
+      c.addEventListener('mouseleave', function() {
+        if (barState) drawBar(barState.range, -1);
+      });
+    })();
+
+    var activeBarRange = 'all';
+    function renderAnalytics() {
+      var orders = apiGetOrders();
+      var total = 0;
+      var totalProducts = 0;
+      orders.forEach(function(o) {
+        total += Number(o.totalPrice) || 0;
+        (o.items || []).forEach(function(it) { totalProducts += Number(it.quantity) || 1; });
+      });
+      document.getElementById('statTotalStars').textContent = 'Ⓒ ' + total;
+      document.getElementById('statOrders').textContent = orders.length;
+      document.getElementById('statAvg').textContent = 'Ⓒ ' + (orders.length ? Math.round(total / orders.length) : 0);
+      document.getElementById('statProducts').textContent = totalProducts;
+      drawPie();
+      drawBar(activeBarRange);
+    }
+
+    document.getElementById('analyticsRefresh').addEventListener('click', renderAnalytics);
+
+    document.getElementById('analyticsClear').addEventListener('click', function() {
+      showDeleteModal(function() {
+        localStorage.removeItem('msi_orders');
+        renderAnalytics();
+      }, 'Удалить всю статистику заказов?');
+    });
+
+    document.getElementById('barRangeControls').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-range]');
+      if (!btn) return;
+      activeBarRange = btn.dataset.range;
+      var btns = this.querySelectorAll('[data-range]');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.toggle('admin-btn--active', btns[i] === btn);
+      }
+      drawBar(activeBarRange);
+    });
+
+    /* ============ ORDERS ============ */
+    function apiSaveOrders(l) { lsSetSafe('msi_orders', l); }
+
+    function renderOrders() {
+      var orders = apiGetOrders().slice().sort(function(a, b) {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      var html = '';
+      if (orders.length) {
+        html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
+        html += '<th>Дата</th><th>Клиент</th><th>Товары</th><th>Сумма</th><th>Действия</th>';
+        html += '</tr></thead><tbody>';
+        orders.forEach(function(o) {
+          var itemsHtml = (o.items || []).map(function(it) {
+            var name = (it.product && (it.product.name || it.product.nameKey)) || 'Товар';
+            return esc(name) + ' × ' + (Number(it.quantity) || 1);
+          }).join('<br>');
+          var client = esc(o.customerName || '-') + '<br><small style="color:var(--text-muted)">' + esc(o.customerPhone || '') + '</small>';
+          html += '<tr>';
+          html += '<td class="admin-table__muted">' + esc(formatNewsDate(o.createdAt)) + '</td>';
+          html += '<td class="admin-table__name">' + client + '</td>';
+          html += '<td>' + (itemsHtml || '-') + '</td>';
+          html += '<td><span class="admin-stars">Ⓒ ' + (Number(o.totalPrice) || 0) + '</span></td>';
+          html += '<td class="admin-table__actions">';
+          html += '<button class="admin-btn admin-btn--danger" data-action="delete-order" data-id="' + esc(o.id) + '">' + 'Удалить' + '</button>';
+          html += '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      document.getElementById('ordersList').innerHTML = html || '<div class="admin-empty">Заказов пока нет</div>';
+    }
+
+    document.getElementById('ordersList').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn || btn.dataset.action !== 'delete-order') return;
+      var id = btn.dataset.id;
+      showDeleteModal(function() {
+        apiSaveOrders(apiGetOrders().filter(function(o) { return o.id !== id; }));
+        renderOrders();
+      });
+    });
+
+    document.getElementById('ordersRefresh').addEventListener('click', renderOrders);
+
+    /* ============ USERS / STARS ============ */
+    function apiGetUsers() {
+      try { return JSON.parse(localStorage.getItem('msi_users') || '[]') || []; }
+      catch { return []; }
+    }
+
+    function apiGetNotifications() {
+      try { return JSON.parse(localStorage.getItem('msi_notifications') || '[]') || []; }
+      catch { return []; }
+    }
+
+    function apiPushNotification(userId, type, amount, note) {
+      var list = apiGetNotifications();
+      list.push({
+        id: 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        userId: userId,
+        type: type,
+        amount: amount,
+        note: note || '',
+        createdAt: new Date().toISOString(),
+        read: false
+      });
+      lsSetSafe('msi_notifications', list);
+    }
+
+    function apiGetGrantLog() {
+      try { return JSON.parse(localStorage.getItem('msi_grant_log') || '[]') || []; }
+      catch { return []; }
+    }
+
+    function apiPushGrantLog(entry) {
+      var list = apiGetGrantLog();
+      list.push(entry);
+      lsSetSafe('msi_grant_log', list);
+    }
+
+    function renderGrantLog() {
+      var list = apiGetGrantLog().slice().sort(function(a, b) {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      var html = '';
+      if (list.length) {
+        html += '<div class="admin-grant-log">';
+        list.slice(0, 20).forEach(function(g) {
+          var amt = Number(g.amount) || 0;
+          html += '<div class="admin-grant-log__item">';
+          html += '<span class="admin-grant-log__icon">' + (amt < 0 ? '−' : '＋') + '</span>';
+          html += '<div class="admin-grant-log__body">';
+          html += '<div class="admin-grant-log__text">';
+          html += esc(g.admin) + ' → ' + esc(g.userName) + (g.userEmail ? ' (' + esc(g.userEmail) + ')' : '');
+          html += '</div>';
+          html += '<div class="admin-grant-log__meta">' + esc(formatNewsDate(g.createdAt)) + ' · ' + (amt > 0 ? '+' : '') + amt + ' Ⓒ</div>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      document.getElementById('grantLog').innerHTML = html || '<div class="admin-empty">Операций пока не было</div>';
+    }
+
+    function userBalance(u) {
+      return (typeof u.balance === 'number' && !isNaN(u.balance)) ? u.balance : 1000;
+    }
+
+    function renderUsers() {
+      var users = apiGetUsers();
+      var html = '';
+      if (users.length) {
+        html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>';
+        html += '<th>Имя</th><th>Email</th><th>Телефон</th><th>Баланс</th></tr></thead><tbody>';
+        users.forEach(function(u) {
+          html += '<tr>';
+          html += '<td class="admin-table__name">' + esc(u.name || '-') + '</td>';
+          html += '<td>' + esc(u.email || '-') + '</td>';
+          html += '<td>' + esc(u.phone || '-') + '</td>';
+          html += '<td><span class="admin-stars">Ⓒ ' + userBalance(u) + '</span></td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      document.getElementById('usersList').innerHTML = html || '<div class="admin-empty">Пользователей пока нет</div>';
+    }
+
+    /* --- Поиск по части ника --- */
+    var grantSelectedId = null;
+    var grantNickInput = document.getElementById('grantNick');
+    var grantSuggest = document.getElementById('grantSuggest');
+
+    function userMatches(u, q) {
+      return ((u.name || '') + ' ' + (u.email || '') + ' ' + (u.phone || '')).toLowerCase().indexOf(q) !== -1;
+    }
+
+    function hideGrantSuggest() {
+      grantSuggest.style.display = 'none';
+    }
+
+    function renderGrantSuggest() {
+      var q = grantNickInput.value.trim().toLowerCase();
+      if (!q) {
+        grantSelectedId = null;
+        hideGrantSuggest();
+        return;
+      }
+      var matches = apiGetUsers().filter(function(u) { return userMatches(u, q); });
+      if (!matches.length) {
+        grantSelectedId = null;
+        hideGrantSuggest();
+        return;
+      }
+      var html = '';
+      matches.slice(0, 8).forEach(function(u) {
+        html += '<button type="button" class="admin-grant__suggest-item" data-id="' + esc(u.id) + '">';
+        html += '<span class="admin-grant__suggest-name">' + esc(u.name || '-') + '</span>';
+        html += '<span class="admin-grant__suggest-meta">' + esc(u.email || '-') + '</span>';
+        html += '<span class="admin-stars">Ⓒ ' + userBalance(u) + '</span>';
+        html += '</button>';
+      });
+      grantSuggest.innerHTML = html;
+      grantSuggest.style.display = 'block';
+    }
+
+    grantNickInput.addEventListener('input', renderGrantSuggest);
+    grantNickInput.addEventListener('focus', renderGrantSuggest);
+
+    grantNickInput.addEventListener('blur', function() {
+      setTimeout(hideGrantSuggest, 150);
+    });
+
+    grantSuggest.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      var item = e.target.closest('.admin-grant__suggest-item');
+      if (!item) return;
+      var u = apiGetUsers().find(function(x) { return x.id === item.dataset.id; });
+      if (!u) return;
+      grantSelectedId = u.id;
+      grantNickInput.value = u.name;
+      hideGrantSuggest();
+    });
+
+    document.getElementById('grantForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var q = grantNickInput.value.trim().toLowerCase();
+      var amount = Math.floor(Number(document.getElementById('grantAmount').value));
+      var msg = document.getElementById('grantMsg');
+
+      if (!q) {
+        msg.textContent = 'Введите ник или email';
+        msg.className = 'admin-form__msg admin-form__msg--error';
+        return;
+      }
+      if (!amount || amount <= 0) {
+        msg.textContent = 'Введите положительное число MSI Coin';
+        msg.className = 'admin-form__msg admin-form__msg--error';
+        return;
+      }
+
+      var users = apiGetUsers();
+      var found = null;
+
+      if (grantSelectedId) {
+        found = users.find(function(u) { return u.id === grantSelectedId; });
+      }
+      if (!found) {
+        found = users.find(function(u) {
+          return (u.name || '').toLowerCase() === q || (u.email || '').toLowerCase() === q || (u.phone || '').toLowerCase() === q;
+        });
+      }
+      if (!found) {
+        found = users.find(function(u) { return userMatches(u, q); });
+      }
+      if (!found) {
+        msg.textContent = 'Пользователь не найден';
+        msg.className = 'admin-form__msg admin-form__msg--error';
+        return;
+      }
+
+      var action = (e.submitter && e.submitter.value) || 'grant';
+      var balance = userBalance(found);
+      var deduct = 0;
+
+      if (action === 'withdraw') {
+        deduct = Math.min(amount, balance);
+        if (deduct <= 0) {
+          msg.textContent = 'У пользователя «' + found.name + '» баланс уже равен 0';
+          msg.className = 'admin-form__msg admin-form__msg--error';
+          return;
+        }
+        found.balance = balance - deduct;
+      } else {
+        found.balance = balance + amount;
+      }
+      lsSetSafe('msi_users', users);
+
+      var cur = null;
+      try { cur = JSON.parse(localStorage.getItem('msi_current_user') || 'null'); } catch {}
+      if (cur && cur.id === found.id) {
+        cur.balance = found.balance;
+        lsSetSafe('msi_current_user', cur);
+      }
+
+      if (action === 'withdraw') {
+        apiPushNotification(found.id, 'spend', deduct, 'Списано с баланса');
+        apiPushGrantLog({
+          id: 'wd-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+          admin: 'Администратор',
+          userName: found.name,
+          userEmail: found.email,
+          amount: -deduct,
+          type: 'withdraw',
+          createdAt: new Date().toISOString()
+        });
+      } else {
+        apiPushNotification(found.id, 'topup', amount, 'На ваш баланс');
+        apiPushGrantLog({
+          id: 'grant-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+          admin: 'Администратор',
+          userName: found.name,
+          userEmail: found.email,
+          amount: amount,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      grantNickInput.value = '';
+      grantSelectedId = null;
+      document.getElementById('grantAmount').value = '';
+      hideGrantSuggest();
+      if (action === 'withdraw') {
+        msg.textContent = 'Списано ' + deduct + ' Ⓒ у пользователя «' + found.name + '». Новый баланс: ' + found.balance + ' Ⓒ' + (deduct < amount ? ' (списано меньше — недостаточно средств)' : '');
+      } else {
+        msg.textContent = 'Начислено ' + amount + ' Ⓒ пользователю «' + found.name + '». Новый баланс: ' + found.balance + ' Ⓒ';
+      }
+      msg.className = 'admin-form__msg admin-form__msg--ok';
+      renderUsers();
+      renderGrantLog();
+    });
+
+    document.getElementById('writeoffAllBtn').addEventListener('click', function() {
+      var users = apiGetUsers();
+      var count = 0;
+      users.forEach(function(u) { if ((userBalance(u) || 0) > 0) count++; });
+      if (!count) {
+        alert('У всех пользователей баланс уже равен 0');
+        return;
+      }
+      showDeleteModal(function() {
+        var total = 0;
+        var n = 0;
+        users.forEach(function(u) {
+          var bal = userBalance(u);
+          if (bal <= 0) return;
+          total += bal;
+          n++;
+          u.balance = 0;
+          apiPushNotification(u.id, 'spend', bal, 'Баланс MSI Coin списан');
+          apiPushGrantLog({
+            id: 'wo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+            admin: 'Администратор',
+            userName: u.name,
+            userEmail: u.email,
+            amount: -bal,
+            type: 'writeoff',
+            createdAt: new Date().toISOString()
+          });
+        });
+        lsSetSafe('msi_users', users);
+        var cur = null;
+        try { cur = JSON.parse(localStorage.getItem('msi_current_user') || 'null'); } catch {}
+        if (cur) { cur.balance = 0; lsSetSafe('msi_current_user', cur); }
+        renderUsers();
+        renderGrantLog();
+        alert('Списано ' + total + ' Ⓒ у ' + n + ' пользователей');
+      }, 'Списать весь баланс MSI Coin у всех пользователей?', 'Списать');
+    });
+
     /* ============ INIT ============ */
     renderBannerList();
+    renderNewsList();
     renderCatalog();
+    renderAnalytics();
+    renderOrders();
+    renderUsers();
+    renderGrantLog();
 
   </script>
 
@@ -709,8 +1836,8 @@
     <div class="admin-modal__overlay" id="deleteModalOverlay"></div>
     <div class="admin-modal__content">
       <div class="admin-modal__icon">🗑</div>
-      <h3 class="admin-modal__title">Удалить?</h3>
-      <p class="admin-modal__text">Это действие нельзя отменить</p>
+      <h3 class="admin-modal__title" id="deleteModalTitle">Удалить?</h3>
+      <p class="admin-modal__text" id="deleteModalText">Это действие нельзя отменить</p>
       <div class="admin-modal__btns">
         <button class="admin-btn admin-btn--secondary" id="deleteCancelBtn">Отмена</button>
         <button class="admin-btn admin-btn--danger" id="deleteConfirmBtn">Удалить</button>
@@ -721,16 +1848,27 @@
   <script>
     /* ============ DELETE MODAL ============ */
     var deleteModal = document.getElementById('deleteModal');
+    var deleteModalTitle = document.getElementById('deleteModalTitle');
+    var deleteModalText = document.getElementById('deleteModalText');
     var deleteCallback = null;
 
-    function showDeleteModal(callback) {
+    function showDeleteModal(callback, message, confirmLabel) {
       deleteCallback = callback;
+      document.getElementById('deleteConfirmBtn').textContent = confirmLabel || 'Удалить';
+      if (message) {
+        deleteModalTitle.textContent = message;
+        deleteModalText.style.display = 'none';
+      } else {
+        deleteModalTitle.textContent = 'Удалить?';
+        deleteModalText.style.display = '';
+      }
       deleteModal.classList.add('admin-modal--visible');
     }
 
     function hideDeleteModal() {
       deleteModal.classList.remove('admin-modal--visible');
       deleteCallback = null;
+      document.getElementById('deleteConfirmBtn').textContent = 'Удалить';
     }
 
     document.getElementById('deleteConfirmBtn').addEventListener('click', function() {

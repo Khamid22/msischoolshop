@@ -1,4 +1,4 @@
-.cart-overlay {
+.fav-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -13,7 +13,7 @@
   }
 }
 
-.cart-drawer {
+.fav-drawer {
   position: fixed;
   top: 0;
   right: 0;
@@ -88,80 +88,9 @@
     margin: 0;
     -webkit-overflow-scrolling: touch;
   }
-
-  &__footer {
-    padding: 14px 16px;
-    border-top: 2px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  &__total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  &__total-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
-
-  &__total-sum {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--text-muted);
-  }
-
-  &__total-price {
-    font-size: 1.2rem;
-    font-weight: 800;
-  }
-
-  &__checkout {
-    padding: 11px;
-    border: 2px solid var(--text);
-    border-radius: 6px;
-    background: var(--text);
-    color: var(--bg);
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover {
-      opacity: 0.85;
-    }
-  }
-
-  &__clear {
-    padding: 9px;
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover {
-      border-color: var(--text);
-      color: var(--text);
-    }
-  }
 }
 
-.cart-item {
+.fav-item {
   display: flex;
   gap: 10px;
   padding: 12px 16px;
@@ -194,28 +123,46 @@
     text-overflow: ellipsis;
   }
 
+  &__price-wrap {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
   &__price {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 800;
+
+    &--sale {
+      color: var(--accent);
+    }
+  }
+
+  &__price-old {
+    font-size: 0.7rem;
     color: var(--text-muted);
     font-weight: 600;
+    text-decoration: line-through;
   }
 
-  &__controls {
+  &__actions {
     display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 3px;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
-  &__qty-btn {
-    width: 24px;
-    height: 24px;
+  &__heart {
+    width: 26px;
+    height: 26px;
     border: 1px solid var(--border);
     border-radius: 4px;
     background: transparent;
-    color: var(--text);
-    font-size: 0.8rem;
-    font-weight: 700;
+    color: #ff4d6d;
+    font-size: 0.75rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -223,43 +170,43 @@
     transition: all 0.15s ease;
 
     &:hover {
-      background: var(--hover);
+      background: #ff4d6d;
+      color: #fff;
+      border-color: #ff4d6d;
+    }
+
+    &:active {
+      transform: scale(0.88);
     }
   }
 
-  &__qty {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--text);
-    min-width: 18px;
-    text-align: center;
-  }
-
-  &__remove {
-    margin-left: auto;
-    width: 24px;
-    height: 24px;
-    border: 1px solid var(--border);
+  &__cart {
+    padding: 6px 9px;
+    border: 1px solid var(--text);
     border-radius: 4px;
     background: transparent;
-    color: var(--text-muted);
-    font-size: 0.65rem;
+    color: var(--text);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    white-space: nowrap;
     transition: all 0.15s ease;
 
     &:hover {
       background: var(--text);
       color: var(--bg);
-      border-color: var(--text);
+    }
+
+    &:active {
+      transform: scale(0.94);
     }
   }
 }
 
 @media (max-width: 768px) {
-  .cart-drawer {
+  .fav-drawer {
     width: 360px;
 
     &__header {
@@ -271,7 +218,7 @@
     }
   }
 
-  .cart-item {
+  .fav-item {
     padding: 11px 15px;
 
     &__img {
@@ -282,7 +229,7 @@
 }
 
 @media (max-width: 480px) {
-  .cart-drawer {
+  .fav-drawer {
     width: 100%;
     max-width: 100vw;
     border-left: none;
@@ -301,32 +248,9 @@
       height: 28px;
       font-size: 0.8rem;
     }
-
-    &__footer {
-      padding: 12px 14px;
-      border-top-width: 1px;
-    }
-
-    &__total {
-      font-size: 0.9rem;
-    }
-
-    &__total-price {
-      font-size: 1.1rem;
-    }
-
-    &__checkout {
-      padding: 12px;
-      font-size: 0.8rem;
-    }
-
-    &__clear {
-      padding: 8px;
-      font-size: 0.7rem;
-    }
   }
 
-  .cart-item {
+  .fav-item {
     padding: 10px 14px;
     border-bottom-width: 1px;
 
@@ -340,39 +264,19 @@
     }
 
     &__price {
-      font-size: 0.7rem;
-    }
-
-    &__qty-btn {
-      width: 22px;
-      height: 22px;
       font-size: 0.75rem;
-    }
-
-    &__qty {
-      font-size: 0.75rem;
-      min-width: 16px;
-    }
-
-    &__remove {
-      width: 22px;
-      height: 22px;
     }
   }
 }
 
 @media (max-width: 360px) {
-  .cart-drawer {
+  .fav-drawer {
     &__header {
-      padding: 10px 12px;
-    }
-
-    &__footer {
       padding: 10px 12px;
     }
   }
 
-  .cart-item {
+  .fav-item {
     padding: 8px 12px;
     gap: 8px;
 
@@ -384,15 +288,11 @@
     &__name {
       font-size: 0.72rem;
     }
-
-    &__controls {
-      gap: 3px;
-    }
   }
 }
 
 @media (max-width: 320px) {
-  .cart-drawer {
+  .fav-drawer {
     &__header {
       padding: 8px 10px;
     }
@@ -406,32 +306,9 @@
       height: 24px;
       font-size: 0.7rem;
     }
-
-    &__footer {
-      padding: 8px 10px;
-      gap: 6px;
-    }
-
-    &__total {
-      font-size: 0.8rem;
-    }
-
-    &__total-price {
-      font-size: 1rem;
-    }
-
-    &__checkout {
-      padding: 10px;
-      font-size: 0.75rem;
-    }
-
-    &__clear {
-      padding: 7px;
-      font-size: 0.65rem;
-    }
   }
 
-  .cart-item {
+  .fav-item {
     padding: 6px 10px;
     gap: 6px;
 
@@ -445,24 +322,7 @@
     }
 
     &__price {
-      font-size: 0.65rem;
-    }
-
-    &__qty-btn {
-      width: 20px;
-      height: 20px;
       font-size: 0.7rem;
-    }
-
-    &__qty {
-      font-size: 0.7rem;
-      min-width: 14px;
-    }
-
-    &__remove {
-      width: 20px;
-      height: 20px;
-      font-size: 0.55rem;
     }
   }
 }

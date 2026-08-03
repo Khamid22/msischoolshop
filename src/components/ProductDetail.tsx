@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import FavoriteButton from './FavoriteButton';
 import type { Product } from '../types';
 import './ProductDetail.scss';
 
@@ -14,6 +16,7 @@ interface Props {
 export default function ProductDetail({ product, allProducts, onClose, onOpenProduct }: Props) {
   const { t } = useLang();
   const { addItem } = useCart();
+  const { user, openAuth } = useAuth();
 
   const recommended = useMemo(() => {
     if (!product) return [];
@@ -34,6 +37,10 @@ export default function ProductDetail({ product, allProducts, onClose, onOpenPro
 
   const handleAdd = (e: React.MouseEvent, p: Product) => {
     e.stopPropagation();
+    if (!user) {
+      openAuth();
+      return;
+    }
     addItem(p);
   };
 
@@ -45,6 +52,7 @@ export default function ProductDetail({ product, allProducts, onClose, onOpenPro
 
         <div className="detail__image-wrap">
           <img className="detail__image" src={product.image} alt={displayName} />
+          <FavoriteButton product={product} />
           {hasDiscount && (
             <div className="detail__badge">-{product.discount}%</div>
           )}
