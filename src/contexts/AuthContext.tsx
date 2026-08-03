@@ -15,6 +15,7 @@ interface AuthContextType {
   closeProfile: () => void;
   register: (data: Omit<User, 'id' | 'balance'> & { password: string }) => string | null;
   login: (email: string, password: string) => string | null;
+  demoLogin: () => void;
   logout: () => void;
   updateProfile: (data: Partial<Omit<User, 'id'>>) => void;
   spendStars: (amount: number, note?: string) => boolean;
@@ -35,6 +36,10 @@ function normalizeStoredUser(u: Partial<StoredUser>): StoredUser {
     address: u.address || '',
     avatar: u.avatar,
     balance: typeof u.balance === 'number' ? u.balance : DEFAULT_BALANCE,
+    group: u.group,
+    studentId: u.studentId,
+    discount: typeof u.discount === 'number' ? u.discount : 10,
+    earned: typeof u.earned === 'number' ? u.earned : 0,
     password: u.password || '',
   };
 }
@@ -48,6 +53,10 @@ function normalizePublicUser(u: Partial<User>): User {
     address: u.address || '',
     avatar: u.avatar,
     balance: typeof u.balance === 'number' ? u.balance : DEFAULT_BALANCE,
+    group: u.group,
+    studentId: u.studentId,
+    discount: typeof u.discount === 'number' ? u.discount : 10,
+    earned: typeof u.earned === 'number' ? u.earned : 0,
   };
 }
 
@@ -123,6 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...data,
       id: crypto.randomUUID(),
       balance: DEFAULT_BALANCE,
+      studentId: 'STU-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+      discount: 10,
+      earned: 0,
     };
     users.push(newUser);
     saveUsers(users);
@@ -148,6 +160,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthOpen(false);
     return null;
   }, []);
+
+  const demoLogin = useCallback(() => {
+    login('aisha@msi.uz', 'demo');
+  }, [login]);
 
   const logout = useCallback(() => {
     setUser(null);
@@ -195,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         closeProfile,
         register,
         login,
+        demoLogin,
         logout,
         updateProfile,
         spendStars,

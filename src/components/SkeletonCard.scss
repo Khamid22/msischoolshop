@@ -1,8 +1,8 @@
 .skeleton {
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--card-bg);
+  background: var(--color-surface);
 
   &__image {
     width: 100%;
@@ -87,7 +87,7 @@
     width: 70px;
     height: 30px;
     background: var(--img-bg);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
   }
 }
 

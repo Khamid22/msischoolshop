@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
-import { useFavorites } from '../contexts/FavoritesContext';
+import { formatCoins } from '../utils/currency';
 import type { Language, View } from '../types';
+import Coin from './Coin';
+import { BellIcon, CartIcon, SettingsIcon } from './icons';
 import './Header.scss';
 
-const LANGUAGES: { code: Language; label: string }[] = [
-  { code: 'ru', label: 'RU' },
-  { code: 'uz', label: 'UZ' },
-  { code: 'en', label: 'EN' },
-];
+interface Props {
+  view: View;
+}
 
 function formatNotifDate(iso: string, lang: Language): string {
   const d = new Date(iso);
@@ -26,294 +25,111 @@ function formatNotifDate(iso: string, lang: Language): string {
   return d.toLocaleDateString(lang === 'uz' ? 'uz-UZ' : lang === 'ru' ? 'ru-RU' : 'en-GB');
 }
 
-interface Props {
-  view: View;
-  onViewChange: (view: View) => void;
-}
-
-export default function Header({ view, onViewChange }: Props) {
-  const { theme, toggleTheme } = useTheme();
-  const { lang, setLang, t } = useLang();
+export default function Header({ view }: Props) {
+  const { lang, t } = useLang();
   const { open, totalItems } = useCart();
-  const { user, openAuth, openProfile, logout } = useAuth();
+  const { user, openAuth, openProfile } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
-  const { favorites, open: openFavorites } = useFavorites();
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const burgerRef = useRef<HTMLButtonElement>(null);
-  const mobileMenuRef = useRef<HTMLElement>(null);
-
-  const tabs = [
-    { view: 'shop' as View, label: t('tabShop') },
-    { view: 'catalog' as View, label: t('tabCatalog') },
-    { view: 'news' as View, label: t('tabNews') },
-  ];
 
   useEffect(() => {
     if (!notifOpen) return;
     const onClick = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setNotifOpen(false);
-      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [notifOpen]);
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onClick = (e: MouseEvent) => {
-      const tgt = e.target as Node;
-      if (burgerRef.current && burgerRef.current.contains(tgt)) return;
-      if (mobileMenuRef.current && mobileMenuRef.current.contains(tgt)) return;
-      setMenuOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [menuOpen]);
+  const firstName = user ? user.name.split(' ')[0] : '';
+  const titles: Record<View, string> = {
+    home: user ? `${t('homeGreeting')}, ${firstName}` : t('shopTitle'),
+    catalog: t('catalogTitle'),
+    orders: t('myOrders'),
+    profile: t('myProfile'),
+    news: t('tabNews'),
+  };
 
   return (
-    <header className="header">
-      <div className="header__left">
-        <button
-          className="header__burger"
-          onClick={() => setMenuOpen((o) => !o)}
-          aria-label="Меню"
-          ref={burgerRef}
-        >
-          {menuOpen ? '✕' : '☰'}
-        </button>
-        <h1 className="header__logo">{t('shopTitle')}</h1>
+    <header className="topbar">
+      <div className="topbar__left">
+        <h1 className="topbar__title">{titles[view]}</h1>
       </div>
 
-      <nav className="header__nav">
-        {tabs.map((tb) => (
-          <button
-            key={tb.view}
-            className={`header__tab ${view === tb.view ? 'header__tab--active' : ''}`}
-            onClick={() => onViewChange(tb.view)}
-          >
-            {tb.label}
-          </button>
-        ))}
-      </nav>
-
-      <div className="header__right">
-        {user && (
-          <div className="header__notif-wrap" ref={notifRef}>
-            <button
-              className="header__bell-btn"
-              onClick={() => {
-                if (!notifOpen && unreadCount > 0) markAllRead();
-                setNotifOpen((o) => !o);
-              }}
-              title={t('notifications')}
-            >
-              <span className="header__bell-icon">🔔</span>
-              {unreadCount > 0 && (
-                <span key={unreadCount} className="header__bell-badge">{unreadCount}</span>
-              )}
-            </button>
-            {notifOpen && (
-              <div className="header__notif">
-                <div className="header__notif-head">
-                  <span className="header__notif-title">{t('notifications')}</span>
-                </div>
-                <div className="header__notif-list">
-                  {notifications.length === 0 ? (
-                    <div className="header__notif-empty">{t('noNotifications')}</div>
-                  ) : (
-                    notifications.slice(0, 30).map((n) => {
-                      const positive = n.type === 'topup' || n.type === 'welcome';
-                      const label = positive ? `+${n.amount}` : `−${n.amount}`;
-                      const text = n.note
-                        ? n.note
-                        : t(n.type === 'welcome' ? 'notifWelcome' : n.type === 'topup' ? 'notifTopup' : 'notifSpend');
-                      return (
-                        <div
-                          key={n.id}
-                          className={`header__notif-item ${n.read ? 'header__notif-item--read' : ''}`}
-                        >
-                          <span className={`header__notif-ico ${positive ? 'header__notif-ico--plus' : ''}`}>
-                            {positive ? '＋' : '−'}
-                          </span>
-                          <div className="header__notif-body">
-                            <div className="header__notif-text">
-                              <span className="header__notif-amount">{label} {t('currency')}</span>
-                              {text && <span className="header__notif-note">· {text}</span>}
-                            </div>
-                            <div className="header__notif-date">{formatNotifDate(n.createdAt, lang)}</div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        {user && (
-          <button className="header__balance" onClick={openProfile} title={t('balance')}>
-            <span className="header__balance-icon">{t('currency')}</span>
-            <span key={user.balance} className="header__balance-value">{user.balance}</span>
-          </button>
-        )}
-        {user && (
-          <button
-            className="header__fav-btn"
-            onClick={openFavorites}
-            title={t('favorites')}
-          >
-            <span className="header__fav-icon">♥</span>
-            {favorites.length > 0 && (
-              <span key={favorites.length} className="header__fav-badge">{favorites.length}</span>
-            )}
-          </button>
-        )}
-        <div className="header__lang-switcher">
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              className={`header__lang-btn ${lang === l.code ? 'header__lang-btn--active' : ''}`}
-              onClick={() => setLang(l.code)}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-        <button className="header__theme-btn" onClick={toggleTheme}>
-          {theme === 'light' ? '◼' : '◻'}
-        </button>
-        <button className="header__cart-btn" onClick={open}>
-          <span className="header__cart-icon">◻</span>
-          <span className="header__cart-label">{t('cart')}</span>
-          {totalItems > 0 && (
-            <span key={totalItems} className="header__cart-badge">{totalItems}</span>
-          )}
-        </button>
-        <button className="header__user-btn" onClick={user ? openProfile : openAuth}>
-          {user && user.avatar ? (
-            <img className="header__user-avatar" src={user.avatar} alt={user.name} />
-          ) : (
-            <span className="header__user-icon">◉</span>
-          )}
-          <span className="header__user-label">{user ? user.name : t('account')}</span>
-        </button>
-        <a href="/admin-login.html" className="header__admin-btn" title="Админ-панель">
-          ⚙
-        </a>
-      </div>
-
-      {menuOpen && (
-        <nav className="header__mobile-menu" ref={mobileMenuRef}>
-          <div className="header__mobile-section">
-            {tabs.map((tb) => (
+      <div className="topbar__right">
+        {user ? (
+          <>
+            <div className="topbar__notif-wrap" ref={notifRef}>
               <button
-                key={tb.view}
-                className={`header__mobile-tab ${view === tb.view ? 'header__mobile-tab--active' : ''}`}
+                className="topbar__icon-btn"
                 onClick={() => {
-                  onViewChange(tb.view);
-                  setMenuOpen(false);
+                  if (!notifOpen && unreadCount > 0) markAllRead();
+                  setNotifOpen((o) => !o);
                 }}
+                title={t('notifications')}
               >
-                {tb.label}
-              </button>
-            ))}
-          </div>
-
-          {user ? (
-            <div className="header__mobile-section">
-              <button
-                className="header__mobile-action"
-                onClick={() => {
-                  openProfile();
-                  setMenuOpen(false);
-                }}
-              >
-                <span className="header__mobile-action-icon">{t('currency')}</span>
-                <span className="header__mobile-action-label">{t('balance')}</span>
-                <span className="header__mobile-action-value">{user.balance}</span>
-              </button>
-              <button
-                className="header__mobile-action"
-                onClick={() => {
-                  openFavorites();
-                  setMenuOpen(false);
-                }}
-              >
-                <span className="header__mobile-action-icon">♥</span>
-                <span className="header__mobile-action-label">{t('favorites')}</span>
-                {favorites.length > 0 && (
-                  <span className="header__mobile-action-value">{favorites.length}</span>
+                <BellIcon className="topbar__bell" />
+                {unreadCount > 0 && (
+                  <span key={unreadCount} className="topbar__badge">{unreadCount}</span>
                 )}
               </button>
+              {notifOpen && (
+                <div className="topbar__notif">
+                  <div className="topbar__notif-list">
+                    {notifications.length === 0 ? (
+                      <div className="topbar__notif-empty">{t('noNotifications')}</div>
+                    ) : (
+                      notifications.slice(0, 30).map((n) => {
+                        const positive = n.type === 'topup' || n.type === 'welcome';
+                        const label = positive ? `+${formatCoins(n.amount)}` : `−${formatCoins(n.amount)}`;
+                        const text = n.note || t(n.type === 'welcome' ? 'notifWelcome' : n.type === 'topup' ? 'notifTopup' : 'notifSpend');
+                        return (
+                          <div
+                            key={n.id}
+                            className={`topbar__notif-item ${n.read ? 'topbar__notif-item--read' : ''}`}
+                          >
+                            <span className={`topbar__notif-ico ${positive ? 'topbar__notif-ico--plus' : ''}`}>
+                              {positive ? '＋' : '−'}
+                            </span>
+                            <div className="topbar__notif-body">
+                              <div className="topbar__notif-text">
+                                <span className="topbar__notif-amount">{label} <Coin /></span>
+                                {text && <span className="topbar__notif-note">· {text}</span>}
+                              </div>
+                              <div className="topbar__notif-date">{formatNotifDate(n.createdAt, lang)}</div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="header__mobile-section">
-              <button
-                className="header__mobile-login"
-                onClick={() => {
-                  openAuth();
-                  setMenuOpen(false);
-                }}
-              >
-                {t('login')} / {t('register')}
-              </button>
-            </div>
-          )}
 
-          <div className="header__mobile-section">
-            <div className="header__mobile-lang">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  className={`header__mobile-lang-btn ${lang === l.code ? 'header__mobile-lang-btn--active' : ''}`}
-                  onClick={() => setLang(l.code)}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-            <button className="header__mobile-action" onClick={toggleTheme}>
-              <span className="header__mobile-action-icon">{theme === 'light' ? '◼' : '◻'}</span>
-              <span className="header__mobile-action-label">
-                {theme === 'light' ? 'Dark' : 'Light'}
-              </span>
+            <button className="topbar__balance" onClick={openProfile} title={t('balance')}>
+              <Coin />
+              <span key={user.balance} className="topbar__balance-value">{formatCoins(user.balance)}</span>
             </button>
-          </div>
+          </>
+        ) : (
+          <button className="btn btn-ghost topbar__signin" onClick={openAuth}>
+            {t('login')}
+          </button>
+        )}
 
-          <div className="header__mobile-section">
-            <a
-              className="header__mobile-action header__mobile-action--link"
-              href="/admin-login.html"
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="header__mobile-action-icon">⚙</span>
-              <span className="header__mobile-action-label">Админ-панель</span>
-            </a>
-            {user && (
-              <button
-                className="header__mobile-action"
-                onClick={() => {
-                  logout();
-                  setMenuOpen(false);
-                }}
-              >
-                <span className="header__mobile-action-label">{t('logout')}</span>
-              </button>
-            )}
-          </div>
-        </nav>
-      )}
+        <a className="topbar__icon-btn topbar__admin" href="/admin-login.html" title={t('adminPanel')}>
+          <SettingsIcon className="topbar__settings" />
+        </a>
+
+        <button className="topbar__cart" onClick={open} title={t('cart')}>
+          <CartIcon className="topbar__cart-icon" />
+          {totalItems > 0 && (
+            <span key={totalItems} className="topbar__cart-badge">{totalItems}</span>
+          )}
+        </button>
+      </div>
     </header>
   );
 }

@@ -1,10 +1,11 @@
-import type { Product, FilterState, Banner as BannerType } from '../types';
+import type { Product, Banner as BannerType } from '../types';
 import { useLang } from '../contexts/LangContext';
+import { useAuth } from '../contexts/AuthContext';
+import { formatCoins } from '../utils/currency';
 import Banner from './Banner';
-import ProductGrid from './ProductGrid';
+import ProductRow from './ProductRow';
+import Coin from './Coin';
 import './ShopPage.scss';
-
-const NO_FILTERS: FilterState = { type: 'all', minPrice: 0, maxPrice: 0, search: '' };
 
 interface Props {
   products: Product[];
@@ -16,19 +17,53 @@ interface Props {
 
 export default function ShopPage({ products, loading, onOpenProduct, onBannerClick, onOpenCatalog }: Props) {
   const { t } = useLang();
-  const featured = products.slice(0, 8);
+  const { user, openAuth } = useAuth();
+
+  const arrivals = products.slice(0, 8);
+  const digital = products.filter((p) => p.type === 'digital').slice(0, 6);
 
   return (
     <div className="shop-page">
-      <Banner onBannerClick={onBannerClick} />
-      <section className="shop-page__section">
-        <div className="shop-page__head">
-          <h2 className="shop-page__title">{t('recommended')}</h2>
-          <button className="shop-page__cta" onClick={onOpenCatalog}>
-            {t('goToCatalog')} →
+      {user ? (
+        <div className="shop-page__balance">
+          <span className="shop-page__balance-label">{t('balanceTitle')}</span>
+          <span className="shop-page__balance-value">
+            <Coin className="shop-page__balance-coin" />
+            {formatCoins(user.balance)}
+          </span>
+          {user.discount ? (
+            <span className="tag tag-accent shop-page__balance-discount">−{user.discount}%</span>
+          ) : null}
+        </div>
+      ) : (
+        <div className="shop-page__guest">
+          <span className="shop-page__guest-text">{t('shopTitle')}</span>
+          <button className="btn btn-ghost shop-page__guest-btn" onClick={openAuth}>
+            {t('login')} / {t('register')}
           </button>
         </div>
-        <ProductGrid products={featured} filters={NO_FILTERS} loading={loading} onOpenProduct={onOpenProduct} />
+      )}
+
+      <Banner onBannerClick={onBannerClick} />
+
+      <section className="shop-page__section">
+        <div className="shop-page__head">
+          <h2 className="shop-page__title">{t('newArrivals')}</h2>
+          <button className="btn btn-ghost shop-page__cta" onClick={onOpenCatalog}>
+            {t('viewAll')} →
+          </button>
+        </div>
+        <ProductRow products={arrivals} loading={loading} onOpenProduct={onOpenProduct} />
+      </section>
+
+      <section className="shop-page__section">
+        <div className="shop-page__head">
+          <h2 className="shop-page__title">{t('digitalGoods')}</h2>
+          <button className="btn btn-ghost shop-page__cta" onClick={onOpenCatalog}>
+            {t('viewAll')} →
+          </button>
+        </div>
+        <ProductRow products={digital} loading={loading} onOpenProduct={onOpenProduct} />
       </section>
     </div>
   );

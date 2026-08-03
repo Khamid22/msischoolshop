@@ -1,6 +1,8 @@
 export type Language = 'ru' | 'uz' | 'en';
 
-export type View = 'shop' | 'catalog' | 'news';
+export type View = 'home' | 'catalog' | 'orders' | 'profile' | 'news';
+
+export type OrderStatus = 'paid' | 'packed' | 'ready' | 'collected';
 
 export type NotificationType = 'welcome' | 'spend' | 'topup';
 
@@ -31,6 +33,16 @@ export interface Product {
   weight?: number;
   stock?: number;
   discount?: number;
+  rating?: number;
+  ratingCount?: number;
+  course?: { id: string; title: string; url: string };
+}
+
+export interface PickupSlot {
+  id: string;
+  label: string;
+  when: string;
+  location: string;
 }
 
 export interface FilterState {
@@ -59,6 +71,10 @@ export interface User {
   address: string;
   avatar?: string;
   balance: number;
+  group?: string;
+  studentId?: string;
+  discount?: number;
+  earned?: number;
 }
 
 export interface Order {
@@ -72,6 +88,10 @@ export interface Order {
   createdAt: string;
   userId?: string;
   customerEmail?: string;
+  status?: OrderStatus;
+  pickupCode?: string;
+  pickupSlot?: string;
+  originalPrice?: number;
 }
 
 export type DeliveryMethod = 'courier' | 'pickup' | 'post';

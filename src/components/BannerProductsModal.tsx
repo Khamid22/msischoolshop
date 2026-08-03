@@ -63,11 +63,11 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
                   onClick={() => onOpenProduct(product)}
                 >
                   {hasDiscount && (
-                    <div className="banner-modal__badge">-{product.discount}%</div>
+                    <div className="tag tag-accent banner-modal__badge">-{product.discount}%</div>
                   )}
                   <FavoriteButton product={product} />
                   <div className="banner-modal__img-wrap">
-                    <img className="banner-modal__img" src={product.image} alt={displayName} loading="lazy" />
+                    <img className="lighten banner-modal__img" src={product.image} alt={displayName} loading="lazy" />
                   </div>
                   <div className="banner-modal__body">
                     <h3 className="banner-modal__name">{displayName}</h3>
@@ -82,7 +82,7 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
                         </span>
                       </div>
                       <button
-                        className="banner-modal__btn"
+                        className="btn btn-primary banner-modal__btn"
                         onClick={(e) => { e.stopPropagation(); handleAdd(product); }}
                       >
                         {t('addToCart')}

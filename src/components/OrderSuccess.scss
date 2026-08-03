@@ -1,19 +1,8 @@
 .success-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 300;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  z-index: 80;
+  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
 }
 
 .success-modal {
@@ -21,157 +10,83 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 400px;
-  max-width: 92vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: var(--bg);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  z-index: 301;
-  animation: slideUp 0.2s ease;
-  padding: 28px 24px;
+  z-index: 81;
+  width: min(400px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
   text-align: center;
-  -webkit-overflow-scrolling: touch;
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: popIn 0.3s ease;
 
   &__icon {
     width: 56px;
     height: 56px;
-    border-radius: 50%;
-    border: 3px solid var(--text);
-    display: flex;
+    margin: 0 auto;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: var(--text);
-    margin: 0 auto 14px;
-    animation: popIn 0.4s ease;
+    font-size: 26px;
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    border-radius: 50%;
   }
 
   &__title {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: var(--text);
-    margin: 0 0 8px;
+    font-size: 20px;
   }
 
   &__subtitle {
-    font-size: 0.9rem;
+    font-size: 14px;
     color: var(--text-muted);
-    margin: 0 0 8px;
+  }
+
+  &__code {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-4);
+    background: var(--color-bg);
+    border: 1px dashed var(--color-accent);
+    border-radius: var(--radius-md);
+
+    &-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    &-value {
+      font-family: var(--font-heading);
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--color-accent);
+    }
+
+    &-slot {
+      font-size: 13px;
+      color: var(--color-text);
+    }
+
+    &-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
   }
 
   &__sum {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0 0 6px;
+    font-size: 14px;
+    color: var(--color-text);
   }
 
   &__balance {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 13px;
     color: var(--text-muted);
-    margin: 0 0 20px;
   }
-
-  &__btn {
-    margin-top: 8px;
-    padding: 12px 32px;
-    border: 2px solid var(--text);
-    border-radius: 6px;
-    background: var(--text);
-    color: var(--bg);
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover {
-      opacity: 0.85;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .success-modal {
-    width: 380px;
-    padding: 24px 20px;
-
-    &__title {
-      font-size: 1.15rem;
-    }
-
-    &__subtitle {
-      font-size: 0.85rem;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .success-modal {
-    max-width: 100vw;
-    max-height: 100vh;
-    width: 100%;
-    border-radius: 0;
-    top: 0;
-    left: 0;
-    transform: none;
-    height: 100%;
-    animation: slideUpMobile 0.25s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 24px 16px;
-
-    &__title {
-      font-size: 1.1rem;
-    }
-
-    &__btn {
-      padding: 13px;
-      width: 100%;
-    }
-  }
-}
-
-@media (max-width: 320px) {
-  .success-modal {
-    padding: 16px 12px;
-
-    &__icon {
-      width: 44px;
-      height: 44px;
-      font-size: 1.2rem;
-      border-width: 2px;
-      margin-bottom: 10px;
-    }
-
-    &__title {
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-    }
-
-    &__subtitle {
-      font-size: 0.78rem;
-    }
-
-    &__sum {
-      font-size: 0.85rem;
-      margin-bottom: 14px;
-    }
-
-    &__btn {
-      padding: 10px;
-      font-size: 0.78rem;
-    }
-  }
-}
-
-@keyframes slideUpMobile {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
 }

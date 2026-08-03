@@ -1,0 +1,114 @@
+.orders-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+
+  &__tabs {
+    display: flex;
+    gap: var(--space-3);
+    overflow-x: auto;
+  }
+
+  &__tab {
+    flex: none;
+    padding: 7px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+
+    &--active {
+      color: var(--color-accent);
+      border-color: var(--color-accent);
+      background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    list-style: none;
+  }
+
+  &__empty {
+    padding: var(--space-8, 44px) 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+}
+
+.order-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--color-accent);
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  &__id {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 15px;
+    color: var(--color-text);
+  }
+
+  &__items {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  &__slot {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__code {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-accent);
+  }
+
+  &__total {
+    font-size: 14px;
+    color: var(--color-text);
+  }
+}
+
+@media (min-width: 769px) {
+  .orders-page {
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    padding: var(--space-6);
+  }
+}

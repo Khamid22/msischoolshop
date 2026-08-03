@@ -2,7 +2,10 @@ import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCoins, getProductPrice, getUnitPrice } from '../utils/currency';
 import FavoriteButton from './FavoriteButton';
+import Rating from './Rating';
+import Coin from './Coin';
 import './ProductCard.scss';
 
 interface Props {
@@ -28,9 +31,9 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const displayName = t(product.nameKey) || product.name;
   const displayDesc = t(product.descKey) || product.description;
   const hasDiscount = product.discount && product.discount > 0;
-  const discountedPrice = hasDiscount
-    ? Math.round(product.price * (1 - product.discount! / 100))
-    : product.price;
+  const price = getProductPrice(product);
+  const studentPrice = getUnitPrice(product, user);
+  const showStudentPrice = user?.discount && user.discount > 0 && studentPrice < price;
 
   return (
     <article
@@ -39,12 +42,12 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
       onClick={() => onOpen(product)}
     >
       {hasDiscount && (
-        <div className="card__badge">-{product.discount}%</div>
+        <div className="tag tag-accent card__badge">-{product.discount}%</div>
       )}
       <FavoriteButton product={product} />
       <div className="card__image-wrap">
         <img
-          className="card__image"
+          className="lighten card__image"
           src={product.image}
           alt={displayName}
           loading="lazy"
@@ -52,17 +55,21 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
       </div>
       <div className="card__body">
         <h3 className="card__title">{displayName}</h3>
+        <Rating value={product.rating} count={product.ratingCount} />
         <p className="card__desc">{displayDesc}</p>
         <div className="card__footer">
           <div className="card__price-wrap">
             {hasDiscount && (
-              <span className="card__price-old">{t('currency')}{product.price}</span>
+              <span className="card__price-old">{formatCoins(product.price)} <Coin /></span>
             )}
-            <span className={`card__price ${hasDiscount ? 'card__price--sale' : ''}`}>
-              {t('currency')}{discountedPrice}
+            <span className="card__price">
+              {formatCoins(price)} <Coin />
             </span>
+            {showStudentPrice && (
+              <span className="card__price-student">−{user.discount}%</span>
+            )}
           </div>
-          <button className="card__btn" onClick={handleAdd}>
+          <button className="btn btn-primary card__btn" onClick={handleAdd}>
             {t('addToCart')}
           </button>
         </div>

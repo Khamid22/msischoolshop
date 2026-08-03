@@ -6,7 +6,7 @@ import './AuthModal.scss';
 type Tab = 'login' | 'register';
 
 export default function AuthModal() {
-  const { isAuthOpen, closeAuth, login, register } = useAuth();
+  const { isAuthOpen, closeAuth, login, register, demoLogin } = useAuth();
   const { t } = useLang();
   const [tab, setTab] = useState<Tab>('login');
 
@@ -107,7 +107,7 @@ export default function AuthModal() {
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('email')}*</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
@@ -117,7 +117,7 @@ export default function AuthModal() {
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('password')}*</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="password"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
@@ -125,16 +125,25 @@ export default function AuthModal() {
                 />
               </label>
               {loginError && <span className="auth-form__error">{loginError}</span>}
-              <button className="auth-form__submit" type="submit">
+              <button className="btn btn-primary btn-block auth-form__submit" type="submit">
                 {t('login')}
               </button>
+              <div className="auth-form__divider" />
+              <button
+                type="button"
+                className="btn btn-secondary btn-block auth-form__demo"
+                onClick={demoLogin}
+              >
+                {t('demoLogin')}
+              </button>
+              <span className="auth-form__hint">{t('demoHint')}</span>
             </form>
           ) : (
             <form className="auth-form" onSubmit={handleRegister}>
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('name')}*</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="text"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
@@ -144,7 +153,7 @@ export default function AuthModal() {
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('email')}*</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="email"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
@@ -154,7 +163,7 @@ export default function AuthModal() {
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('phone')}</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="tel"
                   value={regPhone}
                   onChange={(e) => setRegPhone(e.target.value)}
@@ -163,7 +172,7 @@ export default function AuthModal() {
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('password')}*</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="password"
                   value={regPass}
                   onChange={(e) => setRegPass(e.target.value)}
@@ -174,7 +183,7 @@ export default function AuthModal() {
               <label className="auth-form__label">
                 <span className="auth-form__label-text">{t('confirmPassword')}*</span>
                 <input
-                  className="auth-form__input"
+                  className="input auth-form__input"
                   type="password"
                   value={regPass2}
                   onChange={(e) => setRegPass2(e.target.value)}
@@ -182,7 +191,7 @@ export default function AuthModal() {
                 />
               </label>
               {regError && <span className="auth-form__error">{regError}</span>}
-              <button className="auth-form__submit" type="submit">
+              <button className="btn btn-primary btn-block auth-form__submit" type="submit">
                 {t('register')}
               </button>
             </form>

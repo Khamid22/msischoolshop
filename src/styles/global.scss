@@ -1,3 +1,6 @@
+@use './tokens';
+@use './nocturne';
+
 *,
 *::before,
 *::after {
@@ -6,36 +9,20 @@
   padding: 0;
 }
 
-:root {
-  --bg: #ffffff;
-  --card-bg: #ffffff;
-  --text: #000000;
-  --text-muted: #555555;
-  --border: #000000;
-  --hover: #f0f0f0;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --img-bg: #f5f5f5;
-  --accent: #000000;
-  --accent-rgb: 0, 0, 0;
-}
-
-[data-theme='dark'] {
-  --bg: #0a0a0a;
-  --card-bg: #141414;
-  --text: #ffffff;
-  --text-muted: #999999;
-  --border: #ffffff;
-  --hover: #1a1a1a;
-  --shadow: rgba(255, 255, 255, 0.05);
-  --img-bg: #1a1a1a;
-  --accent: #ffffff;
-  --accent-rgb: 255, 255, 255;
-}
-
 html {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  letter-spacing: -0.01em;
 }
 
 body {
@@ -55,6 +42,21 @@ img {
   max-width: 100%;
 }
 
+::selection {
+  background: var(--accent-tint);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 input,
 textarea {
   -webkit-appearance: none;
@@ -68,8 +70,90 @@ textarea {
   }
 }
 
+.app {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-divider);
+}
+
+@media (min-width: 769px) {
+  .app {
+    max-width: none;
+    box-shadow: none;
+  }
+}
+
 .app-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   animation: viewIn 0.3s ease;
+  padding-bottom: 84px;
+}
+
+/* — coin badge (Gold MSI Coin) — */
+.coin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2em;
+  height: 1.2em;
+  flex: none;
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1;
+  color: #4a3500;
+  background: linear-gradient(160deg, #ffe9a3, #f3c63f 55%, #d29b18);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.18);
+  vertical-align: middle;
+}
+
+/* — rating — */
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.rating__stars {
+  color: #f2b84b;
+  letter-spacing: 1px;
+  font-size: 0.82em;
+}
+.rating__value {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* — quick-filter chip — */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip:hover {
+  border-color: var(--color-accent);
+}
+.chip--active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
 }
 
 @keyframes viewIn {

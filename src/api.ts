@@ -1,4 +1,4 @@
-import type { Product, Banner, News, Order } from './types';
+import type { Product, Banner, News, Order, PickupSlot } from './types';
 
 // ============================================================
 //  CONFIG — swap BASE_URL for your backend
@@ -12,15 +12,25 @@ const AUTH_KEY = 'msi_admin_auth';
 // ============================================================
 
 const DEFAULT_PRODUCTS: Product[] = [
-  { id: 'tg-premium-6m', image: '/images/telegram-premium.svg', price: 150, nameKey: 'products.prem6', descKey: 'products.prem6Desc', type: 'digital', name: 'Telegram Premium 6 мес.', description: 'Премиум-подписка на 6 месяцев.' },
-  { id: 'tg-premium-12m', image: '/images/telegram-premium.svg', price: 250, nameKey: 'products.prem12', descKey: 'products.prem12Desc', type: 'digital', name: 'Telegram Premium 12 мес.', description: 'Премиум-подписка на год.' },
-  { id: 'tg-gift-25', image: '/images/telegram-gift-stars.svg', price: 25, nameKey: 'products.gift25', descKey: 'products.gift25Desc', type: 'digital', name: 'Gift 25 MSI Coin', description: 'Подарок на 25 MSI Coin.' },
-  { id: 'tg-gift-50', image: '/images/telegram-gift-stars.svg', price: 50, nameKey: 'products.gift50', descKey: 'products.gift50Desc', type: 'digital', name: 'Gift 50 MSI Coin', description: 'Подарок на 50 MSI Coin.' },
-  { id: 'tg-gift-150', image: '/images/telegram-gift-stars.svg', price: 150, nameKey: 'products.gift150', descKey: 'products.gift150Desc', type: 'digital', name: 'Gift 150 MSI Coin', description: 'Премиум-подарок на 150 MSI Coin.' },
-  { id: 'tshirt-1', image: '/images/tshirt-black.svg', price: 750, nameKey: 'products.tshirt1', descKey: 'products.tshirt1Desc', type: 'physical', name: 'T-Shirt Black Edition', description: 'Стильная футболка MSI Bot Shop.' },
-  { id: 'cap-1', image: '/images/cap-1.svg', price: 400, nameKey: 'products.cap1', descKey: 'products.cap1Desc', type: 'physical', name: 'Cap — Stealth', description: 'Кепка MSI Bot Shop, вариант 1.' },
-  { id: 'cap-2', image: '/images/cap-2.svg', price: 400, nameKey: 'products.cap2', descKey: 'products.cap2Desc', type: 'physical', name: 'Cap — Shadow', description: 'Кепка MSI Bot Shop, вариант 2.' },
-  { id: 'cap-3', image: '/images/cap-3.svg', price: 400, nameKey: 'products.cap3', descKey: 'products.cap3Desc', type: 'physical', name: 'Cap — Phantom', description: 'Кепка MSI Bot Shop, вариант 3.' },
+  { id: 'tg-premium-6m', image: '/images/telegram-premium.svg', price: 150, nameKey: 'products.prem6', descKey: 'products.prem6Desc', type: 'digital', name: 'Telegram Premium 6 мес.', description: 'Премиум-подписка на 6 месяцев.', rating: 4.8, ratingCount: 210 },
+  { id: 'tg-premium-12m', image: '/images/telegram-premium.svg', price: 250, nameKey: 'products.prem12', descKey: 'products.prem12Desc', type: 'digital', name: 'Telegram Premium 12 мес.', description: 'Премиум-подписка на год.', rating: 4.9, ratingCount: 178 },
+  { id: 'tg-gift-25', image: '/images/telegram-gift-stars.svg', price: 25, nameKey: 'products.gift25', descKey: 'products.gift25Desc', type: 'digital', name: 'Gift 25 MSI Coin', description: 'Подарок на 25 MSI Coin.', rating: 4.5, ratingCount: 64 },
+  { id: 'tg-gift-50', image: '/images/telegram-gift-stars.svg', price: 50, nameKey: 'products.gift50', descKey: 'products.gift50Desc', type: 'digital', name: 'Gift 50 MSI Coin', description: 'Подарок на 50 MSI Coin.', rating: 4.5, ratingCount: 92 },
+  { id: 'tg-gift-150', image: '/images/telegram-gift-stars.svg', price: 150, nameKey: 'products.gift150', descKey: 'products.gift150Desc', type: 'digital', name: 'Gift 150 MSI Coin', description: 'Премиум-подарок на 150 MSI Coin.', rating: 4.6, ratingCount: 77 },
+  { id: 'tshirt-1', image: '/images/tshirt-black.svg', price: 750, nameKey: 'products.tshirt1', descKey: 'products.tshirt1Desc', type: 'physical', name: 'T-Shirt Black Edition', description: 'Стильная футболка MSI Bot Shop.', rating: 4.7, ratingCount: 150 },
+  { id: 'cap-1', image: '/images/cap-1.svg', price: 400, nameKey: 'products.cap1', descKey: 'products.cap1Desc', type: 'physical', name: 'Cap — Stealth', description: 'Кепка MSI Bot Shop, вариант 1.', rating: 4.3, ratingCount: 48 },
+  { id: 'cap-2', image: '/images/cap-2.svg', price: 400, nameKey: 'products.cap2', descKey: 'products.cap2Desc', type: 'physical', name: 'Cap — Shadow', description: 'Кепка MSI Bot Shop, вариант 2.', rating: 4.4, ratingCount: 52 },
+  { id: 'cap-3', image: '/images/cap-3.svg', price: 400, nameKey: 'products.cap3', descKey: 'products.cap3Desc', type: 'physical', name: 'Cap — Phantom', description: 'Кепка MSI Bot Shop, вариант 3.', rating: 4.5, ratingCount: 41 },
+  { id: 'la2-bundle', image: '/images/course.svg', price: 1200, nameKey: 'products.la2', descKey: 'products.la2Desc', type: 'digital', name: 'Course bundle · Linear Algebra II', description: 'Полный пакет Linear Algebra II: конспекты, задачи, записи лекций.', rating: 4.9, ratingCount: 86, course: { id: 'course-la2', title: 'Linear Algebra II', url: 'https://lms.msi.uz/courses/linear-algebra-2' } },
+  { id: 'calc-notebook', image: '/images/notebook.svg', price: 180, nameKey: 'products.notebook', descKey: 'products.notebookDesc', type: 'physical', name: 'Calculus notebook', description: 'Фирменный тетрадный блокнот по математике.', rating: 4.6, ratingCount: 132 },
+  { id: 'msi-hoodie', image: '/images/hoodie.svg', price: 900, nameKey: 'products.hoodie', descKey: 'products.hoodieDesc', type: 'physical', name: 'Hoodie — Midnight', description: 'Тёплый худи MSI Bot Shop.', rating: 4.7, ratingCount: 58 },
+];
+
+const DEFAULT_SLOTS: PickupSlot[] = [
+  { id: 'slot-1', label: 'After Calculus II', when: 'Tue 14:30', location: 'Campus A · Room 112' },
+  { id: 'slot-2', label: 'After Physics Lab', when: 'Wed 16:00', location: 'Campus A · Room 214' },
+  { id: 'slot-3', label: 'Before Linear Algebra', when: 'Thu 09:00', location: 'Campus B · Atrium' },
+  { id: 'slot-4', label: 'Friday after classes', when: 'Fri 13:00', location: 'Campus A · Lobby' },
 ];
 
 const DEFAULT_BANNERS: Banner[] = [
@@ -87,9 +97,19 @@ function seed() {
   let pChanged = false;
   for (const def of DEFAULT_PRODUCTS) {
     const p = products.find((x) => x.id === def.id);
-    if (p && p.name && (p.name.startsWith('Gift ') && p.name.endsWith(' Stars'))) {
+    if (!p) {
+      products.push({ ...def });
+      pChanged = true;
+      continue;
+    }
+    if (p.name && (p.name.startsWith('Gift ') && p.name.endsWith(' Stars'))) {
       p.name = def.name;
       p.description = def.description;
+      pChanged = true;
+    }
+    if (p.rating === undefined && def.rating !== undefined) {
+      p.rating = def.rating;
+      p.ratingCount = def.ratingCount;
       pChanged = true;
     }
   }
@@ -103,6 +123,87 @@ function seed() {
       lsSet('msi_news', news);
     }
   }
+
+  ensureDemoData();
+}
+
+function ensureDemoData() {
+  const users = lsGet<StoredUser[]>('msi_users', []);
+  const DEMO_USER: StoredUser = {
+    id: 'student-2023114',
+    name: 'Aisha Karimova',
+    email: 'aisha@msi.uz',
+    phone: '+998 90 123 45 67',
+    address: 'Campus A',
+    balance: 2480,
+    group: 'IT-203',
+    studentId: '2023114',
+    discount: 10,
+    earned: 2120,
+    password: 'demo',
+  };
+  if (!users.some((u) => u.email === DEMO_USER.email)) {
+    users.push(DEMO_USER);
+    lsSet('msi_users', users);
+  }
+
+  const orders = lsGet<Order[]>('msi_orders', []);
+  const la2 = DEFAULT_PRODUCTS.find((p) => p.id === 'la2-bundle');
+  const nb = DEFAULT_PRODUCTS.find((p) => p.id === 'calc-notebook');
+  const demoOrders: Order[] = [
+    {
+      id: 'order-demo-1',
+      items: la2 ? [{ product: la2, quantity: 1 }] : [],
+      totalPrice: 1080,
+      originalPrice: 1200,
+      customerName: 'Aisha Karimova',
+      customerPhone: '+998 90 123 45 67',
+      deliveryAddress: 'Campus A · Room 112',
+      deliveryMethod: 'pickup',
+      userId: 'student-2023114',
+      customerEmail: 'aisha@msi.uz',
+      status: 'ready',
+      pickupCode: 'K-4821',
+      pickupSlot: 'After Calculus II · Tue 14:30',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    },
+    {
+      id: 'order-demo-2',
+      items: nb ? [{ product: nb, quantity: 1 }] : [],
+      totalPrice: 162,
+      originalPrice: 180,
+      customerName: 'Aisha Karimova',
+      customerPhone: '+998 90 123 45 67',
+      deliveryAddress: 'Campus A · Lobby',
+      deliveryMethod: 'pickup',
+      userId: 'student-2023114',
+      customerEmail: 'aisha@msi.uz',
+      status: 'collected',
+      pickupCode: 'K-3307',
+      pickupSlot: 'Friday after classes · Fri 13:00',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    },
+  ];
+  if (!lsGet('msi_demo_orders_seeded', false)) {
+    orders.push(...demoOrders);
+    lsSet('msi_orders', orders);
+    lsSet('msi_demo_orders_seeded', true);
+  }
+}
+
+interface StoredUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  avatar?: string;
+  balance: number;
+  group?: string;
+  studentId?: string;
+  discount?: number;
+  earned?: number;
+  password: string;
 }
 
 // ============================================================
@@ -217,6 +318,14 @@ export async function deleteNews(id: string): Promise<void> {
 
 export async function fetchOrders(): Promise<Order[]> {
   return lsGet<Order[]>('msi_orders', []);
+}
+
+// ============================================================
+//  PICKUP SLOTS API
+// ============================================================
+
+export async function fetchSlots(): Promise<PickupSlot[]> {
+  return DEFAULT_SLOTS;
 }
 
 // ============================================================

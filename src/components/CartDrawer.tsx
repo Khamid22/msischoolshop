@@ -1,6 +1,9 @@
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
-import { coinsToSum } from '../utils/currency';
+import { useAuth } from '../contexts/AuthContext';
+import { formatCoins } from '../utils/currency';
+import Coin from './Coin';
+import { XIcon } from './icons';
 import './CartDrawer.scss';
 
 function getDiscountedPrice(product: { price: number; discount?: number }): number {
@@ -11,8 +14,12 @@ function getDiscountedPrice(product: { price: number; discount?: number }): numb
 }
 
 export default function CartDrawer() {
-  const { items, isOpen, close, removeItem, updateQuantity, clearCart, totalItems, totalPrice, openCheckout } = useCart();
+  const { items, isOpen, close, removeItem, updateQuantity, clearCart, totalItems, totalPrice, savings, openCheckout } = useCart();
   const { t } = useLang();
+  const { user } = useAuth();
+
+  const insufficient = !!user && user.balance < totalPrice;
+  const hasStudentDiscount = !!user?.discount && user.discount > 0 && savings > 0;
 
   return (
     <>
@@ -22,8 +29,8 @@ export default function CartDrawer() {
           <h2 className="cart-drawer__title">
             {t('cart')} ({totalItems})
           </h2>
-          <button className="cart-drawer__close" onClick={close}>
-            ✕
+          <button className="cart-drawer__close" onClick={close} aria-label={t('close')}>
+            <XIcon />
           </button>
         </div>
 
@@ -41,7 +48,9 @@ export default function CartDrawer() {
                   />
                   <div className="cart-item__info">
                     <span className="cart-item__name">{t(item.product.nameKey) || item.product.name}</span>
-                    <span className="cart-item__price">{t('currency')}{getDiscountedPrice(item.product)}</span>
+                    <span className="cart-item__price">
+                      {formatCoins(getDiscountedPrice(item.product))} <Coin />
+                    </span>
                     <div className="cart-item__controls">
                       <button
                         className="cart-item__qty-btn"
@@ -59,8 +68,9 @@ export default function CartDrawer() {
                       <button
                         className="cart-item__remove"
                         onClick={() => removeItem(item.product.id)}
+                        aria-label={t('clearFilters')}
                       >
-                        ✕
+                        <XIcon />
                       </button>
                     </div>
                   </div>
@@ -69,15 +79,39 @@ export default function CartDrawer() {
             </ul>
 
             <div className="cart-drawer__footer">
+              {hasStudentDiscount && (
+                <div className="cart-drawer__row">
+                  <span className="cart-drawer__row-label">
+                    {t('studentDiscount')} (−{user.discount}%)
+                  </span>
+                  <span className="cart-drawer__row-value cart-drawer__row-value--save">
+                    −{formatCoins(savings)} <Coin />
+                  </span>
+                </div>
+              )}
+              {user && (
+                <div className="cart-drawer__row">
+                  <span className="cart-drawer__row-label">{t('balance')}</span>
+                  <span className="cart-drawer__row-value">
+                    {formatCoins(user.balance)} <Coin />
+                  </span>
+                </div>
+              )}
               <div className="cart-drawer__total">
                 <span>{t('total')}</span>
-                <span className="cart-drawer__total-right">
-                  <span className="cart-drawer__total-sum">≈ {coinsToSum(totalPrice)}</span>
-                  <span className="cart-drawer__total-price">{t('currency')}{totalPrice}</span>
+                <span className="cart-drawer__total-price">
+                  {formatCoins(totalPrice)} <Coin />
                 </span>
               </div>
-              <button className="cart-drawer__checkout" onClick={openCheckout}>{t('checkout')}</button>
-              <button className="cart-drawer__clear" onClick={clearCart}>
+
+              {insufficient && (
+                <div className="cart-drawer__insufficient">{t('insufficientBalance')}</div>
+              )}
+
+              <button className="btn btn-primary btn-block cart-drawer__checkout" onClick={openCheckout}>
+                {t('checkout')} — {formatCoins(totalPrice)} <Coin />
+              </button>
+              <button className="btn btn-secondary btn-block cart-drawer__clear" onClick={clearCart}>
                 {t('clearCart')}
               </button>
             </div>

@@ -1,0 +1,44 @@
+.prow {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  padding: 2px 2px var(--space-3);
+  scroll-snap-type: x proximity;
+
+  .card {
+    width: 44%;
+    min-width: 158px;
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  &__skeleton {
+    width: 44%;
+    min-width: 158px;
+    flex: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .prow {
+    .card {
+      min-width: 140px;
+    }
+  }
+}
+
+@media (min-width: 769px) {
+  .prow {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    overflow: visible;
+    gap: var(--space-5);
+    padding: 2px 2px var(--space-3);
+
+    .card,
+    &__skeleton {
+      width: auto;
+      min-width: 0;
+    }
+  }
+}

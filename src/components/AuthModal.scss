@@ -25,9 +25,10 @@
   max-width: 92vw;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--bg);
-  border: 2px solid var(--border);
-  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   z-index: 301;
   animation: slideUp 0.2s ease;
   -webkit-overflow-scrolling: touch;
@@ -36,24 +37,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px 0;
+    padding: var(--space-3) var(--space-4) 0;
   }
 
   &__tabs {
     display: flex;
-    gap: 0;
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
+    gap: var(--space-1);
   }
 
   &__tab {
-    padding: 7px 16px;
-    border: none;
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
     background: transparent;
     color: var(--text-muted);
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.15s ease;
 
@@ -63,16 +62,17 @@
     }
 
     &--active {
-      background: var(--text);
-      color: var(--bg);
+      background: var(--accent-soft);
+      color: var(--color-accent);
+      border-color: var(--color-accent);
     }
   }
 
   &__close {
     width: 30px;
     height: 30px;
-    border: 2px solid var(--border);
-    border-radius: 6px;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
     background: transparent;
     color: var(--text);
     font-size: 0.8rem;
@@ -83,84 +83,55 @@
     transition: all 0.15s ease;
 
     &:hover {
-      background: var(--text);
-      color: var(--bg);
+      background: var(--hover);
+      color: var(--color-accent);
+      border-color: var(--color-accent);
     }
   }
 
   &__body {
-    padding: 16px;
+    padding: var(--space-4);
   }
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 
   &__label {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--space-1);
   }
 
   &__label-text {
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.72rem;
+    font-weight: 500;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   &__input {
-    padding: 9px 10px;
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text);
-    font-size: 0.85rem;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.15s ease;
     width: 100%;
-
-    &::placeholder {
-      color: var(--text-muted);
-    }
-
-    &:focus {
-      border-color: var(--text);
-    }
   }
 
   &__error {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text);
-    padding: 7px 10px;
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    background: var(--hover);
+    color: var(--accent-text);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
     text-align: center;
   }
 
   &__submit {
-    padding: 11px;
-    border: 2px solid var(--text);
-    border-radius: 6px;
-    background: var(--text);
-    color: var(--bg);
+    padding: var(--space-3);
     font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    margin-top: 2px;
-
-    &:hover {
-      opacity: 0.85;
-    }
+    margin-top: var(--space-1);
   }
 }
 
@@ -169,17 +140,17 @@
     width: 380px;
 
     &__body {
-      padding: 14px;
+      padding: var(--space-4);
     }
 
     &__tab {
-      padding: 6px 14px;
+      padding: var(--space-1) var(--space-4);
       font-size: 0.78rem;
     }
   }
 
   .auth-form {
-    gap: 10px;
+    gap: var(--space-2);
   }
 }
 
@@ -196,25 +167,25 @@
     animation: slideUpMobile 0.25s ease;
 
     &__body {
-      padding: 14px;
+      padding: var(--space-4);
     }
 
     &__tab {
-      padding: 6px 12px;
+      padding: var(--space-1) var(--space-3);
       font-size: 0.75rem;
     }
   }
 
   .auth-form {
-    gap: 10px;
+    gap: var(--space-2);
 
     &__input {
-      padding: 10px;
+      padding: var(--space-2) var(--space-3);
       font-size: 16px;
     }
 
     &__submit {
-      padding: 13px;
+      padding: var(--space-3);
     }
   }
 }
@@ -222,15 +193,11 @@
 @media (max-width: 320px) {
   .auth-modal {
     &__header {
-      padding: 10px 12px 0;
-    }
-
-    &__tabs {
-      border-width: 1px;
+      padding: var(--space-2) var(--space-3) 0;
     }
 
     &__tab {
-      padding: 5px 10px;
+      padding: var(--space-1) var(--space-2);
       font-size: 0.7rem;
     }
 
@@ -241,29 +208,29 @@
     }
 
     &__body {
-      padding: 10px;
+      padding: var(--space-2);
     }
   }
 
   .auth-form {
-    gap: 8px;
+    gap: var(--space-2);
 
     &__label-text {
       font-size: 0.65rem;
     }
 
     &__input {
-      padding: 8px;
+      padding: var(--space-2);
       font-size: 0.8rem;
     }
 
     &__error {
       font-size: 0.65rem;
-      padding: 5px 8px;
+      padding: var(--space-1) var(--space-2);
     }
 
     &__submit {
-      padding: 10px;
+      padding: var(--space-2);
       font-size: 0.75rem;
     }
   }

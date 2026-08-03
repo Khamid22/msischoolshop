@@ -2,64 +2,53 @@ import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import { coinsToSum } from '../utils/currency';
-import type { DeliveryMethod, Product } from '../types';
+import { fetchSlots } from '../api';
+import { formatCoins } from '../utils/currency';
+import type { PickupSlot } from '../types';
+import Coin from './Coin';
+import { XIcon } from './icons';
 import './CheckoutDrawer.scss';
 
-function getDiscountedPrice(product: Product): number {
-  if (product.discount && product.discount > 0) {
-    return Math.round(product.price * (1 - product.discount / 100));
-  }
-  return product.price;
-}
-
-const DELIVERY_OPTIONS: DeliveryMethod[] = ['courier', 'pickup', 'post'];
-
 export default function CheckoutDrawer() {
-  const { items, isCheckoutOpen, closeCheckout, submitOrder, totalPrice } = useCart();
-  const { user } = useAuth();
+  const { isCheckoutOpen, closeCheckout, submitOrder, totalPrice, originalPrice, savings } = useCart();
+  const { user, openAuth } = useAuth();
   const { t } = useLang();
 
-  const insufficient = !!user && user.balance < totalPrice;
-
-  const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [address, setAddress] = useState(user?.address || '');
-  const [delivery, setDelivery] = useState<DeliveryMethod>('courier');
+  const [slots, setSlots] = useState<PickupSlot[]>([]);
+  const [slotId, setSlotId] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isCheckoutOpen) {
-      setName(user?.name || '');
-      setPhone(user?.phone || '');
-      setAddress(user?.address || '');
-      setDelivery('courier');
+      fetchSlots().then((data) => {
+        setSlots(data);
+        setSlotId((prev) => prev || data[0]?.id || '');
+      });
       setError('');
     }
-  }, [isCheckoutOpen, user]);
+  }, [isCheckoutOpen]);
+
+  const selectedSlot = slots.find((s) => s.id === slotId);
+
+  const insufficient = !!user && user.balance < totalPrice;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (!name.trim()) {
-      setError(t('errorFillRequired'));
+    if (!user) {
+      openAuth();
       return;
     }
-    if (!phone.trim()) {
-      setError(t('errorFillRequired'));
+    if (!selectedSlot) {
+      setError(t('pickupSlot'));
       return;
     }
-    if (delivery !== 'pickup' && !address.trim()) {
-      setError(t('errorFillRequired'));
-      return;
-    }
-
     const ok = submitOrder({
-      customerName: name.trim(),
-      customerPhone: phone.trim(),
-      deliveryAddress: delivery === 'pickup' ? t('deliveryPickupPoint') : address.trim(),
-      deliveryMethod: delivery,
+      customerName: user.name,
+      customerPhone: user.phone,
+      deliveryAddress: selectedSlot.location,
+      deliveryMethod: 'pickup',
+      pickupSlot: `${selectedSlot.label} · ${selectedSlot.when}`,
     });
     if (!ok) {
       setError(t('insufficientBalance'));
@@ -72,102 +61,85 @@ export default function CheckoutDrawer() {
       <aside className={`checkout-drawer ${isCheckoutOpen ? 'checkout-drawer--open' : ''}`}>
         <div className="checkout-drawer__header">
           <h2 className="checkout-drawer__title">{t('checkoutTitle')}</h2>
-          <button className="checkout-drawer__close" onClick={closeCheckout}>✕</button>
+          <button className="checkout-drawer__close" onClick={closeCheckout} aria-label={t('close')}>
+            <XIcon />
+          </button>
         </div>
 
         <form className="checkout-form" onSubmit={handleSubmit}>
-          <div className="checkout-form__summary">
-            {items.map((item) => (
-              <div key={item.product.id} className="checkout-form__summary-row">
-                <span className="checkout-form__summary-name">
-                  {t(item.product.nameKey)} × {item.quantity}
-                </span>
-                <span className="checkout-form__summary-price">
-                  {t('currency')}{getDiscountedPrice(item.product) * item.quantity}
-                </span>
-              </div>
-            ))}
-            <div className="checkout-form__summary-total">
-              <span>{t('total')}</span>
-              <span>
-                <small className="checkout-form__summary-sum">≈ {coinsToSum(totalPrice)}</small>{' '}
-                {t('currency')}{totalPrice}
-              </span>
+          {!user ? (
+            <div className="checkout-form__auth">
+              <p className="checkout-form__auth-text">{t('account')}</p>
+              <button type="button" className="btn btn-primary btn-block" onClick={openAuth}>
+                {t('login')} / {t('register')}
+              </button>
             </div>
-            {user && (
-              <div className={`checkout-form__summary-balance ${insufficient ? 'checkout-form__summary-balance--low' : ''}`}>
-                <span>{t('balance')}</span>
-                <span>
-                  <small className="checkout-form__summary-sum">≈ {coinsToSum(user.balance)}</small>{' '}
-                  {t('currency')} {user.balance}
-                </span>
-              </div>
-            )}
-          </div>
+          ) : (
+            <>
+              <section className="checkout-form__lms card elev-sm">
+                <span className="card-kicker">{t('lmsIdentity')}</span>
+                <span className="checkout-form__lms-name">{user.name}</span>
+                <div className="checkout-form__lms-meta">
+                  <span className="checkout-form__lms-chip">{t('studentGroup')}: {user.group || '—'}</span>
+                  <span className="checkout-form__lms-chip">{t('studentId')}: {user.studentId || '—'}</span>
+                </div>
+                {user.discount ? (
+                  <span className="tag tag-accent checkout-form__lms-tag">−{user.discount}%</span>
+                ) : null}
+              </section>
 
-          {insufficient && (
-            <div className="checkout-form__insufficient">{t('insufficientBalance')}</div>
+              <section className="checkout-form__slots">
+                <h3 className="checkout-form__slots-title">{t('pickupSlot')}</h3>
+                <div className="checkout-form__slots-list">
+                  {slots.map((slot) => (
+                    <label key={slot.id} className={`slot ${slot.id === slotId ? 'slot--active' : ''}`}>
+                      <input
+                        type="radio"
+                        name="pickup-slot"
+                        checked={slot.id === slotId}
+                        onChange={() => setSlotId(slot.id)}
+                      />
+                      <span className="slot__body">
+                        <span className="slot__label">{slot.label}</span>
+                        <span className="slot__when">{slot.when} · {slot.location}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              <section className="checkout-form__summary">
+                <div className="checkout-form__row">
+                  <span>{t('itemsSubtotal')}</span>
+                  <span>{formatCoins(originalPrice)} <Coin /></span>
+                </div>
+                {savings > 0 && (
+                  <div className="checkout-form__row">
+                    <span>{t('studentDiscount')} (−{user.discount}%)</span>
+                    <span className="checkout-form__row--save">−{formatCoins(savings)} <Coin /></span>
+                  </div>
+                )}
+                <div className="checkout-form__row">
+                  <span>{t('balance')}</span>
+                  <span>{formatCoins(user.balance)} <Coin /></span>
+                </div>
+                <div className="checkout-form__total">
+                  <span>{t('total')}</span>
+                  <span>{formatCoins(totalPrice)} <Coin /></span>
+                </div>
+              </section>
+
+              {insufficient && (
+                <div className="checkout-form__insufficient">{t('insufficientBalance')}</div>
+              )}
+              {error && <div className="checkout-form__insufficient">{error}</div>}
+
+              <button className="btn btn-primary btn-block checkout-form__submit" type="submit" disabled={insufficient}>
+                {t('placeOrder')} — {formatCoins(totalPrice)} <Coin />
+              </button>
+              <p className="checkout-form__hint">{t('sendCodeToChat')}</p>
+            </>
           )}
-
-          <div className="checkout-form__fields">
-            <label className="checkout-form__label">
-              <span className="checkout-form__label-text">{t('name')}*</span>
-              <input
-                className="checkout-form__input"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </label>
-
-            <label className="checkout-form__label">
-              <span className="checkout-form__label-text">{t('phone')}*</span>
-              <input
-                className="checkout-form__input"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+998 XX XXX XX XX"
-                required
-              />
-            </label>
-
-            <div className="checkout-form__label">
-              <span className="checkout-form__label-text">{t('deliveryMethod')}*</span>
-              <div className="checkout-form__delivery-options">
-                {DELIVERY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    className={`checkout-form__delivery-btn ${delivery === opt ? 'checkout-form__delivery-btn--active' : ''}`}
-                    onClick={() => setDelivery(opt)}
-                  >
-                    {t(`delivery${opt.charAt(0).toUpperCase() + opt.slice(1)}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {delivery !== 'pickup' && (
-              <label className="checkout-form__label">
-                <span className="checkout-form__label-text">{t('deliveryAddress')}*</span>
-                <textarea
-                  className="checkout-form__input checkout-form__input--area"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  rows={3}
-                  required
-                />
-              </label>
-            )}
-          </div>
-
-          {error && <span className="checkout-form__error">{error}</span>}
-
-          <button className="checkout-form__submit" type="submit" disabled={insufficient}>
-            {t('placeOrder')} — {t('currency')}{totalPrice}
-          </button>
         </form>
       </aside>
     </>

@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
   user-select: none;
 
   &__track {
@@ -85,7 +85,7 @@
 
   &__title {
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: var(--font-heading-weight);
     color: var(--text);
     margin: 0 0 4px;
     letter-spacing: -0.5px;
@@ -110,8 +110,8 @@
     transform: translateY(-50%);
     width: 36px;
     height: 36px;
-    border: 2px solid var(--border);
-    border-radius: 50%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     background: var(--bg);
     color: var(--text);
     font-size: 1.2rem;
@@ -128,8 +128,9 @@
     }
 
     &:hover {
-      background: var(--text);
-      color: var(--bg);
+      background: var(--accent-soft);
+      color: var(--color-accent);
+      border-color: var(--color-accent);
     }
 
     &--left {
@@ -154,20 +155,22 @@
   &__dot {
     width: 8px;
     height: 8px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
     background: transparent;
     cursor: pointer;
     padding: 0;
     transition: all 0.2s ease;
 
     &--active {
-      background: var(--text);
+      background: var(--color-accent);
+      border-color: var(--color-accent);
       transform: scale(1.2);
     }
 
     &:hover {
-      background: var(--text-muted);
+      border-color: var(--color-accent);
+      background: var(--accent-soft);
     }
   }
 }

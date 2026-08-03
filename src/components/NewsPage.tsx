@@ -43,7 +43,7 @@ export default function NewsPage() {
             >
               {item.image && (
                 <div className="news-card__img-wrap">
-                  <img className="news-card__img" src={item.image} alt={item.title} loading="lazy" />
+                  <img className="lighten news-card__img" src={item.image} alt={item.title} loading="lazy" />
                 </div>
               )}
               <div className="news-card__body">

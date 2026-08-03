@@ -2,13 +2,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Product, CartItem, Order, DeliveryMethod } from '../types';
 import { useAuth } from './AuthContext';
-
-function getDiscountedPrice(product: Product): number {
-  if (product.discount && product.discount > 0) {
-    return Math.round(product.price * (1 - product.discount / 100));
-  }
-  return product.price;
-}
+import { getProductPrice, getUnitPrice } from '../utils/currency';
 
 interface CartContextType {
   items: CartItem[];
@@ -28,10 +22,13 @@ interface CartContextType {
     customerPhone: string;
     deliveryAddress: string;
     deliveryMethod: DeliveryMethod;
+    pickupSlot?: string;
   }) => boolean;
   closeSuccess: () => void;
   totalItems: number;
   totalPrice: number;
+  originalPrice: number;
+  savings: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -92,19 +89,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     customerPhone: string;
     deliveryAddress: string;
     deliveryMethod: DeliveryMethod;
+    pickupSlot?: string;
   }) => {
     if (!user) return false;
-    const totalPrice = items.reduce((sum, i) => sum + getDiscountedPrice(i.product) * i.quantity, 0);
+    const totalPrice = items.reduce((sum, i) => sum + getUnitPrice(i.product, user) * i.quantity, 0);
     if (user.balance < totalPrice) return false;
 
     const order: Order = {
       id: crypto.randomUUID(),
       items: [...items],
       totalPrice,
+      originalPrice: items.reduce((sum, i) => sum + getProductPrice(i.product) * i.quantity, 0),
       ...data,
       userId: user.id,
       customerEmail: user.email,
       createdAt: new Date().toISOString(),
+      status: 'paid',
+      pickupCode: 'K-' + Math.floor(1000 + Math.random() * 9000),
+      pickupSlot: data.pickupSlot,
     };
 
     if (!spendStars(totalPrice, items.map((i) => (i.product.name || i.product.nameKey)).join(', '))) return false;
@@ -127,11 +129,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const closeSuccess = useCallback(() => {
     setLastOrder(null);
-    window.location.href = '/';
   }, []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalPrice = items.reduce((sum, i) => sum + getDiscountedPrice(i.product) * i.quantity, 0);
+  const totalPrice = items.reduce((sum, i) => sum + getUnitPrice(i.product, user) * i.quantity, 0);
+  const originalPrice = items.reduce((sum, i) => sum + getProductPrice(i.product) * i.quantity, 0);
+  const savings = originalPrice - totalPrice;
 
   return (
     <CartContext.Provider
@@ -140,7 +143,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         open, close, openCheckout, closeCheckout,
         addItem, removeItem, updateQuantity, clearCart,
         submitOrder, closeSuccess,
-        totalItems, totalPrice,
+        totalItems, totalPrice, originalPrice, savings,
       }}
     >
       {children}

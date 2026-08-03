@@ -72,7 +72,7 @@ export default function FavoritesDrawer() {
                       ♥
                     </button>
                     <button
-                      className="fav-item__cart"
+                      className="btn btn-primary fav-item__cart"
                       onClick={(e) => handleAdd(e, product)}
                     >
                       {t('addToCart')}

@@ -1,7 +1,7 @@
 .banner-skeleton {
   position: relative;
   width: 100%;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
 
   &__track {
@@ -46,7 +46,7 @@
   &__icon {
     width: 64px;
     height: 64px;
-    border-radius: 50%;
+    border-radius: var(--radius-md);
     background: var(--img-bg);
     flex-shrink: 0;
     position: relative;
@@ -127,7 +127,7 @@
   &__dot {
     width: 8px;
     height: 8px;
-    border-radius: 50%;
+    border-radius: var(--radius-md);
     background: var(--img-bg);
     position: relative;
     overflow: hidden;

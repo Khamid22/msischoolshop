@@ -1,13 +1,13 @@
 .fav-btn {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: var(--space-3);
+  right: var(--space-3);
   z-index: 3;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
   color: var(--text-muted);
   font-size: 1rem;
   line-height: 1;
@@ -15,11 +15,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.2s ease, background 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease;
 
   &:hover {
     background: var(--hover);
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 
   &:active {
@@ -27,8 +28,9 @@
   }
 
   &--active {
-    color: #ff4d6d;
-    border-color: #ff4d6d;
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: var(--accent-soft);
     animation: heartPop 0.35s ease;
   }
 }
@@ -44,8 +46,7 @@
     width: 28px;
     height: 28px;
     font-size: 0.9rem;
-    border-width: 1px;
-    top: 6px;
-    left: 6px;
+    top: var(--space-2);
+    right: var(--space-2);
   }
 }

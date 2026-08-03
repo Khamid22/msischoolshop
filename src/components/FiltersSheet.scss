@@ -1,0 +1,156 @@
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+}
+
+.sheet {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-5) var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  animation: sheetUp 0.25s ease;
+
+  @media (min-width: 769px) {
+    max-width: 100%;
+  }
+
+  &__grab {
+    width: 40px;
+    height: 4px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: var(--color-neutral-400);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    font-size: 18px;
+  }
+
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: var(--color-text);
+    background: transparent;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  &__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  &__seg {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+  }
+
+  &__seg-opt {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+
+    & + & {
+      border-left: 1px solid var(--color-divider);
+    }
+
+    &--active {
+      color: var(--color-accent);
+      box-shadow: inset 0 0 0 1px var(--color-accent);
+    }
+  }
+
+  &__range {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-3);
+  }
+
+  &__field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    .input {
+      min-height: 38px;
+    }
+  }
+
+  &__field-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__range-sep {
+    padding-bottom: 10px;
+    color: var(--text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  &__reset {
+    flex: 1;
+  }
+
+  &__apply {
+    flex: 2;
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
