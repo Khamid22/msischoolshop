@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { User } from '../types';
 import { pushNotification } from '../utils/notifications';
 
-const DEFAULT_BALANCE = 1000;
+const DEFAULT_BALANCE = 0;
 
 interface AuthContextType {
   user: User | null;
@@ -126,7 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     users.push(newUser);
     saveUsers(users);
-    pushNotification({ userId: newUser.id, type: 'welcome', amount: DEFAULT_BALANCE });
+    if (DEFAULT_BALANCE > 0) {
+      pushNotification({ userId: newUser.id, type: 'welcome', amount: DEFAULT_BALANCE });
+    }
     const { password: _, ...publicUser } = newUser;
     setUser(publicUser);
     saveCurrentUser(publicUser);

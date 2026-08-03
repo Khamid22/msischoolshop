@@ -35,7 +35,7 @@ export default function Header({ view, onViewChange }: Props) {
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLang();
   const { open, totalItems } = useCart();
-  const { user, openAuth, openProfile } = useAuth();
+  const { user, openAuth, openProfile, logout } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const { favorites, open: openFavorites } = useFavorites();
   const [notifOpen, setNotifOpen] = useState(false);
@@ -215,18 +215,103 @@ export default function Header({ view, onViewChange }: Props) {
 
       {menuOpen && (
         <nav className="header__mobile-menu" ref={mobileMenuRef}>
-          {tabs.map((tb) => (
-            <button
-              key={tb.view}
-              className={`header__mobile-tab ${view === tb.view ? 'header__mobile-tab--active' : ''}`}
-              onClick={() => {
-                onViewChange(tb.view);
-                setMenuOpen(false);
-              }}
-            >
-              {tb.label}
+          <div className="header__mobile-section">
+            {tabs.map((tb) => (
+              <button
+                key={tb.view}
+                className={`header__mobile-tab ${view === tb.view ? 'header__mobile-tab--active' : ''}`}
+                onClick={() => {
+                  onViewChange(tb.view);
+                  setMenuOpen(false);
+                }}
+              >
+                {tb.label}
+              </button>
+            ))}
+          </div>
+
+          {user ? (
+            <div className="header__mobile-section">
+              <button
+                className="header__mobile-action"
+                onClick={() => {
+                  openProfile();
+                  setMenuOpen(false);
+                }}
+              >
+                <span className="header__mobile-action-icon">{t('currency')}</span>
+                <span className="header__mobile-action-label">{t('balance')}</span>
+                <span className="header__mobile-action-value">{user.balance}</span>
+              </button>
+              <button
+                className="header__mobile-action"
+                onClick={() => {
+                  openFavorites();
+                  setMenuOpen(false);
+                }}
+              >
+                <span className="header__mobile-action-icon">♥</span>
+                <span className="header__mobile-action-label">{t('favorites')}</span>
+                {favorites.length > 0 && (
+                  <span className="header__mobile-action-value">{favorites.length}</span>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="header__mobile-section">
+              <button
+                className="header__mobile-login"
+                onClick={() => {
+                  openAuth();
+                  setMenuOpen(false);
+                }}
+              >
+                {t('login')} / {t('register')}
+              </button>
+            </div>
+          )}
+
+          <div className="header__mobile-section">
+            <div className="header__mobile-lang">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  className={`header__mobile-lang-btn ${lang === l.code ? 'header__mobile-lang-btn--active' : ''}`}
+                  onClick={() => setLang(l.code)}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+            <button className="header__mobile-action" onClick={toggleTheme}>
+              <span className="header__mobile-action-icon">{theme === 'light' ? '◼' : '◻'}</span>
+              <span className="header__mobile-action-label">
+                {theme === 'light' ? 'Dark' : 'Light'}
+              </span>
             </button>
-          ))}
+          </div>
+
+          <div className="header__mobile-section">
+            <a
+              className="header__mobile-action header__mobile-action--link"
+              href="/admin-login.html"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="header__mobile-action-icon">⚙</span>
+              <span className="header__mobile-action-label">Админ-панель</span>
+            </a>
+            {user && (
+              <button
+                className="header__mobile-action"
+                onClick={() => {
+                  logout();
+                  setMenuOpen(false);
+                }}
+              >
+                <span className="header__mobile-action-label">{t('logout')}</span>
+              </button>
+            )}
+          </div>
         </nav>
       )}
     </header>

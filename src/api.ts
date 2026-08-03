@@ -30,7 +30,7 @@ const DEFAULT_BANNERS: Banner[] = [
 ];
 
 const DEFAULT_NEWS: News[] = [
-  { id: 'news-1', title: 'Добро пожаловать в MSI Bot Shop!', description: 'Мы запустили наш магазин. Покупайте цифровые товары и мерч за MSI Coin прямо на сайте. Каждому новому пользователю начисляется стартовый баланс.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
+  { id: 'news-1', title: 'Добро пожаловать в MSI Bot Shop!', description: 'Мы запустили наш магазин. Покупайте цифровые товары и мерч за MSI Coin прямо на сайте.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
   { id: 'news-2', title: 'Telegram Premium уже в продаже', description: 'Подписки Telegram Premium на 6 и 12 месяцев доступны для покупки. Активация происходит автоматически после оплаты.', image: '/images/telegram-premium.svg', date: new Date().toISOString(), active: true },
   { id: 'news-3', title: 'Курс MSI Coin: 30 ◆ = 5 000 сум', description: '1 MSI Coin = 167 сум. Покупайте товары за MSI Coin — эквивалент в сумах показывается рядом с каждой ценой.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
 ];

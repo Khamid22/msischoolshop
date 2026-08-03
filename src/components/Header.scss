@@ -93,6 +93,119 @@
     }
   }
 
+  &__mobile-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__mobile-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: var(--hover);
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &--link {
+      text-decoration: none;
+    }
+  }
+
+  &__mobile-action-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  &__mobile-action-label {
+    flex: 1;
+    letter-spacing: 0.3px;
+  }
+
+  &__mobile-action-value {
+    font-weight: 800;
+    font-size: 0.85rem;
+  }
+
+  &__mobile-login {
+    padding: 12px 14px;
+    border: 2px solid var(--text);
+    border-radius: 8px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+
+  &__mobile-lang {
+    display: flex;
+    gap: 0;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__mobile-lang-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      background: var(--hover);
+      color: var(--text);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+
+    &--active {
+      background: var(--text);
+      color: var(--bg);
+    }
+  }
+
   &__nav {
     display: flex;
     gap: 0;
@@ -573,6 +686,8 @@
 
     &__mobile-menu {
       display: flex;
+      max-height: calc(100vh - 60px);
+      overflow-y: auto;
     }
 
     &__tab {
@@ -609,6 +724,14 @@
     &__user-btn {
       padding: 5px 8px;
       max-width: 34px;
+    }
+
+    &__balance,
+    &__fav-btn,
+    &__lang-switcher,
+    &__theme-btn,
+    &__admin-btn {
+      display: none;
     }
   }
 }
