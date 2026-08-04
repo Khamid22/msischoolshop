@@ -29,7 +29,6 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   };
 
   const displayName = t(product.nameKey) || product.name;
-  const displayDesc = t(product.descKey) || product.description;
   const hasDiscount = product.discount && product.discount > 0;
   const price = getProductPrice(product);
   const studentPrice = getUnitPrice(product, user);
@@ -56,7 +55,6 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
       <div className="card__body">
         <h3 className="card__title">{displayName}</h3>
         <Rating value={product.rating} count={product.ratingCount} />
-        <p className="card__desc">{displayDesc}</p>
         <div className="card__footer">
           <div className="card__price-wrap">
             {hasDiscount && (

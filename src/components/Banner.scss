@@ -291,6 +291,35 @@
   }
 }
 
+@media (min-width: 769px) {
+  .banner {
+    &__track {
+      height: 320px;
+    }
+
+    &__content {
+      padding: 32px 72px;
+      gap: 32px;
+    }
+
+    &__title {
+      font-size: 2.2rem;
+    }
+
+    &__subtitle {
+      font-size: 1.1rem;
+    }
+
+    &__description {
+      font-size: 1rem;
+    }
+
+    &__icon {
+      font-size: 4.5rem;
+    }
+  }
+}
+
 @keyframes bannerFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }

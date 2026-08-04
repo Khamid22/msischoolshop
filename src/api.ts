@@ -18,6 +18,7 @@ const DEFAULT_PRODUCTS: Product[] = [
   { id: 'tg-gift-50', image: '/images/telegram-gift-stars.svg', price: 50, nameKey: 'products.gift50', descKey: 'products.gift50Desc', type: 'digital', name: 'Gift 50 MSI Coin', description: 'Подарок на 50 MSI Coin.', rating: 4.5, ratingCount: 92 },
   { id: 'tg-gift-150', image: '/images/telegram-gift-stars.svg', price: 150, nameKey: 'products.gift150', descKey: 'products.gift150Desc', type: 'digital', name: 'Gift 150 MSI Coin', description: 'Премиум-подарок на 150 MSI Coin.', rating: 4.6, ratingCount: 77 },
   { id: 'tshirt-1', image: '/images/tshirt-black.svg', price: 750, nameKey: 'products.tshirt1', descKey: 'products.tshirt1Desc', type: 'physical', name: 'T-Shirt Black Edition', description: 'Стильная футболка MSI Bot Shop.', rating: 4.7, ratingCount: 150 },
+  { id: 'calc-2in1', image: '/images/canculator.jpg', price: 720, nameKey: 'products.calc2in1', descKey: 'products.calc2in1Desc', type: 'physical', name: '2-in-1 Scientific Calculator with Writing Tablet', description: '2-in-1: научный калькулятор с LCD-планшетом для записей.', rating: 4.8, ratingCount: 96, stock: 20 },
   { id: 'cap-1', image: '/images/cap-1.svg', price: 400, nameKey: 'products.cap1', descKey: 'products.cap1Desc', type: 'physical', name: 'Cap — Stealth', description: 'Кепка MSI Bot Shop, вариант 1.', rating: 4.3, ratingCount: 48 },
   { id: 'cap-2', image: '/images/cap-2.svg', price: 400, nameKey: 'products.cap2', descKey: 'products.cap2Desc', type: 'physical', name: 'Cap — Shadow', description: 'Кепка MSI Bot Shop, вариант 2.', rating: 4.4, ratingCount: 52 },
   { id: 'cap-3', image: '/images/cap-3.svg', price: 400, nameKey: 'products.cap3', descKey: 'products.cap3Desc', type: 'physical', name: 'Cap — Phantom', description: 'Кепка MSI Bot Shop, вариант 3.', rating: 4.5, ratingCount: 41 },
@@ -114,6 +115,18 @@ function seed() {
     }
   }
   if (pChanged) lsSet('msi_products', products);
+
+  const defaultOrder = new Map(DEFAULT_PRODUCTS.map((d, i) => [d.id, i]));
+  const reordered = [...products].sort((a, b) => {
+    const ia = defaultOrder.get(a.id) ?? DEFAULT_PRODUCTS.length;
+    const ib = defaultOrder.get(b.id) ?? DEFAULT_PRODUCTS.length;
+    return ia - ib;
+  });
+  const orderChanged = reordered.some((p, i) => p.id !== products[i]?.id);
+  if (orderChanged) {
+    products.splice(0, products.length, ...reordered);
+    lsSet('msi_products', products);
+  }
 
   const news = lsGet<News[]>('msi_news', DEFAULT_NEWS);
   if (news.some((n) => n.id === 'news-1') && !news.some((n) => n.id === 'news-3')) {

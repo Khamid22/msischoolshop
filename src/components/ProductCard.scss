@@ -40,7 +40,6 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    mix-blend-mode: lighten;
   }
 
   &__body {
@@ -55,6 +54,12 @@
     font-weight: var(--font-heading-weight);
     color: var(--text);
     margin: 0 0 var(--space-2);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5em;
   }
 
   &__desc {
@@ -70,6 +75,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
+    margin-top: auto;
   }
 
   &__price-wrap {

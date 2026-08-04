@@ -19,7 +19,7 @@ export default function ShopPage({ products, loading, onOpenProduct, onBannerCli
   const { t } = useLang();
   const { user, openAuth } = useAuth();
 
-  const arrivals = products.slice(0, 8);
+  const arrivals = products;
   const digital = products.filter((p) => p.type === 'digital').slice(0, 6);
 
   return (

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <g transform="translate(140, 25)">
+    <rect x="0" y="0" width="120" height="160" rx="4" fill="#ffffff" stroke="#cfd3e5" stroke-width="1.5"/>
+    <rect x="-8" y="8" width="136" height="14" rx="3" fill="#968ae0"/>
+    <line x1="16" y1="40" x2="104" y2="40" stroke="#b2b6ca" stroke-width="1.5"/>
+    <line x1="16" y1="56" x2="104" y2="56" stroke="#b2b6ca" stroke-width="1.5"/>
+    <line x1="16" y1="72" x2="104" y2="72" stroke="#b2b6ca" stroke-width="1.5"/>
+    <line x1="16" y1="88" x2="104" y2="88" stroke="#b2b6ca" stroke-width="1.5"/>
+    <line x1="16" y1="104" x2="104" y2="104" stroke="#b2b6ca" stroke-width="1.5"/>
+    <rect x="12" y="118" width="96" height="28" rx="3" fill="#e7e5fe"/>
+    <text x="60" y="137" text-anchor="middle" fill="#5d5294" font-family="Arial, sans-serif" font-size="12" font-weight="bold">f(x) = x²</text>
+    <circle cx="60" cy="28" r="6" fill="#FFD700"/>
+  </g>
+  <text x="200" y="222" text-anchor="middle" fill="#9397ab" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">CALCULUS NOTEBOOK</text>
+</svg>

@@ -138,6 +138,8 @@ export const translations: Translations = {
     'products.notebookDesc': 'Фирменный тетрадный блокнот по математике',
     'products.hoodie': 'Худи — Midnight',
     'products.hoodieDesc': 'Тёплый худи MSI Bot Shop',
+    'products.calc2in1': 'Калькулятор 2-в-1 с LCD-планшетом',
+    'products.calc2in1Desc': '2-в-1: научный калькулятор с LCD-планшетом для записей. Компактное устройство объединяет научный калькулятор и многоразовый LCD-планшет для письма. Студенты могут решать примеры и записывать формулы, заметки или промежуточные шаги с помощью стилуса в комплекте. Экран для записей очищается одной кнопкой, а функция блокировки экрана защищает от случайного удаления. Калькулятор оснащён чётким 10-разрядным дисплеем, прочным корпусом из ABS и двойным питанием: солнечным и от батареи. Лёгкая складная конструкция — легко носить в школьном рюкзаке или использовать дома и в классе. Практичный и удобный инструмент для учеников IGCSE Mathematics A и IGCSE Physics, а также для учителей и офисных работников.',
   },
   uz: {
     shopTitle: "MSI Bot Shop",
@@ -276,6 +278,8 @@ export const translations: Translations = {
     'products.notebookDesc': 'MSI Bot Shop matematika bloknoti',
     'products.hoodie': 'Hudi — Midnight',
     'products.hoodieDesc': 'Issiq MSI Bot Shop hudi',
+    'products.calc2in1': '2-in-1 kalkulyator LCD taxta bilan',
+    'products.calc2in1Desc': '2-in-1: ilmiy kalkulyator va LCD yozuv taxtasi. Ushbu ixcham qurilma ilmiy kalkulyatorni qayta ishlatiladigan LCD yozuv taxtasi bilan birlashtiradi. O\'quvchilar to\'plamdagi stiluss yordamida hisob-kitoblar bajarib, formulalar, eslatmalar yoki bosqichlarni yozishlari mumkin. Yozuv ekrani bitta tugma bilan tozalanadi, ekran qulflanish funksiyasi esa tasodifiy o\'chirishdan himoya qiladi. Kalkulyator aniq 10 xonali displey, mustahkam ABS korpus va ikki xil quvvat (quyosh va batareya) bilan jihozlangan. Yengil, buklanadigan dizayni maktab sumkasida olib yurish yoki uyda va darsda foydalanish uchun qulay. IGCSE Mathematics A va IGCSE Physics o\'quvchilari, shuningdek o\'qituvchilar va ofis xodimlari uchun amaliy va qulay vosita.',
   },
   en: {
     shopTitle: 'MSI Bot Shop',
@@ -414,5 +418,7 @@ export const translations: Translations = {
     'products.notebookDesc': 'Signature MSI Bot Shop maths notebook',
     'products.hoodie': 'Hoodie — Midnight',
     'products.hoodieDesc': 'Warm MSI Bot Shop hoodie',
+    'products.calc2in1': '2-in-1 Scientific Calculator with Writing Tablet',
+    'products.calc2in1Desc': '2-in-1 Scientific Calculator with LCD Writing Pad. This compact device combines a scientific calculator with a reusable LCD writing tablet. Students can solve calculations and write formulas, notes, or working steps using the included stylus. The writing screen can be cleared with one button, while the screen-lock function prevents accidental deletion. The calculator features a clear 10-digit display, durable ABS construction, and dual solar and battery power. Its lightweight, foldable design makes it easy to carry in a school bag or use at home and in class. A practical and convenient tool for IGCSE Mathematics A and IGCSE Physics students, as well as teachers and office workers.',
   },
 };
