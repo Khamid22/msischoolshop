@@ -63,7 +63,9 @@ export default function Banner({ onBannerClick }: Props) {
             style={{ '--slide-accent': slide.accent } as React.CSSProperties}
             onClick={() => onBannerClick?.(slide)}
           >
-            <div className={`banner__content ${hasText(slide) ? 'banner__content--text' : 'banner__content--image-only'}`}>
+            <div
+              className={`banner__content ${hasText(slide) ? 'banner__content--text' : 'banner__content--image-only'} ${slide.image ? 'banner__content--with-image' : ''}`}
+            >
               {slide.image ? (
                 <img className="banner__bg-image" src={slide.image} alt="" />
               ) : null}
