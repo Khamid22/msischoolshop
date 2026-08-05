@@ -34,6 +34,7 @@
     border: 0;
     cursor: pointer;
     border-radius: var(--radius-md);
+    transition: color 0.15s ease;
 
     &:hover {
       color: var(--color-accent);
@@ -48,13 +49,23 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    transition: background 0.15s ease, transform 0.1s ease;
 
     svg {
       width: 22px;
       height: 22px;
     }
+  }
+
+  &__item--active &__icon {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  }
+
+  &__item:active &__icon {
+    transform: scale(0.9);
   }
 
   &__label {

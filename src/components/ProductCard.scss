@@ -33,6 +33,7 @@
     aspect-ratio: 16 / 10;
     border-bottom: 1px solid var(--color-divider);
     background: var(--img-bg);
+    overflow: hidden;
   }
 
   &__image {
@@ -40,6 +41,11 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.35s ease;
+  }
+
+  &:hover &__image {
+    transform: scale(1.05);
   }
 
   &__body {

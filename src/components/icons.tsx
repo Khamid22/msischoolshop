@@ -58,16 +58,6 @@ export function BellIcon(props: IconProps) {
   );
 }
 
-export function CartIcon(props: IconProps) {
-  return (
-    <Base {...props}>
-      <path d="M3 4h2l2.2 11.2a1.5 1.5 0 0 0 1.5 1.2h7.9a1.5 1.5 0 0 0 1.5-1.2L20 8H6" />
-      <circle cx="10" cy="20.5" r="1.3" />
-      <circle cx="17" cy="20.5" r="1.3" />
-    </Base>
-  );
-}
-
 export function SearchIcon(props: IconProps) {
   return (
     <Base {...props}>

@@ -2,7 +2,9 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCoins } from '../utils/currency';
 import type { Product } from '../types';
+import Coin from './Coin';
 import './FavoritesDrawer.scss';
 
 function getDiscountedPrice(product: Product): number {
@@ -15,7 +17,7 @@ function getDiscountedPrice(product: Product): number {
 export default function FavoritesDrawer() {
   const { favorites, isOpen, close, toggleFavorite } = useFavorites();
   const { t } = useLang();
-  const { addItem } = useCart();
+  const { buyNow } = useCart();
   const { user, openAuth } = useAuth();
 
   const handleAdd = (e: React.MouseEvent, product: Product) => {
@@ -24,7 +26,7 @@ export default function FavoritesDrawer() {
       openAuth();
       return;
     }
-    addItem(product);
+    buyNow(product);
   };
 
   return (
@@ -56,10 +58,10 @@ export default function FavoritesDrawer() {
                     <span className="fav-item__name">{t(product.nameKey) || product.name}</span>
                     <span className="fav-item__price-wrap">
                       {hasDiscount && (
-                        <span className="fav-item__price-old">{t('currency')}{product.price}</span>
+                        <span className="fav-item__price-old">{formatCoins(product.price)} <Coin /></span>
                       )}
                       <span className={`fav-item__price ${hasDiscount ? 'fav-item__price--sale' : ''}`}>
-                        {t('currency')}{price}
+                        {formatCoins(price)} <Coin />
                       </span>
                     </span>
                   </div>
@@ -75,7 +77,7 @@ export default function FavoritesDrawer() {
                       className="btn btn-primary fav-item__cart"
                       onClick={(e) => handleAdd(e, product)}
                     >
-                      {t('addToCart')}
+                      {t('buy')}
                     </button>
                   </div>
                 </li>

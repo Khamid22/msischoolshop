@@ -37,9 +37,15 @@
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-md);
     cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 
     &:hover {
       border-color: var(--color-accent);
+      background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    }
+
+    &:active {
+      transform: scale(0.94);
     }
   }
 
@@ -78,9 +84,14 @@
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-md);
     cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 
     &:hover {
       border-color: var(--color-accent);
+    }
+
+    &:active {
+      transform: scale(0.97);
     }
   }
 
@@ -95,47 +106,6 @@
   &__settings {
     width: 18px;
     height: 18px;
-  }
-
-  &__cart {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    color: var(--color-text);
-    background: transparent;
-    border: 1px solid var(--color-divider);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-
-    &:hover {
-      border-color: var(--color-accent);
-    }
-  }
-
-  &__cart-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  &__cart-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--color-accent-100);
-    background: var(--color-accent);
-    border-radius: 999px;
-    border: 2px solid var(--color-bg);
   }
 
   /* — notifications popover — */

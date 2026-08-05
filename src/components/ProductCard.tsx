@@ -16,7 +16,7 @@ interface Props {
 
 export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const { t } = useLang();
-  const { addItem } = useCart();
+  const { buyNow } = useCart();
   const { user, openAuth } = useAuth();
 
   const handleAdd = (e: React.MouseEvent) => {
@@ -25,7 +25,7 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
       openAuth();
       return;
     }
-    addItem(product);
+    buyNow(product);
   };
 
   const displayName = t(product.nameKey) || product.name;
@@ -68,7 +68,7 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
             )}
           </div>
           <button className="btn btn-primary card__btn" onClick={handleAdd}>
-            {t('addToCart')}
+            {t('buy')}
           </button>
         </div>
       </div>

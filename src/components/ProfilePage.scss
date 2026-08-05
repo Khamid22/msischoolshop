@@ -183,9 +183,14 @@
     border-radius: var(--radius-md);
     cursor: pointer;
     text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 
     &:hover {
       border-color: var(--color-accent);
+    }
+
+    &:active {
+      transform: scale(0.985);
     }
 
     &--static {
@@ -193,6 +198,10 @@
 
       &:hover {
         border-color: var(--color-divider);
+      }
+
+      &:active {
+        transform: none;
       }
     }
   }

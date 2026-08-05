@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import { fetchSlots } from '../api';
 import { formatCoins } from '../utils/currency';
-import type { PickupSlot } from '../types';
 import Coin from './Coin';
 import { XIcon } from './icons';
 import './CheckoutDrawer.scss';
@@ -14,21 +12,7 @@ export default function CheckoutDrawer() {
   const { user, openAuth } = useAuth();
   const { t } = useLang();
 
-  const [slots, setSlots] = useState<PickupSlot[]>([]);
-  const [slotId, setSlotId] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (isCheckoutOpen) {
-      fetchSlots().then((data) => {
-        setSlots(data);
-        setSlotId((prev) => prev || data[0]?.id || '');
-      });
-      setError('');
-    }
-  }, [isCheckoutOpen]);
-
-  const selectedSlot = slots.find((s) => s.id === slotId);
 
   const insufficient = !!user && user.balance < totalPrice;
 
@@ -39,16 +23,11 @@ export default function CheckoutDrawer() {
       openAuth();
       return;
     }
-    if (!selectedSlot) {
-      setError(t('pickupSlot'));
-      return;
-    }
     const ok = submitOrder({
       customerName: user.name,
       customerPhone: user.phone,
-      deliveryAddress: selectedSlot.location,
+      deliveryAddress: user.address || '',
       deliveryMethod: 'pickup',
-      pickupSlot: `${selectedSlot.label} · ${selectedSlot.when}`,
     });
     if (!ok) {
       setError(t('insufficientBalance'));
@@ -86,26 +65,6 @@ export default function CheckoutDrawer() {
                 {user.discount ? (
                   <span className="tag tag-accent checkout-form__lms-tag">−{user.discount}%</span>
                 ) : null}
-              </section>
-
-              <section className="checkout-form__slots">
-                <h3 className="checkout-form__slots-title">{t('pickupSlot')}</h3>
-                <div className="checkout-form__slots-list">
-                  {slots.map((slot) => (
-                    <label key={slot.id} className={`slot ${slot.id === slotId ? 'slot--active' : ''}`}>
-                      <input
-                        type="radio"
-                        name="pickup-slot"
-                        checked={slot.id === slotId}
-                        onChange={() => setSlotId(slot.id)}
-                      />
-                      <span className="slot__body">
-                        <span className="slot__label">{slot.label}</span>
-                        <span className="slot__when">{slot.when} · {slot.location}</span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
               </section>
 
               <section className="checkout-form__summary">

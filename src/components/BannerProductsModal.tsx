@@ -2,7 +2,9 @@ import type { Product, Banner } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCoins } from '../utils/currency';
 import FavoriteButton from './FavoriteButton';
+import Coin from './Coin';
 import './BannerProductsModal.scss';
 
 interface Props {
@@ -14,7 +16,7 @@ interface Props {
 
 export default function BannerProductsModal({ banner, allProducts, onClose, onOpenProduct }: Props) {
   const { t } = useLang();
-  const { addItem } = useCart();
+  const { buyNow } = useCart();
   const { user, openAuth } = useAuth();
 
   const handleAdd = (product: Product) => {
@@ -22,7 +24,7 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
       openAuth();
       return;
     }
-    addItem(product);
+    buyNow(product);
   };
 
   if (!banner) return null;
@@ -75,17 +77,17 @@ export default function BannerProductsModal({ banner, allProducts, onClose, onOp
                     <div className="banner-modal__footer">
                       <div className="banner-modal__price-wrap">
                         {hasDiscount && (
-                          <span className="banner-modal__price-old">{t('currency')}{product.price}</span>
+                          <span className="banner-modal__price-old">{formatCoins(product.price)} <Coin /></span>
                         )}
                         <span className={`banner-modal__price ${hasDiscount ? 'banner-modal__price--sale' : ''}`}>
-                          {t('currency')}{discountedPrice}
+                          {formatCoins(discountedPrice)} <Coin />
                         </span>
                       </div>
                       <button
                         className="btn btn-primary banner-modal__btn"
                         onClick={(e) => { e.stopPropagation(); handleAdd(product); }}
                       >
-                        {t('addToCart')}
+                        {t('buy')}
                       </button>
                     </div>
                   </div>

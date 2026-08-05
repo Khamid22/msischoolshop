@@ -31,41 +31,40 @@
   }
 
   &__content {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 32px;
     padding: 24px 60px;
     width: 100%;
     height: 100%;
-    position: relative;
     overflow: hidden;
 
     &--text {
       justify-content: flex-start;
-    }
-
-    &--text::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
       background: linear-gradient(
         90deg,
-        color-mix(in srgb, var(--bg) 82%, transparent) 0%,
-        color-mix(in srgb, var(--bg) 45%, transparent) 55%,
-        color-mix(in srgb, var(--bg) 8%, transparent) 100%
+        color-mix(in srgb, var(--bg) 90%, transparent) 0%,
+        color-mix(in srgb, var(--bg) 70%, transparent) 60%,
+        color-mix(in srgb, var(--bg) 30%, transparent) 100%
       );
     }
   }
 
   &__bg-image {
-    position: absolute;
-    inset: 0;
-    width: 100%;
     height: 100%;
-    object-fit: cover;
+    max-height: 60%;
+    width: auto;
+    flex-shrink: 0;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     pointer-events: none;
+  }
+
+  &__content--image-only &__bg-image {
+    max-height: 90%;
   }
 
   &__icon {
@@ -80,6 +79,8 @@
   &__text {
     text-align: left;
     position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
     max-width: 60%;
   }
 
@@ -186,7 +187,11 @@
     }
 
     &__text {
-      max-width: 70%;
+      max-width: 58%;
+    }
+
+    &__bg-image {
+      max-height: 60%;
     }
 
     &__icon {
@@ -225,7 +230,11 @@
     }
 
     &__text {
-      max-width: 72%;
+      max-width: 60%;
+    }
+
+    &__bg-image {
+      max-height: 55%;
     }
 
     &__icon {
@@ -264,7 +273,11 @@
     }
 
     &__text {
-      max-width: 78%;
+      max-width: 62%;
+    }
+
+    &__bg-image {
+      max-height: 55%;
     }
 
     &__icon {
@@ -300,6 +313,10 @@
     &__content {
       padding: 32px 72px;
       gap: 32px;
+    }
+
+    &__bg-image {
+      max-height: 78%;
     }
 
     &__title {

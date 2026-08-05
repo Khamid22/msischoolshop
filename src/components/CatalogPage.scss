@@ -17,9 +17,11 @@
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-md);
     cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
 
     &:hover {
       border-color: var(--color-accent);
+      background: color-mix(in srgb, var(--color-accent) 6%, transparent);
     }
   }
 
@@ -44,6 +46,7 @@
     border: 1px solid transparent;
     border-radius: 999px;
     cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 
     &:hover {
       color: var(--color-accent);

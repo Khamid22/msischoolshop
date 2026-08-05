@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../contexts/LangContext';
-import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
 import { formatCoins } from '../utils/currency';
 import type { Language, View } from '../types';
 import Coin from './Coin';
-import { BellIcon, CartIcon, SettingsIcon } from './icons';
+import { BellIcon, SettingsIcon } from './icons';
 import './Header.scss';
 
 interface Props {
@@ -27,7 +26,6 @@ function formatNotifDate(iso: string, lang: Language): string {
 
 export default function Header({ view }: Props) {
   const { lang, t } = useLang();
-  const { open, totalItems } = useCart();
   const { user, openAuth, openProfile } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
@@ -122,13 +120,6 @@ export default function Header({ view }: Props) {
         <a className="topbar__icon-btn topbar__admin" href="/admin-login.html" title={t('adminPanel')}>
           <SettingsIcon className="topbar__settings" />
         </a>
-
-        <button className="topbar__cart" onClick={open} title={t('cart')}>
-          <CartIcon className="topbar__cart-icon" />
-          {totalItems > 0 && (
-            <span key={totalItems} className="topbar__cart-badge">{totalItems}</span>
-          )}
-        </button>
       </div>
     </header>
   );

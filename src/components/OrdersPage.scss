@@ -4,33 +4,6 @@
   gap: var(--space-5);
   padding: var(--space-4);
 
-  &__tabs {
-    display: flex;
-    gap: var(--space-3);
-    overflow-x: auto;
-  }
-
-  &__tab {
-    flex: none;
-    padding: 7px 16px;
-    font-size: 13px;
-    color: var(--text-muted);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--color-accent);
-    }
-
-    &--active {
-      color: var(--color-accent);
-      border-color: var(--color-accent);
-      background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-    }
-  }
-
   &__list {
     display: flex;
     flex-direction: column;
@@ -54,53 +27,133 @@
   background: var(--color-surface);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-lg);
-  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
 
-  &__top {
+  &__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
   }
 
-  &__id {
+  &__num {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  &__date {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  &__items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  &__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-size: 13px;
+    color: var(--color-text);
+
+    span:last-child {
+      flex: none;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-divider);
+  }
+
+  &__status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-text) 9%, transparent);
+    color: var(--text-muted);
+
+    &--paid {
+      background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+      color: var(--color-accent);
+    }
+
+    &--packed {
+      background: color-mix(in srgb, var(--color-neutral-500) 16%, transparent);
+      color: var(--color-neutral-600);
+    }
+
+    &--ready {
+      background: color-mix(in srgb, #2f9e5f 16%, var(--color-bg));
+      color: #2f9e5f;
+    }
+
+    &--collected {
+      background: color-mix(in srgb, #2f9e5f 10%, var(--color-bg));
+      color: #2f9e5f;
+      opacity: 0.85;
+    }
+  }
+
+  &__total {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
     font-size: 15px;
     color: var(--color-text);
   }
 
-  &__items {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  &__slot {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  &__row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
   &__code {
-    font-family: var(--font-heading);
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--color-accent);
-  }
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg);
+    border: 1px dashed var(--color-accent);
+    border-radius: var(--radius-md);
 
-  &__total {
-    font-size: 14px;
-    color: var(--color-text);
+    &-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    &-value {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--color-accent);
+    }
+
+    &-slot {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
   }
 }
 

@@ -6,17 +6,10 @@ import { getProductPrice, getUnitPrice } from '../utils/currency';
 
 interface CartContextType {
   items: CartItem[];
-  isOpen: boolean;
   isCheckoutOpen: boolean;
   lastOrder: Order | null;
-  open: () => void;
-  close: () => void;
-  openCheckout: () => void;
+  buyNow: (product: Product) => void;
   closeCheckout: () => void;
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
   submitOrder: (data: {
     customerName: string;
     customerPhone: string;
@@ -25,7 +18,6 @@ interface CartContextType {
     pickupSlot?: string;
   }) => boolean;
   closeSuccess: () => void;
-  totalItems: number;
   totalPrice: number;
   originalPrice: number;
   savings: number;
@@ -44,45 +36,15 @@ function saveOrder(order: Order) {
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user, spendStars } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
 
-  const open = () => { setIsCheckoutOpen(false); setIsOpen(true); };
-  const close = () => setIsOpen(false);
-  const openCheckout = () => { setIsOpen(false); setIsCheckoutOpen(true); };
   const closeCheckout = () => setIsCheckoutOpen(false);
 
-  const addItem = useCallback((product: Product) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
-    setIsOpen(true);
+  const buyNow = useCallback((product: Product) => {
+    setItems([{ product, quantity: 1 }]);
+    setIsCheckoutOpen(true);
   }, []);
-
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.product.id !== productId));
-      return;
-    }
-    setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId ? { ...i, quantity } : i
-      )
-    );
-  }, []);
-
-  const clearCart = useCallback(() => setItems([]), []);
 
   const submitOrder = useCallback((data: {
     customerName: string;
@@ -131,7 +93,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLastOrder(null);
   }, []);
 
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + getUnitPrice(i.product, user) * i.quantity, 0);
   const originalPrice = items.reduce((sum, i) => sum + getProductPrice(i.product) * i.quantity, 0);
   const savings = originalPrice - totalPrice;
@@ -139,11 +100,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return (
     <CartContext.Provider
       value={{
-        items, isOpen, isCheckoutOpen, lastOrder,
-        open, close, openCheckout, closeCheckout,
-        addItem, removeItem, updateQuantity, clearCart,
+        items, isCheckoutOpen, lastOrder,
+        buyNow, closeCheckout,
         submitOrder, closeSuccess,
-        totalItems, totalPrice, originalPrice, savings,
+        totalPrice, originalPrice, savings,
       }}
     >
       {children}

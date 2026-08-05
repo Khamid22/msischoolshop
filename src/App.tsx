@@ -15,7 +15,6 @@ import ProfilePage from './components/ProfilePage';
 import NewsPage from './components/NewsPage';
 import SearchPage from './components/SearchPage';
 import ProductDetail from './components/ProductDetail';
-import CartDrawer from './components/CartDrawer';
 import FavoritesDrawer from './components/FavoritesDrawer';
 import CheckoutDrawer from './components/CheckoutDrawer';
 import OrderSuccess from './components/OrderSuccess';
@@ -123,7 +122,6 @@ export default function App() {
                   onClose={() => setSelectedProduct(null)}
                   onOpenProduct={setSelectedProduct}
                 />
-                <CartDrawer />
                 <FavoritesDrawer />
                 <CheckoutDrawer />
                 <OrderSuccess />
