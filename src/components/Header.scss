@@ -83,31 +83,6 @@
     box-shadow: var(--shadow-accent);
   }
 
-  &__balance {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 6px 13px;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--accent-strong-text);
-    background: var(--accent-gradient);
-    border: 1px solid transparent;
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    box-shadow: var(--shadow-accent);
-    transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.2s ease;
-
-    &:hover {
-      filter: brightness(1.06);
-      box-shadow: var(--shadow-accent), 0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, transparent);
-    }
-
-    &:active {
-      transform: scale(0.96);
-    }
-  }
-
   &__signin {
     white-space: nowrap;
   }
@@ -287,12 +262,6 @@
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
 
-    &__balance {
-      padding: 5px 10px;
-      font-size: 13px;
-      gap: 5px;
-    }
-
     &__icon-btn {
       width: 34px;
       height: 34px;
@@ -304,17 +273,6 @@
   .topbar {
     &__title {
       font-size: 17px;
-    }
-
-    &__balance {
-      max-width: 110px;
-      overflow: hidden;
-
-      &-value {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
     }
   }
 }

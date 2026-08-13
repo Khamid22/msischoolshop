@@ -32,7 +32,7 @@ function formatNotifDate(iso: string, lang: Language): string {
 
 export default function Header({ view, shopType, onShopTypeChange, minPrice, maxPrice, onMinPriceChange, onMaxPriceChange }: Props) {
   const { lang, t } = useLang();
-  const { user, openAuth, openProfile } = useAuth();
+  const { user, openAuth } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -118,10 +118,6 @@ export default function Header({ view, shopType, onShopTypeChange, minPrice, max
               )}
             </div>
 
-            <button className="topbar__balance" onClick={openProfile} title={t('balance')}>
-              <Coin />
-              <span key={user.balance} className="topbar__balance-value">{formatCoins(user.balance)}</span>
-            </button>
           </>
         ) : (
           <button className="btn btn-ghost topbar__signin" onClick={openAuth}>
