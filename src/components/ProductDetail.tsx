@@ -15,6 +15,8 @@ interface Props {
   onAdded: () => void;
 }
 
+const APPAREL_PRODUCT_IDS = new Set(['tshirt-1', 'tshirt-white', 'msi-hoodie']);
+
 export default function ProductDetail({ product, onClose, onAdded }: Props) {
   const { t } = useLang();
   const { addToCart } = useCart();
@@ -23,7 +25,7 @@ export default function ProductDetail({ product, onClose, onAdded }: Props) {
 
   useEffect(() => {
     if (!product) return;
-    setVariant(product.type === 'digital' ? '3 mo' : 'M');
+    setVariant(product.type === 'digital' ? '3 mo' : APPAREL_PRODUCT_IDS.has(product.id) ? 'M' : '');
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
@@ -39,7 +41,9 @@ export default function ProductDetail({ product, onClose, onAdded }: Props) {
   const finalPrice = getUnitPrice(product, user);
   const hasStudentDiscount = finalPrice < productPrice;
   const savings = product.price - finalPrice;
-  const variants = product.type === 'digital' ? ['3 mo', '6 mo', '12 mo'] : ['S', 'M', 'L', 'XL'];
+  const variants = product.type === 'digital'
+    ? ['3 mo', '6 mo', '12 mo']
+    : APPAREL_PRODUCT_IDS.has(product.id) ? ['S', 'M', 'L', 'XL'] : [];
 
   const handleAdd = () => {
     addToCart(product);
@@ -90,14 +94,16 @@ export default function ProductDetail({ product, onClose, onAdded }: Props) {
             </div>
           ) : null}
 
-          <section className="detail__section">
-            <span className="detail__section-title">{t('packSize')}</span>
-            <div className="detail__variants">
-              {variants.map((option) => (
-                <button key={option} className={variant === option ? 'detail__variant detail__variant--active' : 'detail__variant'} type="button" onClick={() => setVariant(option)}>{option}</button>
-              ))}
-            </div>
-          </section>
+          {variants.length > 0 ? (
+            <section className="detail__section">
+              <span className="detail__section-title">{t('packSize')}</span>
+              <div className="detail__variants">
+                {variants.map((option) => (
+                  <button key={option} className={variant === option ? 'detail__variant detail__variant--active' : 'detail__variant'} type="button" onClick={() => setVariant(option)}>{option}</button>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section className="detail__section">
             <span className="detail__section-title">{t('descriptionLabel')}</span>

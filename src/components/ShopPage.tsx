@@ -25,12 +25,27 @@ const HOME_CATEGORIES: Array<{ value: ProductCollection; key: string }> = [
   { value: 'rewards', key: 'categoryRewards' },
 ];
 
+const STUDENT_PICK_IDS = [
+  'student-sticker-pack',
+  'student-keychain',
+  'student-phone-grip',
+  'student-notebook-set',
+  'msi-bottle',
+  'msi-tote',
+  'tshirt-1',
+  'msi-hoodie',
+];
+
 export default function ShopPage({ products, loading, onOpenProduct, onBrowseCollection, onBannerClick }: Props) {
   const { t } = useLang();
   const { user, openAuth } = useAuth();
-  const arrivals = useMemo(() => (
-    products.filter((product) => product.type === 'physical').slice(0, 4)
-  ), [products]);
+  const studentPicks = useMemo(() => {
+    const productsById = new Map(products.map((product) => [product.id, product]));
+    return STUDENT_PICK_IDS.flatMap((id) => {
+      const product = productsById.get(id);
+      return product ? [product] : [];
+    });
+  }, [products]);
   const digital = useMemo(() => (
     products.filter((product) => product.type === 'digital').slice(0, 4)
   ), [products]);
@@ -68,15 +83,15 @@ export default function ShopPage({ products, loading, onOpenProduct, onBrowseCol
         ))}
       </nav>
 
-      <section className="mini-section" aria-labelledby="new-arrivals-heading">
+      <section className="mini-section" aria-labelledby="student-picks-heading">
         <div className="mini-section__head">
-          <h2 id="new-arrivals-heading">{t('newArrivals')}</h2>
-          <button type="button" onClick={() => onBrowseCollection('all')}>{t('viewAll')}</button>
+          <h2 id="student-picks-heading">{t('studentPicks')}</h2>
+          <button type="button" onClick={() => onBrowseCollection('merch')}>{t('viewAll')}</button>
         </div>
         <div className="mini-products">
           {loading
-            ? Array.from({ length: 4 }, (_, index) => <SkeletonCard key={index} />)
-            : arrivals.map((product, index) => (
+            ? Array.from({ length: 8 }, (_, index) => <SkeletonCard key={index} />)
+            : studentPicks.map((product, index) => (
               <ProductCard key={product.id} product={product} onOpen={onOpenProduct} enterDelay={index * 45} />
             ))}
         </div>
