@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { Banner as BannerType, Product, ProductCollection } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import { formatCoins, getUnitPrice } from '../utils/currency';
+import { formatCoins } from '../utils/currency';
 import ProductCard from './ProductCard';
 import SkeletonCard from './SkeletonCard';
 import Banner from './Banner';
@@ -46,10 +46,6 @@ export default function ShopPage({ products, loading, onOpenProduct, onBrowseCol
       return product ? [product] : [];
     });
   }, [products]);
-  const digital = useMemo(() => (
-    products.filter((product) => product.type === 'digital').slice(0, 4)
-  ), [products]);
-
   return (
     <div className="shop-page">
       <section className="shop-balance" aria-label={t('yourBalance')}>
@@ -97,27 +93,6 @@ export default function ShopPage({ products, loading, onOpenProduct, onBrowseCol
         </div>
       </section>
 
-      <section className="mini-section" aria-labelledby="digital-heading">
-        <div className="mini-section__head">
-          <h2 id="digital-heading">{t('digitalGoods')}</h2>
-          <button type="button" onClick={() => onBrowseCollection('digital')}>{t('viewAll')}</button>
-        </div>
-        <div className="digital-list">
-          {digital.map((product) => {
-            const displayName = t(product.nameKey) || product.name;
-            return (
-              <button className="digital-row" type="button" key={product.id} onClick={() => onOpenProduct(product)}>
-                <span className="digital-row__image"><img src={product.image} alt="" /></span>
-                <span className="digital-row__copy">
-                  <strong>{displayName}</strong>
-                  <small>{product.course ? t('relatedCourse') : t('filterDigital')}</small>
-                </span>
-                <span className="digital-row__price"><Coin /> {formatCoins(getUnitPrice(product, user))}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
     </div>
   );
 }
