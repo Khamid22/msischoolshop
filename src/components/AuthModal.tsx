@@ -9,17 +9,12 @@ export default function AuthModal() {
   const { isAuthOpen, closeAuth, login, register, demoLogin } = useAuth();
   const { t } = useLang();
   const [tab, setTab] = useState<Tab>('login');
-  const [showIntro, setShowIntro] = useState(true);
 
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
   const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPhone, setRegPhone] = useState('');
-  const [regPass, setRegPass] = useState('');
-  const [regPass2, setRegPass2] = useState('');
   const [regError, setRegError] = useState('');
 
   const reset = () => {
@@ -27,17 +22,12 @@ export default function AuthModal() {
     setLoginPass('');
     setLoginError('');
     setRegName('');
-    setRegEmail('');
-    setRegPhone('');
-    setRegPass('');
-    setRegPass2('');
     setRegError('');
   };
 
   const switchTab = (next: Tab) => {
     setTab(next);
     reset();
-    setShowIntro(next === 'register');
   };
 
   const handleClose = () => {
@@ -59,29 +49,12 @@ export default function AuthModal() {
     e.preventDefault();
     setRegError('');
 
-    if (!regName.trim() || !regEmail.trim() || !regPass.trim()) {
+    if (!regName.trim()) {
       setRegError(t('errorFillRequired'));
       return;
     }
-    if (regPass !== regPass2) {
-      setRegError(t('errorPasswordMismatch'));
-      return;
-    }
-    if (regPass.length < 6) {
-      setRegError(t('errorPasswordShort'));
-      return;
-    }
 
-    const err = register({
-      name: regName.trim(),
-      email: regEmail.trim(),
-      phone: regPhone.trim(),
-      address: '',
-      password: regPass,
-    });
-    if (err === 'email_exists') {
-      setRegError(t('errorEmailExists'));
-    }
+    register({ name: regName.trim() });
   };
 
   if (!isAuthOpen) return null;
@@ -157,46 +130,6 @@ export default function AuthModal() {
                   required
                 />
               </label>
-              <label className="auth-form__label">
-                <span className="auth-form__label-text">{t('email')}*</span>
-                <input
-                  className="input auth-form__input"
-                  type="email"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  required
-                />
-              </label>
-              <label className="auth-form__label">
-                <span className="auth-form__label-text">{t('phone')}</span>
-                <input
-                  className="input auth-form__input"
-                  type="tel"
-                  value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
-                />
-              </label>
-              <label className="auth-form__label">
-                <span className="auth-form__label-text">{t('password')}*</span>
-                <input
-                  className="input auth-form__input"
-                  type="password"
-                  value={regPass}
-                  onChange={(e) => setRegPass(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </label>
-              <label className="auth-form__label">
-                <span className="auth-form__label-text">{t('confirmPassword')}*</span>
-                <input
-                  className="input auth-form__input"
-                  type="password"
-                  value={regPass2}
-                  onChange={(e) => setRegPass2(e.target.value)}
-                  required
-                />
-              </label>
               {regError && <span className="auth-form__error">{regError}</span>}
               <button className="btn btn-primary btn-block auth-form__submit" type="submit">
                 {t('register')}
@@ -205,51 +138,6 @@ export default function AuthModal() {
           )}
         </div>
       </div>
-
-      {tab === 'register' && showIntro && (
-        <div className="intro-overlay">
-          <div className="intro">
-            <button className="intro__close" onClick={handleClose} aria-label={t('close')}>✕</button>
-            <div className="intro__logo">
-              <span className="intro__letter intro__letter--m">M</span>
-              <span className="intro__letter intro__letter--s">S</span>
-              <span className="intro__letter intro__letter--i">I</span>
-            </div>
-            <p className="intro__welcome">{t('introWelcome')}</p>
-            <h2 className="intro__title">{t('introSubtitle')}</h2>
-            <ul className="intro__list">
-              <li className="intro__item">
-                <span className="intro__item-icon">💎</span>
-                <span>{t('introPoint1')}</span>
-              </li>
-              <li className="intro__item">
-                <span className="intro__item-icon">👕</span>
-                <span>{t('introPoint2')}</span>
-              </li>
-              <li className="intro__item">
-                <span className="intro__item-icon">📚</span>
-                <span>{t('introPoint3')}</span>
-              </li>
-              <li className="intro__item">
-                <span className="intro__item-icon">🎓</span>
-                <span>{t('introPoint4')}</span>
-              </li>
-              <li className="intro__item">
-                <span className="intro__item-icon">🎁</span>
-                <span>{t('introPoint5')}</span>
-              </li>
-              <li className="intro__item">
-                <span className="intro__item-icon">📦</span>
-                <span>{t('introPoint6')}</span>
-              </li>
-            </ul>
-            <p className="intro__rate">{t('introRate')}</p>
-            <button className="intro__continue" onClick={() => setShowIntro(false)}>
-              {t('introContinue')}
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -48,6 +48,12 @@ export default function ShopIntro() {
     };
   }, [slides.length]);
 
+  useEffect(() => {
+    if (slide >= slides.length - 1) return;
+    const timer = setTimeout(() => setSlide((s) => s + 1), 4000);
+    return () => clearTimeout(timer);
+  }, [slide, slides.length]);
+
   if (dismissed) return null;
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -110,36 +116,14 @@ export default function ShopIntro() {
         ))}
       </div>
 
-      <div className={`shop-intro__actions ${isLast ? 'shop-intro__actions--final' : ''}`}>
-        {isLast ? (
-          <>
-            <button
-              className="btn btn-primary shop-intro__cta"
-              onClick={() => { openAuth(); finish(); }}
-            >
-              {t('introStart')}
-            </button>
-            <button className="btn btn-ghost shop-intro__guest" onClick={finish}>
-              {t('introGuest')}
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              className="btn btn-ghost shop-intro__prev"
-              onClick={() => setSlide((s) => Math.max(s - 1, 0))}
-              disabled={slide === 0}
-              aria-label={t('close')}
-            >
-              ←
-            </button>
-            <button
-              className="btn btn-primary shop-intro__next"
-              onClick={() => setSlide((s) => Math.min(s + 1, slides.length - 1))}
-            >
-              {t('introNext')} →
-            </button>
-          </>
+      <div className="shop-intro__actions">
+        {isLast && (
+          <button
+            className="btn btn-primary shop-intro__cta"
+            onClick={() => { openAuth(); finish(); }}
+          >
+            {t('introStart')}
+          </button>
         )}
       </div>
     </div>

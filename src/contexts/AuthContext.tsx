@@ -13,7 +13,7 @@ interface AuthContextType {
   closeAuth: () => void;
   openProfile: () => void;
   closeProfile: () => void;
-  register: (data: Omit<User, 'id' | 'balance'> & { password: string }) => string | null;
+  register: (data: { name: string }) => string | null;
   login: (email: string, password: string) => string | null;
   demoLogin: () => void;
   logout: () => void;
@@ -123,18 +123,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const register = useCallback((data: Omit<User, 'id' | 'balance'> & { password: string }): string | null => {
+  const register = useCallback((data: { name: string }): string | null => {
     const users = getUsers();
-    if (users.find((u) => u.email === data.email)) {
-      return 'email_exists';
-    }
     const newUser: StoredUser = {
-      ...data,
       id: crypto.randomUUID(),
+      name: data.name.trim(),
+      email: '',
+      phone: '',
+      address: '',
       balance: DEFAULT_BALANCE,
       studentId: 'STU-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
       discount: 10,
       earned: 0,
+      password: '',
     };
     users.push(newUser);
     saveUsers(users);
