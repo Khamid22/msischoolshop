@@ -9,6 +9,7 @@ interface TelegramWebAppUser {
 
 interface TelegramWebApp {
   version: string;
+  platform: string;
   initData: string;
   initDataUnsafe: {
     user?: TelegramWebAppUser;

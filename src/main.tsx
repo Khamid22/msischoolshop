@@ -10,11 +10,12 @@ if (telegram) {
     const height = telegram.viewportStableHeight || telegram.viewportHeight || window.innerHeight
     const deviceSafeArea = telegram.safeAreaInset
     const contentSafeArea = telegram.contentSafeAreaInset
+    const isIosFullscreen = telegram.platform === 'ios' && telegram.isFullscreen
     const safeArea = {
-      top: Math.max(deviceSafeArea?.top || 0, contentSafeArea?.top || 0),
-      right: Math.max(deviceSafeArea?.right || 0, contentSafeArea?.right || 0),
-      bottom: Math.max(deviceSafeArea?.bottom || 0, contentSafeArea?.bottom || 0),
-      left: Math.max(deviceSafeArea?.left || 0, contentSafeArea?.left || 0),
+      top: Math.max((deviceSafeArea?.top || 0) + (contentSafeArea?.top || 0), isIosFullscreen ? 112 : 0),
+      right: (deviceSafeArea?.right || 0) + (contentSafeArea?.right || 0),
+      bottom: (deviceSafeArea?.bottom || 0) + (contentSafeArea?.bottom || 0),
+      left: (deviceSafeArea?.left || 0) + (contentSafeArea?.left || 0),
     }
 
     document.documentElement.style.setProperty('--app-viewport-height', `${Math.round(height)}px`)
