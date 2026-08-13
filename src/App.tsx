@@ -35,8 +35,8 @@ const DEFAULT_FILTERS: FilterState = {
 };
 
 function GuestIntro() {
-  const { user } = useAuth();
-  if (user) return null;
+  const { user, isAuthOpen } = useAuth();
+  if (user || isAuthOpen) return null;
   return <ShopIntro />;
 }
 

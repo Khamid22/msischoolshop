@@ -38,7 +38,14 @@ export default function ShopIntro() {
       if (e.key === 'ArrowLeft') setSlide((s) => Math.max(s - 1, 0));
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [slides.length]);
 
   if (dismissed) return null;
