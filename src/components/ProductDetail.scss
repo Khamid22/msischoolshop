@@ -2,6 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: 60;
+  height: var(--app-viewport-height, 100dvh);
+  padding-top: var(--app-safe-top, 0px);
   overflow-y: auto;
   background: rgba(7, 8, 13, .72);
 
@@ -137,7 +139,7 @@
     display: grid;
     width: min(100%, 480px);
     min-height: 70px;
-    padding: 10px var(--page-gutter) calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 10px max(var(--page-gutter), var(--app-safe-right, 0px)) calc(10px + max(env(safe-area-inset-bottom, 0px), var(--app-safe-bottom, 0px))) max(var(--page-gutter), var(--app-safe-left, 0px));
     margin: 0 auto;
     grid-template-columns: 1fr 1.5fr;
     gap: 10px;

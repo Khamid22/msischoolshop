@@ -8,7 +8,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   max-width: 480px;
   margin: 0 auto;
-  padding: 7px 8px calc(9px + env(safe-area-inset-bottom, 0px));
+  padding: 7px max(8px, var(--app-safe-right, 0px)) calc(9px + max(env(safe-area-inset-bottom, 0px), var(--app-safe-bottom, 0px))) max(8px, var(--app-safe-left, 0px));
   background: var(--color-bg);
   border-top: 1px solid var(--color-divider);
 

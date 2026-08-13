@@ -12,9 +12,21 @@ interface TelegramWebApp {
   initDataUnsafe: {
     user?: TelegramWebAppUser;
   };
+  viewportHeight: number;
+  viewportStableHeight: number;
+  safeAreaInset?: TelegramSafeAreaInset;
+  contentSafeAreaInset?: TelegramSafeAreaInset;
   ready: () => void;
   expand: () => void;
+  onEvent?: (eventType: 'viewportChanged' | 'safeAreaChanged' | 'contentSafeAreaChanged', callback: () => void) => void;
   showAlert?: (message: string) => void;
+}
+
+interface TelegramSafeAreaInset {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
 }
 
 interface Window {

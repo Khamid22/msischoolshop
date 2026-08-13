@@ -2,6 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: 70;
+  height: var(--app-viewport-height, 100dvh);
+  padding-top: var(--app-safe-top, 0px);
   overflow-y: auto;
   background: rgba(7, 8, 13, .72);
 }
@@ -40,7 +42,7 @@
   &__auth { display: flex; padding: 48px 20px; flex-direction: column; gap: 9px; text-align: center; }
   &__auth p { color: var(--text-muted); font-size: 11px; line-height: 1.6; }
   &__insufficient { padding: 10px 12px; color: var(--accent-text); font-size: 11px; text-align: center; background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: var(--radius-md); }
-  &__submit-wrap { position: fixed; right: 0; bottom: 0; left: 0; width: min(100%, 480px); padding: 10px var(--page-gutter) calc(9px + env(safe-area-inset-bottom, 0px)); margin: 0 auto; background: color-mix(in srgb, var(--color-bg) 95%, transparent); border-top: 1px solid var(--color-divider); backdrop-filter: blur(16px); }
+  &__submit-wrap { position: fixed; right: 0; bottom: 0; left: 0; width: min(100%, 480px); padding: 10px max(var(--page-gutter), var(--app-safe-right, 0px)) calc(9px + max(env(safe-area-inset-bottom, 0px), var(--app-safe-bottom, 0px))) max(var(--page-gutter), var(--app-safe-left, 0px)); margin: 0 auto; background: color-mix(in srgb, var(--color-bg) 95%, transparent); border-top: 1px solid var(--color-divider); backdrop-filter: blur(16px); }
   &__submit { min-height: 46px; }
   &__hint { margin-top: 5px; color: var(--text-muted); font-size: 9px; text-align: center; }
 }
