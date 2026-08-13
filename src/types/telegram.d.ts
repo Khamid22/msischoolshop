@@ -8,6 +8,7 @@ interface TelegramWebAppUser {
 }
 
 interface TelegramWebApp {
+  version: string;
   initData: string;
   initDataUnsafe: {
     user?: TelegramWebAppUser;
@@ -16,9 +17,15 @@ interface TelegramWebApp {
   viewportStableHeight: number;
   safeAreaInset?: TelegramSafeAreaInset;
   contentSafeAreaInset?: TelegramSafeAreaInset;
+  isFullscreen?: boolean;
   ready: () => void;
   expand: () => void;
-  onEvent?: (eventType: 'viewportChanged' | 'safeAreaChanged' | 'contentSafeAreaChanged', callback: () => void) => void;
+  isVersionAtLeast?: (version: string) => boolean;
+  requestFullscreen?: () => void;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
+  setBottomBarColor?: (color: string) => void;
+  onEvent?: (eventType: 'viewportChanged' | 'safeAreaChanged' | 'contentSafeAreaChanged' | 'fullscreenChanged' | 'fullscreenFailed', callback: () => void) => void;
   showAlert?: (message: string) => void;
 }
 

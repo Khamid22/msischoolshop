@@ -24,13 +24,24 @@ if (telegram) {
     document.documentElement.style.setProperty('--app-safe-left', `${safeArea.left}px`)
   }
 
+  telegram.setHeaderColor?.('bg_color')
+  telegram.setBackgroundColor?.('bg_color')
+  if (telegram.isVersionAtLeast?.('7.10')) {
+    telegram.setBottomBarColor?.('bottom_bar_bg_color')
+  }
+
   telegram.expand()
   syncViewport()
   telegram.onEvent?.('viewportChanged', syncViewport)
   telegram.onEvent?.('safeAreaChanged', syncViewport)
   telegram.onEvent?.('contentSafeAreaChanged', syncViewport)
+  telegram.onEvent?.('fullscreenChanged', syncViewport)
   window.addEventListener('resize', syncViewport)
   telegram.ready()
+
+  if (telegram.isVersionAtLeast?.('8.0') && !telegram.isFullscreen) {
+    telegram.requestFullscreen?.()
+  }
 }
 
 createRoot(document.getElementById('root')!).render(
