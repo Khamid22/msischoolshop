@@ -16,9 +16,23 @@
     animation: detailSlideUp 0.3s ease;
 
     @media (min-width: 769px) {
-      border-left: 1px solid var(--color-divider);
-      border-right: 1px solid var(--color-divider);
+      min-height: 0;
+      height: auto;
+      max-height: 92vh;
+      overflow-y: auto;
+      margin: auto;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
     }
+  }
+
+  @media (min-width: 769px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    background: rgba(0, 0, 0, 0.55);
   }
 
   &__top {
@@ -63,12 +77,16 @@
     overflow: hidden;
     background: var(--img-bg);
     border: 1px solid var(--color-divider);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
   }
 
   &__image {
     width: 100%;
     aspect-ratio: 16 / 10;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
 
@@ -76,6 +94,10 @@
     position: absolute;
     top: var(--space-3);
     left: var(--space-3);
+    color: var(--accent-strong-text);
+    background: var(--accent-gradient);
+    border: none;
+    box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--color-accent) 70%, transparent);
   }
 
   &__body {
@@ -186,6 +208,8 @@
 
   &__add-btn {
     margin-top: var(--space-2);
+    border-radius: var(--radius-pill);
+    padding-block: var(--space-4);
   }
 
   &__recommended {

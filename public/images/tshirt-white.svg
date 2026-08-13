@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <g transform="translate(120, 32)">
+    <path d="M30 0 L0 30 L25 50 L30 35" fill="#e8e8ee" stroke="#c9c9d4" stroke-width="1"/>
+    <path d="M130 0 L160 30 L135 50 L130 35" fill="#e8e8ee" stroke="#c9c9d4" stroke-width="1"/>
+    <path d="M30 0 L30 158 L130 158 L130 0" fill="#f3f3f7" stroke="#d5d5e0" stroke-width="1"/>
+    <path d="M30 0 C50 20, 80 25, 80 20 C80 25, 110 20, 130 0" fill="none" stroke="#c9c9d4" stroke-width="2"/>
+    <text x="80" y="95" text-anchor="middle" fill="#333" font-family="Arial, sans-serif" font-size="14" font-weight="bold">MSI</text>
+  </g>
+  <text x="200" y="222" text-anchor="middle" fill="#9397ab" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">WHITE EDITION</text>
+</svg>

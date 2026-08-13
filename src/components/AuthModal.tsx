@@ -9,6 +9,7 @@ export default function AuthModal() {
   const { isAuthOpen, closeAuth, login, register, demoLogin } = useAuth();
   const { t } = useLang();
   const [tab, setTab] = useState<Tab>('login');
+  const [showIntro, setShowIntro] = useState(true);
 
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
@@ -31,6 +32,12 @@ export default function AuthModal() {
     setRegPass('');
     setRegPass2('');
     setRegError('');
+  };
+
+  const switchTab = (next: Tab) => {
+    setTab(next);
+    reset();
+    setShowIntro(next === 'register');
   };
 
   const handleClose = () => {
@@ -87,13 +94,13 @@ export default function AuthModal() {
           <div className="auth-modal__tabs">
             <button
               className={`auth-modal__tab ${tab === 'login' ? 'auth-modal__tab--active' : ''}`}
-              onClick={() => { setTab('login'); reset(); }}
+              onClick={() => switchTab('login')}
             >
               {t('login')}
             </button>
             <button
               className={`auth-modal__tab ${tab === 'register' ? 'auth-modal__tab--active' : ''}`}
-              onClick={() => { setTab('register'); reset(); }}
+              onClick={() => switchTab('register')}
             >
               {t('register')}
             </button>
@@ -198,6 +205,51 @@ export default function AuthModal() {
           )}
         </div>
       </div>
+
+      {tab === 'register' && showIntro && (
+        <div className="intro-overlay">
+          <div className="intro">
+            <button className="intro__close" onClick={handleClose} aria-label={t('close')}>✕</button>
+            <div className="intro__logo">
+              <span className="intro__letter intro__letter--m">M</span>
+              <span className="intro__letter intro__letter--s">S</span>
+              <span className="intro__letter intro__letter--i">I</span>
+            </div>
+            <p className="intro__welcome">{t('introWelcome')}</p>
+            <h2 className="intro__title">{t('introSubtitle')}</h2>
+            <ul className="intro__list">
+              <li className="intro__item">
+                <span className="intro__item-icon">💎</span>
+                <span>{t('introPoint1')}</span>
+              </li>
+              <li className="intro__item">
+                <span className="intro__item-icon">👕</span>
+                <span>{t('introPoint2')}</span>
+              </li>
+              <li className="intro__item">
+                <span className="intro__item-icon">📚</span>
+                <span>{t('introPoint3')}</span>
+              </li>
+              <li className="intro__item">
+                <span className="intro__item-icon">🎓</span>
+                <span>{t('introPoint4')}</span>
+              </li>
+              <li className="intro__item">
+                <span className="intro__item-icon">🎁</span>
+                <span>{t('introPoint5')}</span>
+              </li>
+              <li className="intro__item">
+                <span className="intro__item-icon">📦</span>
+                <span>{t('introPoint6')}</span>
+              </li>
+            </ul>
+            <p className="intro__rate">{t('introRate')}</p>
+            <button className="intro__continue" onClick={() => setShowIntro(false)}>
+              {t('introContinue')}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

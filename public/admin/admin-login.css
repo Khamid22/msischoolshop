@@ -365,6 +365,14 @@ body::before {
   }
 }
 
+@media (max-height: 600px) {
+  body {
+    overflow-y: auto;
+    align-items: flex-start;
+    padding: 20px 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

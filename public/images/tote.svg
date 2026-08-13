@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <g transform="translate(150, 52)">
+    <path d="M20 26 h60 l9 104 h-78 Z" fill="#3f424d" stroke="#595d6c" stroke-width="1.5"/>
+    <path d="M32 26 a18 18 0 0 1 36 0" fill="none" stroke="#595d6c" stroke-width="6"/>
+    <text x="50" y="96" text-anchor="middle" fill="#968ae0" font-family="Arial, sans-serif" font-size="17" font-weight="bold">MSI</text>
+  </g>
+  <text x="200" y="222" text-anchor="middle" fill="#9397ab" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">TOTE BAG</text>
+</svg>

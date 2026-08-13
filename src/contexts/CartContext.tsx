@@ -9,6 +9,7 @@ interface CartContextType {
   isCheckoutOpen: boolean;
   lastOrder: Order | null;
   buyNow: (product: Product) => void;
+  quickBuy: (product: Product) => boolean;
   closeCheckout: () => void;
   submitOrder: (data: {
     customerName: string;
@@ -45,6 +46,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([{ product, quantity: 1 }]);
     setIsCheckoutOpen(true);
   }, []);
+
+  const quickBuy = useCallback((product: Product): boolean => {
+    if (!user) return false;
+    const price = getUnitPrice(product, user);
+    if (user.balance < price) return false;
+
+    const order: Order = {
+      id: crypto.randomUUID(),
+      items: [{ product, quantity: 1 }],
+      totalPrice: price,
+      originalPrice: getProductPrice(product),
+      customerName: user.name,
+      customerPhone: user.phone,
+      deliveryAddress: user.address || '',
+      deliveryMethod: 'pickup',
+      userId: user.id,
+      customerEmail: user.email,
+      createdAt: new Date().toISOString(),
+      status: 'paid',
+      pickupCode: 'K-' + Math.floor(1000 + Math.random() * 9000),
+    };
+
+    if (!spendStars(price, product.name || product.nameKey)) return false;
+
+    saveOrder(order);
+    setLastOrder(order);
+    setItems([]);
+    setIsCheckoutOpen(false);
+    return true;
+  }, [user, spendStars]);
 
   const submitOrder = useCallback((data: {
     customerName: string;
@@ -101,7 +132,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items, isCheckoutOpen, lastOrder,
-        buyNow, closeCheckout,
+        buyNow, quickBuy, closeCheckout,
         submitOrder, closeSuccess,
         totalPrice, originalPrice, savings,
       }}

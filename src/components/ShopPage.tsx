@@ -1,8 +1,8 @@
-import type { Product, Banner as BannerType } from '../types';
+import { useMemo, useState } from 'react';
+import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import { formatCoins } from '../utils/currency';
-import Banner from './Banner';
+import { formatCoins, getProductPrice } from '../utils/currency';
 import ProductRow from './ProductRow';
 import Coin from './Coin';
 import './ShopPage.scss';
@@ -11,16 +11,33 @@ interface Props {
   products: Product[];
   loading: boolean;
   onOpenProduct: (product: Product) => void;
-  onBannerClick: (banner: BannerType) => void;
-  onOpenCatalog: () => void;
 }
 
-export default function ShopPage({ products, loading, onOpenProduct, onBannerClick, onOpenCatalog }: Props) {
+type TypeFilter = 'all' | 'digital' | 'physical';
+
+export default function ShopPage({ products, loading, onOpenProduct }: Props) {
   const { t } = useLang();
   const { user, openAuth } = useAuth();
 
-  const arrivals = products;
-  const digital = products.filter((p) => p.type === 'digital').slice(0, 6);
+  const [type, setType] = useState<TypeFilter>('all');
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
+
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      if (type !== 'all' && p.type !== type) return false;
+      const price = getProductPrice(p);
+      if (minPrice > 0 && price < minPrice) return false;
+      if (maxPrice > 0 && price > maxPrice) return false;
+      return true;
+    });
+  }, [products, type, minPrice, maxPrice]);
+
+  const typeTabs: { value: TypeFilter; label: string }[] = [
+    { value: 'all', label: t('filterAll') },
+    { value: 'digital', label: t('filterDigital') },
+    { value: 'physical', label: t('filterPhysical') },
+  ];
 
   return (
     <div className="shop-page">
@@ -44,26 +61,47 @@ export default function ShopPage({ products, loading, onOpenProduct, onBannerCli
         </div>
       )}
 
-      <Banner onBannerClick={onBannerClick} />
+      <div className="shop-page__filter">
+        <div className="shop-page__filter-type">
+          {typeTabs.map((tab) => (
+            <button
+              key={tab.value}
+              className={`shop-page__filter-btn ${type === tab.value ? 'shop-page__filter-btn--active' : ''}`}
+              onClick={() => setType(tab.value)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="shop-page__filter-price">
+          <input
+            className="input shop-page__filter-input"
+            type="number"
+            min="0"
+            value={minPrice || ''}
+            placeholder={t('filterMin')}
+            onChange={(e) => setMinPrice(Number(e.target.value) || 0)}
+          />
+          <span className="shop-page__filter-sep">—</span>
+          <input
+            className="input shop-page__filter-input"
+            type="number"
+            min="0"
+            value={maxPrice || ''}
+            placeholder={t('filterMax')}
+            onChange={(e) => setMaxPrice(Number(e.target.value) || 0)}
+          />
+        </div>
+      </div>
 
       <section className="shop-page__section">
-        <div className="shop-page__head">
-          <h2 className="shop-page__title">{t('newArrivals')}</h2>
-          <button className="btn btn-ghost shop-page__cta" onClick={onOpenCatalog}>
-            {t('viewAll')} →
-          </button>
-        </div>
-        <ProductRow products={arrivals} loading={loading} onOpenProduct={onOpenProduct} />
-      </section>
-
-      <section className="shop-page__section">
-        <div className="shop-page__head">
-          <h2 className="shop-page__title">{t('digitalGoods')}</h2>
-          <button className="btn btn-ghost shop-page__cta" onClick={onOpenCatalog}>
-            {t('viewAll')} →
-          </button>
-        </div>
-        <ProductRow products={digital} loading={loading} onOpenProduct={onOpenProduct} />
+        {loading ? (
+          <ProductRow products={[]} loading={loading} onOpenProduct={onOpenProduct} />
+        ) : filtered.length === 0 ? (
+          <p className="shop-page__empty">{t('noProducts')}</p>
+        ) : (
+          <ProductRow products={filtered} loading={false} onOpenProduct={onOpenProduct} />
+        )}
       </section>
     </div>
   );

@@ -140,6 +140,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 a {
@@ -517,6 +518,7 @@ button {
 .admin-form__btns {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -1759,6 +1761,7 @@ button {
 
 .admin-chart__controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 

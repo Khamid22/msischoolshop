@@ -3,7 +3,7 @@
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -12,9 +12,9 @@
   gap: 0;
 
   &:hover {
-    transform: translateY(-2px);
-    border-color: var(--color-neutral-500);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-divider));
+    box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--color-accent) 45%, rgba(23, 24, 38, 0.4));
   }
 
   &--enter {
@@ -26,6 +26,10 @@
     top: var(--space-3);
     left: var(--space-3);
     z-index: 2;
+    color: var(--accent-strong-text);
+    background: var(--accent-gradient);
+    border: none;
+    box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--color-accent) 70%, transparent);
   }
 
   &__image-wrap {
@@ -33,19 +37,23 @@
     aspect-ratio: 16 / 10;
     border-bottom: 1px solid var(--color-divider);
     background: var(--img-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
+    padding: var(--space-3);
   }
 
   &__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     transition: transform 0.35s ease;
   }
 
   &:hover &__image {
-    transform: scale(1.05);
+    transform: scale(1.06);
   }
 
   &__body {
@@ -121,9 +129,23 @@
 
   &__btn {
     padding: var(--space-3) var(--space-4);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
+    border-radius: var(--radius-pill);
+  }
+
+  &__error {
+    margin-top: var(--space-2);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--accent-text);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
   }
 }
 

@@ -21,6 +21,8 @@ import OrderSuccess from './components/OrderSuccess';
 import AuthModal from './components/AuthModal';
 import BannerProductsModal from './components/BannerProductsModal';
 import FiltersSheet from './components/FiltersSheet';
+import ShopIntro from './components/ShopIntro';
+import { useAuth } from './contexts/AuthContext';
 import { fetchProducts } from './api';
 import type { Product, FilterState, Banner as BannerType, View } from './types';
 import './styles/global.scss';
@@ -31,6 +33,12 @@ const DEFAULT_FILTERS: FilterState = {
   maxPrice: 0,
   search: '',
 };
+
+function GuestIntro() {
+  const { user } = useAuth();
+  if (user) return null;
+  return <ShopIntro />;
+}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -92,8 +100,6 @@ export default function App() {
                         products={products}
                         loading={loading}
                         onOpenProduct={setSelectedProduct}
-                        onBannerClick={setSelectedBanner}
-                        onOpenCatalog={() => changeView('catalog')}
                       />
                     ) : view === 'catalog' ? (
                       <CatalogPage
@@ -126,6 +132,7 @@ export default function App() {
                 <CheckoutDrawer />
                 <OrderSuccess />
                 <AuthModal />
+                <GuestIntro />
                 <BannerProductsModal
                   banner={selectedBanner}
                   allProducts={products}

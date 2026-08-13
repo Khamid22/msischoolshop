@@ -33,37 +33,45 @@
   border: 1px solid transparent;
   padding: var(--space-2) calc(var(--space-3) * 1.2);
   border-radius: var(--radius-md);
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease, box-shadow 0.2s ease;
 }
 .btn svg {
   display: block;
 }
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 .btn-primary {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+  color: var(--accent-strong-text);
+  border-color: transparent;
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-accent);
 }
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-700));
+  box-shadow: var(--shadow-accent), 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 .btn-primary:active {
-  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  transform: scale(0.96);
+  box-shadow: none;
 }
 .btn-secondary {
+  color: var(--color-text);
   border-color: var(--color-divider);
+  background: var(--color-surface);
 }
 .btn-secondary:hover {
-  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
 }
 .btn-secondary:active {
-  background: color-mix(in srgb, var(--color-text) 14%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
 }
 .btn-ghost {
   color: var(--color-accent);
@@ -167,8 +175,9 @@ textarea.input {
   border-left: 1px solid var(--color-divider);
 }
 .seg-opt:has(input:checked) {
-  color: var(--color-accent);
-  box-shadow: inset 0 0 0 1px var(--color-accent);
+  color: var(--accent-strong-text);
+  background: var(--accent-gradient);
+  box-shadow: none;
 }
 .seg-opt:not(:has(input:checked)):hover {
   background: color-mix(in srgb, var(--color-text) 7%, transparent);
@@ -184,7 +193,7 @@ textarea.input {
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
 .card-kicker {

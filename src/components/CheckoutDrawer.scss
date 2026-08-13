@@ -30,6 +30,10 @@
   box-shadow: var(--shadow-lg);
   transition: transform 0.28s ease;
 
+  @media (min-width: 481px) and (max-width: 768px) {
+    max-width: min(100%, 640px);
+  }
+
   @media (min-width: 769px) {
     max-width: 520px;
   }
@@ -167,6 +171,8 @@
 
   &__submit {
     margin-top: var(--space-2);
+    border-radius: var(--radius-pill);
+    padding-block: var(--space-4);
   }
 
   &__hint {

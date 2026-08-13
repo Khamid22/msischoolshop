@@ -21,7 +21,10 @@
   &__back {
     position: absolute;
     inset: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 60%),
+      radial-gradient(100% 70% at 50% 110%, color-mix(in srgb, var(--color-accent-2) 18%, transparent), transparent 60%),
+      var(--bg);
   }
 
   &__content {

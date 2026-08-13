@@ -101,10 +101,12 @@
   &__img {
     width: 56px;
     height: 42px;
-    object-fit: cover;
+    object-fit: contain;
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-sm);
+    background: var(--img-bg);
     flex-shrink: 0;
+    padding: 4px;
   }
 
   &__info {

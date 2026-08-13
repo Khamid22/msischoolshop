@@ -51,19 +51,22 @@
 
   &__input {
     width: 100%;
-    min-height: 38px;
-    padding: 8px 34px 8px 36px;
+    min-height: 42px;
+    padding: 8px 34px 8px 38px;
     font: inherit;
     font-size: 14px;
     color: var(--color-text);
     caret-color: var(--color-accent);
     background: var(--color-surface);
     border: 1px solid var(--color-divider);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s ease, box-shadow 0.2s ease;
 
     &:focus-visible {
       border-color: var(--color-accent);
       outline: none;
+      box-shadow: var(--shadow-accent);
     }
   }
 

@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
@@ -16,8 +17,10 @@ interface Props {
 
 export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const { t } = useLang();
-  const { buyNow } = useCart();
+  const { quickBuy } = useCart();
   const { user, openAuth } = useAuth();
+  const [error, setError] = useState('');
+  const errorTimer = useRef<number | null>(null);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -25,7 +28,11 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
       openAuth();
       return;
     }
-    buyNow(product);
+    if (!quickBuy(product)) {
+      setError(t('insufficientBalance'));
+      if (errorTimer.current) window.clearTimeout(errorTimer.current);
+      errorTimer.current = window.setTimeout(() => setError(''), 2500);
+    }
   };
 
   const displayName = t(product.nameKey) || product.name;
@@ -71,6 +78,7 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
             {t('buy')}
           </button>
         </div>
+        {error && <span className="card__error">{error}</span>}
       </div>
     </article>
   );

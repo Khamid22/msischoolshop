@@ -1,0 +1,199 @@
+.shop-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  overflow: hidden;
+  animation: introIn 0.3s ease;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--color-accent) 20%, transparent), transparent 60%),
+    radial-gradient(100% 70% at 50% 110%, color-mix(in srgb, var(--color-accent-2) 14%, transparent), transparent 60%),
+    #000;
+
+  &__skip {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: #cfcfe0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--color-accent);
+      color: #fff;
+    }
+  }
+
+  &__stage {
+    flex: 1;
+    width: 100%;
+    max-width: 560px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  &__track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.35s ease;
+  }
+
+  &__slide {
+    width: 100%;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+  }
+
+  &__logo {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  &__letter {
+    font-size: 4.5rem;
+    font-weight: 600;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__icon {
+    font-size: 4.5rem;
+    filter: drop-shadow(0 10px 24px rgba(150, 138, 224, 0.35));
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  &__text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #cfcfe0;
+    max-width: 360px;
+  }
+
+  &__dots {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &--active {
+      width: 22px;
+      border-radius: 999px;
+      background: var(--color-accent-400);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: 360px;
+
+    &--final {
+      flex-direction: column;
+    }
+  }
+
+  &__prev {
+    flex: none;
+    width: 52px;
+    font-size: 1rem;
+    border-radius: var(--radius-pill);
+  }
+
+  &__next {
+    flex: 1;
+    border-radius: var(--radius-pill);
+  }
+
+  &__cta {
+    border-radius: var(--radius-pill);
+    padding: var(--space-4);
+  }
+
+  &__guest {
+    border-radius: var(--radius-pill);
+  }
+}
+
+@keyframes introIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .shop-intro {
+    padding: var(--space-5) var(--space-5) var(--space-6);
+
+    &__letter {
+      font-size: 3.6rem;
+    }
+
+    &__icon {
+      font-size: 3.6rem;
+    }
+
+    &__title {
+      font-size: 1.2rem;
+    }
+
+    &__text {
+      font-size: 0.88rem;
+    }
+  }
+}
+
+@media (max-width: 320px) {
+  .shop-intro {
+    &__letter,
+    &__icon {
+      font-size: 3rem;
+    }
+
+    &__title {
+      font-size: 1.05rem;
+    }
+
+    &__text {
+      font-size: 0.82rem;
+    }
+  }
+}

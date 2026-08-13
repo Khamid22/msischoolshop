@@ -26,9 +26,13 @@ h4 {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 640px at 100% -10%, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 60%),
+    radial-gradient(1000px 560px at -10% 110%, color-mix(in srgb, var(--color-accent-2) 8%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.25s ease, color 0.25s ease;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -50,6 +54,7 @@ img {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-tint);
 }
 
 :disabled {
@@ -62,6 +67,37 @@ textarea {
   -webkit-appearance: none;
   appearance: none;
   border-radius: 0;
+}
+
+/* — scrollbars — */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-400) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-400);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+@media (max-width: 768px) {
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
 
 @media (max-width: 320px) {
@@ -77,8 +113,14 @@ textarea {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
-  box-shadow: 0 0 0 1px var(--color-divider);
+  background: color-mix(in srgb, var(--color-bg) 96%, var(--color-surface));
+  box-shadow: 0 0 0 1px var(--color-divider), 0 24px 80px -32px rgba(23, 24, 38, 0.35);
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .app {
+    max-width: min(100%, 640px);
+  }
 }
 
 @media (min-width: 769px) {
@@ -97,6 +139,16 @@ textarea {
   padding-bottom: 84px;
 }
 
+/* — hide scrollbar for horizontal scrollers — */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* — coin badge (Gold MSI Coin) — */
 .coin {
   display: inline-flex;
@@ -109,9 +161,9 @@ textarea {
   font-weight: 700;
   line-height: 1;
   color: #4a3500;
-  background: linear-gradient(160deg, #ffe9a3, #f3c63f 55%, #d29b18);
+  background: radial-gradient(120% 120% at 35% 25%, #fff2bd, #f6ce58 45%, #dca81f 80%, #b98a12);
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), inset 0 2px 3px rgba(255, 255, 255, 0.45), 0 2px 4px rgba(0, 0, 0, 0.22);
   vertical-align: middle;
 }
 
@@ -127,6 +179,7 @@ textarea {
   color: #f2b84b;
   letter-spacing: 1px;
   font-size: 0.82em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 .rating__value {
   font-weight: 600;
@@ -143,21 +196,27 @@ textarea {
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-divider);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 .chip:hover {
   border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.chip:active {
+  transform: scale(0.96);
 }
 .chip--active {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--accent-strong-text);
+  border-color: transparent;
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-accent);
 }
 
 @keyframes viewIn {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
