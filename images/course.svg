@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#968ae0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#796cbf;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <g transform="translate(145, 30)">
+    <rect x="0" y="0" width="110" height="150" rx="4" fill="#2b293a" stroke="#595d6c" stroke-width="1.5"/>
+    <rect x="12" y="16" width="86" height="8" rx="4" fill="#9397ab"/>
+    <rect x="12" y="34" width="60" height="8" rx="4" fill="#b2b6ca" opacity="0.6"/>
+    <rect x="12" y="50" width="74" height="8" rx="4" fill="#b2b6ca" opacity="0.6"/>
+    <rect x="12" y="66" width="52" height="8" rx="4" fill="#b2b6ca" opacity="0.6"/>
+    <rect x="12" y="96" width="86" height="34" rx="4" fill="url(#purple)"/>
+    <polygon points="38,102 38,124 58,113" fill="#ffffff"/>
+  </g>
+  <circle cx="200" cy="150" r="3" fill="#FFD700" opacity="0.8"/>
+  <circle cx="178" cy="170" r="2" fill="#FFD700" opacity="0.4"/>
+  <circle cx="222" cy="172" r="2" fill="#FFD700" opacity="0.5"/>
+  <text x="200" y="222" text-anchor="middle" fill="#9397ab" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">COURSE BUNDLE</text>
+</svg>

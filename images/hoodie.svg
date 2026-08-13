@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <g transform="translate(115, 25)">
+    <path d="M80 0 C60 14, 42 22, 26 30 L8 60 L38 78 L38 170 L122 170 L122 78 L152 60 L134 30 C118 22, 100 14, 80 0 Z" fill="#3f424d" stroke="#595d6c" stroke-width="1.5"/>
+    <path d="M26 30 L8 60 L38 78 L46 56 Z" fill="#2b293a"/>
+    <path d="M134 30 L152 60 L122 78 L114 56 Z" fill="#2b293a"/>
+    <rect x="74" y="30" width="12" height="20" rx="6" fill="#1a1a2e"/>
+    <path d="M40 120 C40 90, 120 90, 120 120" fill="none" stroke="#333" stroke-width="2"/>
+    <rect x="62" y="86" width="36" height="18" rx="3" fill="#968ae0"/>
+    <text x="80" y="99" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="9" font-weight="bold">MSI</text>
+  </g>
+  <text x="200" y="222" text-anchor="middle" fill="#9397ab" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">HOODIE</text>
+</svg>

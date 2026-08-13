@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вход в админ-панель — MSI Bot Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./admin/admin-login.css" />
+</head>
+<body>
+
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-card__glow"></div>
+
+      <div class="login-card__logo">
+        <span class="login-card__msi">MSI</span>
+        <span class="login-card__divider"></span>
+        <span class="login-card__sub">Admin Panel</span>
+      </div>
+
+      <form class="login-form" id="loginForm">
+        <div class="login-form__field">
+          <label class="login-form__label" for="adminPassword">Пароль администратора</label>
+          <div class="login-form__input-wrap">
+            <input
+              class="login-form__input"
+              type="password"
+              id="adminPassword"
+              placeholder="Введите пароль..."
+              autocomplete="current-password"
+              required
+            />
+            <button class="login-form__eye" type="button" id="toggleEye" title="Показать пароль">
+              <span class="login-form__eye-open">◉</span>
+              <span class="login-form__eye-closed" style="display:none;">◎</span>
+            </button>
+          </div>
+        </div>
+
+        <span class="login-form__error" id="loginError">Неверный пароль</span>
+
+        <button class="login-form__submit" type="submit">
+          <span class="login-form__submit-text">Войти</span>
+          <span class="login-form__submit-arrow">→</span>
+        </button>
+      </form>
+
+      <a href="./" class="login-card__back">← Вернуться на сайт</a>
+    </div>
+  </div>
+
+  <script>
+    var AUTH_KEY = 'msi_admin_auth';
+    var ADMIN_PASSWORD = '123456789';
+
+    var form = document.getElementById('loginForm');
+    var input = document.getElementById('adminPassword');
+    var error = document.getElementById('loginError');
+    var eyeBtn = document.getElementById('toggleEye');
+
+    error.style.display = 'none';
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      error.style.display = 'none';
+
+      if (input.value === ADMIN_PASSWORD) {
+        sessionStorage.setItem(AUTH_KEY, '1');
+        window.location.href = '/admin.html';
+      } else {
+        error.style.display = 'block';
+        input.value = '';
+        input.focus();
+        form.classList.add('login-form--shake');
+        setTimeout(function() { form.classList.remove('login-form--shake'); }, 400);
+      }
+    });
+
+    eyeBtn.addEventListener('click', function() {
+      var isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      eyeBtn.querySelector('.login-form__eye-open').style.display = isPwd ? 'none' : 'inline';
+      eyeBtn.querySelector('.login-form__eye-closed').style.display = isPwd ? 'inline' : 'none';
+    });
+  </script>
+
+</body>
+</html>

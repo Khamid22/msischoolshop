@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2AABEE;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#229ED9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="diamond" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <!-- Telegram paper plane -->
+  <g transform="translate(160, 60) scale(0.8)">
+    <path d="M200 50 L50 180 L130 145 L165 215 L195 155 L280 90 Z" fill="white" opacity="0.15"/>
+    <path d="M185 55 L60 170 L135 140 L160 205 L185 150 L270 95 Z" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M145 135 L225 75" stroke="#2AABEE" stroke-width="3" stroke-linecap="round"/>
+    <path d="M145 135 L160 205" stroke="#2AABEE" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- Premium diamond badge -->
+  <g transform="translate(300, 20)">
+    <polygon points="40,0 80,25 80,65 40,90 0,65 0,25" fill="url(#diamond)" stroke="#B8860B" stroke-width="2"/>
+    <text x="40" y="55" text-anchor="middle" fill="#8B0000" font-family="Arial, sans-serif" font-size="16" font-weight="bold">PREMIUM</text>
+  </g>
+  <!-- Text -->
+  <text x="200" y="220" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="22" font-weight="bold" letter-spacing="1">TELEGRAM PREMIUM</text>
+  <circle cx="35" cy="220" r="4" fill="#FFD700"/>
+  <circle cx="365" cy="220" r="4" fill="#FFD700"/>
+</svg>

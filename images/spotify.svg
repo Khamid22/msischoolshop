@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bg)" rx="12"/>
+  <circle cx="200" cy="128" r="70" fill="#1DB954"/>
+  <path d="M158 106 q42 -16 84 0" stroke="#ffffff" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M166 128 q34 -12 68 0" stroke="#c7f3d8" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M174 147 q28 -9 52 0" stroke="#ffffff" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.65"/>
+  <text x="200" y="222" text-anchor="middle" fill="#9397ab" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">SPOTIFY PREMIUM</text>
+</svg>
