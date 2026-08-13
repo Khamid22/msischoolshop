@@ -3,13 +3,19 @@ import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
 import { formatCoins } from '../utils/currency';
-import type { Language, View } from '../types';
+import type { Language, View, FilterState } from '../types';
 import Coin from './Coin';
 import { BellIcon, SettingsIcon } from './icons';
 import './Header.scss';
 
 interface Props {
   view: View;
+  shopType: FilterState['type'];
+  onShopTypeChange: (type: FilterState['type']) => void;
+  minPrice: number;
+  maxPrice: number;
+  onMinPriceChange: (value: number) => void;
+  onMaxPriceChange: (value: number) => void;
 }
 
 function formatNotifDate(iso: string, lang: Language): string {
@@ -24,7 +30,7 @@ function formatNotifDate(iso: string, lang: Language): string {
   return d.toLocaleDateString(lang === 'uz' ? 'uz-UZ' : lang === 'ru' ? 'ru-RU' : 'en-GB');
 }
 
-export default function Header({ view }: Props) {
+export default function Header({ view, shopType, onShopTypeChange, minPrice, maxPrice, onMinPriceChange, onMaxPriceChange }: Props) {
   const { lang, t } = useLang();
   const { user, openAuth, openProfile } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
@@ -48,6 +54,12 @@ export default function Header({ view }: Props) {
     profile: t('myProfile'),
     news: t('tabNews'),
   };
+
+  const typeTabs: { value: FilterState['type']; label: string }[] = [
+    { value: 'all', label: t('filterAll') },
+    { value: 'digital', label: t('filterDigital') },
+    { value: 'physical', label: t('filterPhysical') },
+  ];
 
   return (
     <header className="topbar">
@@ -121,6 +133,42 @@ export default function Header({ view }: Props) {
           <SettingsIcon className="topbar__settings" />
         </a>
       </div>
+
+      {view === 'home' && (
+        <div className="topbar__tabs">
+          {typeTabs.map((tab) => (
+            <button
+              key={tab.value}
+              className={`topbar__tab ${shopType === tab.value ? 'topbar__tab--active' : ''}`}
+              onClick={() => onShopTypeChange(tab.value)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === 'home' && (
+        <div className="topbar__price">
+          <input
+            className="input topbar__price-input"
+            type="number"
+            min="0"
+            value={minPrice || ''}
+            placeholder={t('filterMin')}
+            onChange={(e) => onMinPriceChange(Number(e.target.value) || 0)}
+          />
+          <span className="topbar__price-sep">—</span>
+          <input
+            className="input topbar__price-input"
+            type="number"
+            min="0"
+            value={maxPrice || ''}
+            placeholder={t('filterMax')}
+            onChange={(e) => onMaxPriceChange(Number(e.target.value) || 0)}
+          />
+        </div>
+      )}
     </header>
   );
 }

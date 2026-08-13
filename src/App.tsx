@@ -50,6 +50,9 @@ export default function App() {
   const [view, setView] = useState<View>('home');
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [shopType, setShopType] = useState<FilterState['type']>('all');
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
 
   const handleSplashFinish = useCallback(() => {
     setShowSplash(false);
@@ -84,7 +87,15 @@ export default function App() {
             <FavoritesProvider>
               <CartProvider>
                 <div className="app">
-                  <Header view={view} />
+                  <Header
+                    view={view}
+                    shopType={shopType}
+                    onShopTypeChange={setShopType}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    onMinPriceChange={setMinPrice}
+                    onMaxPriceChange={setMaxPrice}
+                  />
                   <main className="app-view" key={view + (searchOpen ? '-search' : '')}>
                     {searchOpen ? (
                       <SearchPage
@@ -99,6 +110,9 @@ export default function App() {
                       <ShopPage
                         products={products}
                         loading={loading}
+                        type={shopType}
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
                         onOpenProduct={setSelectedProduct}
                       />
                     ) : view === 'catalog' ? (
