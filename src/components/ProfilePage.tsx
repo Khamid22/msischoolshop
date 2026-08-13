@@ -5,7 +5,7 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { formatCoins } from '../utils/currency';
 import type { Language } from '../types';
 import Coin from './Coin';
-import { ChevronRightIcon, HeartIcon, BoxIcon, GridIcon } from './icons';
+import { ChevronRightIcon, HeartIcon, BoxIcon, GridIcon, CheckIcon } from './icons';
 import './ProfilePage.scss';
 
 interface Props {
@@ -42,7 +42,7 @@ export default function ProfilePage({ onNavigate }: Props) {
 
   return (
     <div className="profile-page">
-      <section className="profile-page__card card elev-sm">
+      <section className="profile-page__card">
         <div className="profile-page__identity">
           <div className="profile-page__avatar">{user.avatar ? <img src={user.avatar} alt={user.name} /> : initials}</div>
           <div className="profile-page__identity-info">
@@ -55,24 +55,15 @@ export default function ProfilePage({ onNavigate }: Props) {
           ) : null}
         </div>
 
-        <div className="profile-page__lms">
-          <span className="profile-page__lms-dot" />
-          <span className="profile-page__lms-text">{t('lmsLinked')}</span>
-        </div>
+        <div className="profile-page__lms"><CheckIcon /><span>{t('synced')} · LMS</span></div>
+      </section>
 
-        <div className="profile-page__stats">
-          <div className="profile-page__stat">
-            <span className="profile-page__stat-label">{t('balance')}</span>
-            <span className="profile-page__stat-value">
-              <Coin /> {formatCoins(user.balance)}
-            </span>
-          </div>
-          <div className="profile-page__stat">
-            <span className="profile-page__stat-label">{t('coinsEarned')}</span>
-            <span className="profile-page__stat-value">
-              <Coin /> {formatCoins(user.earned ?? 0)}
-            </span>
-          </div>
+      <section className="profile-balance">
+        <div className="profile-balance__head"><span>{t('goldMsiCoin')}</span><small>{t('yourBalance')}</small></div>
+        <strong><Coin /> {formatCoins(user.balance)}</strong>
+        <div className="profile-balance__foot">
+          <span><small>{t('thisMonth')}</small><b>+{formatCoins(user.earned ?? 0)}</b></span>
+          <button type="button" onClick={() => onNavigate('news')}>{t('howToEarnCoins')} <span>›</span></button>
         </div>
       </section>
 
@@ -89,7 +80,7 @@ export default function ProfilePage({ onNavigate }: Props) {
         </button>
         <button className="profile-page__row" onClick={() => onNavigate('news')}>
           <span className="profile-page__row-icon"><GridIcon /></span>
-          <span className="profile-page__row-label">{t('tabNews')}</span>
+          <span className="profile-page__row-label">{t('myCourses')}<small>3 {t('activeCourses')}</small></span>
           <ChevronRightIcon className="profile-page__row-chevron" />
         </button>
       </nav>
@@ -111,7 +102,7 @@ export default function ProfilePage({ onNavigate }: Props) {
         </div>
         <button className="profile-page__row" onClick={toggleTheme}>
           <span className="profile-page__row-label">{t('themeToggle')}</span>
-          <span className="profile-page__row-value">{theme === 'light' ? '◻' : '◼'}</span>
+          <span className={`profile-page__theme-toggle ${theme === 'light' ? 'profile-page__theme-toggle--light' : ''}`} aria-hidden="true" />
         </button>
         <a className="profile-page__row" href="./admin-login.html">
           <span className="profile-page__row-label">{t('adminPanel')}</span>

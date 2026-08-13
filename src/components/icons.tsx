@@ -40,6 +40,36 @@ export function BoxIcon(props: IconProps) {
   );
 }
 
+export function BagIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M5 8h14l-1 13H6z" />
+      <path d="M9 9V6a3 3 0 0 1 6 0v3" />
+    </Base>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14" />
+      <path d="M10 11v6M14 11v6" />
+    </Base>
+  );
+}
+
+export function MinusIcon(props: IconProps) {
+  return <Base {...props}><path d="M5 12h14" /></Base>;
+}
+
+export function PlusIcon(props: IconProps) {
+  return <Base {...props}><path d="M12 5v14M5 12h14" /></Base>;
+}
+
+export function CheckIcon(props: IconProps) {
+  return <Base {...props}><path d="m5 12 4 4L19 6" /></Base>;
+}
+
 export function UserIcon(props: IconProps) {
   return (
     <Base {...props}>

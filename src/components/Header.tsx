@@ -52,6 +52,7 @@ export default function Header({ view, onViewChange }: Props) {
   const titles: Record<View, string> = {
     home: t('shopTitle'),
     catalog: t('catalogTitle'),
+    cart: t('cartTitle'),
     orders: t('myOrders'),
     profile: t('myProfile'),
     news: t('tabNews'),
@@ -63,23 +64,13 @@ export default function Header({ view, onViewChange }: Props) {
         <span className="topbar__mark" aria-hidden="true">MSI</span>
         <span className="topbar__brand-copy">
           <span className="topbar__title">{titles[view]}</span>
-          {view === 'home' && <span className="topbar__eyebrow">{t('learnEarnSpend')}</span>}
+          {view === 'home' && <span className="topbar__eyebrow">{t('miniApp')}</span>}
         </span>
       </button>
 
       <div className="topbar__right">
         {user ? (
           <>
-            <button
-              className="topbar__balance"
-              type="button"
-              onClick={() => onViewChange('profile')}
-              aria-label={`${t('balance')}: ${formatCoins(user.balance)} MSI Coin`}
-            >
-              <Coin />
-              <span key={user.balance}>{formatCoins(user.balance)}</span>
-            </button>
-
             <div className="topbar__notif-wrap" ref={notifRef}>
               <button
                 className="topbar__icon-btn"

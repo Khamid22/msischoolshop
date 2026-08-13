@@ -26,11 +26,7 @@ h4 {
 }
 
 body {
-  background:
-    radial-gradient(1200px 640px at 100% -10%, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 60%),
-    radial-gradient(1000px 560px at -10% 110%, color-mix(in srgb, var(--color-accent-2) 8%, transparent), transparent 60%),
-    var(--bg);
-  background-attachment: fixed;
+  background: #10111b;
   color: var(--text);
   transition: background 0.25s ease, color 0.25s ease;
   min-height: 100vh;
@@ -118,21 +114,8 @@ textarea {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--color-bg) 97%, var(--color-surface));
-  box-shadow: 0 0 0 1px var(--color-divider), 0 24px 80px -32px rgba(23, 24, 38, 0.35);
-}
-
-@media (min-width: 481px) and (max-width: 768px) {
-  .app {
-    max-width: min(100%, 640px);
-  }
-}
-
-@media (min-width: 769px) {
-  .app {
-    max-width: none;
-    box-shadow: none;
-  }
+  background: var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-divider), 0 24px 80px -32px rgba(0, 0, 0, 0.8);
 }
 
 .app-view {
@@ -141,7 +124,7 @@ textarea {
   flex-direction: column;
   overflow-y: auto;
   animation: viewIn var(--motion-medium) var(--ease-out);
-  padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 /* — hide scrollbar for horizontal scrollers — */

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import { fetchOrders } from '../api';
 import { formatCoins } from '../utils/currency';
 import type { Order, OrderStatus } from '../types';
 import Coin from './Coin';
+import { CheckIcon } from './icons';
 import './OrdersPage.scss';
 
 const STATUS_KEY: Record<OrderStatus, string> = {
@@ -14,9 +15,11 @@ const STATUS_KEY: Record<OrderStatus, string> = {
   collected: 'statusCollected',
 };
 
+const STATUS_ORDER: OrderStatus[] = ['paid', 'packed', 'ready', 'collected'];
+
 export default function OrdersPage() {
   const { user } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,75 +30,68 @@ export default function OrdersPage() {
       return;
     }
     fetchOrders().then((all) => {
-      setOrders(
-        all
-          .filter((o) => o.userId === user.id || o.customerEmail === user.email)
-          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      );
+      setOrders(all.filter((order) => order.userId === user.id || order.customerEmail === user.email).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
       setLoading(false);
     });
   }, [user]);
 
-  if (!user) {
-    return (
-      <div className="orders-page">
-        <div className="orders-page__empty">{t('ordersEmpty')}</div>
-      </div>
-    );
+  const locale = lang === 'ru' ? 'ru-RU' : lang === 'uz' ? 'uz-UZ' : 'en-GB';
+  const formatDate = (iso: string) => {
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  };
+
+  if (loading || orders.length === 0) {
+    return <div className="orders-page"><div className="orders-page__empty"><span aria-hidden="true">□</span><strong>{t('ordersEmpty')}</strong></div></div>;
   }
 
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-  };
+  const activeOrder = orders.find((order) => (order.status || 'paid') !== 'collected') || orders[0];
+  const earlierOrders = orders.filter((order) => order.id !== activeOrder.id);
+  const currentIndex = STATUS_ORDER.indexOf(activeOrder.status || 'paid');
 
   return (
     <div className="orders-page">
-      {loading ? (
-        <div className="orders-page__empty">{t('ordersEmpty')}</div>
-      ) : orders.length === 0 ? (
-        <div className="orders-page__empty">{t('ordersEmpty')}</div>
-      ) : (
-        <ul className="orders-page__list">
-          {orders.map((o) => (
-            <li key={o.id} className="order-card card elev-sm">
-              <div className="order-card__head">
-                <span className="order-card__num">
-                  {t('orderNumber')}: {o.id.slice(0, 8).toUpperCase()}
-                </span>
-                <span className="order-card__date">{formatDate(o.createdAt)}</span>
-              </div>
+      <span className="orders-page__section-title">{t('orderProgress')}</span>
+      <article className="active-order">
+        <div className="active-order__head">
+          <span><small>{t('orderNumber')}</small><strong>#{activeOrder.id.slice(0, 8).toUpperCase()}</strong></span>
+          <b className={`active-order__status active-order__status--${activeOrder.status || 'paid'}`}>{t(STATUS_KEY[activeOrder.status || 'paid'])}</b>
+        </div>
 
-              <ul className="order-card__items">
-                {o.items.map((it) => (
-                  <li key={it.product.id} className="order-card__item">
-                    <span>{t(it.product.nameKey) || it.product.name}</span>
-                    <span>× {it.quantity}</span>
-                  </li>
-                ))}
-              </ul>
+        <div className="active-order__product">
+          <span className="active-order__image"><img src={activeOrder.items[0]?.product.image} alt="" /></span>
+          <span><strong>{t(activeOrder.items[0]?.product.nameKey) || activeOrder.items[0]?.product.name}</strong><small>{activeOrder.items.length} {t('filterProducts')} · {formatCoins(activeOrder.totalPrice)} <Coin /></small></span>
+        </div>
 
-              <div className="order-card__foot">
-                <span className={`order-card__status order-card__status--${o.status || 'paid'}`}>
-                  {t(STATUS_KEY[o.status || 'paid'])}
-                </span>
-                <span className="order-card__total">
-                  {formatCoins(o.totalPrice)} <Coin />
-                </span>
-              </div>
-
-              {o.pickupCode && o.status !== 'collected' && (
-                <div className="order-card__code">
-                  <span className="order-card__code-label">{t('orderPickupCode')}</span>
-                  <span className="order-card__code-value">{o.pickupCode}</span>
-                  {o.pickupSlot && <span className="order-card__code-slot">{o.pickupSlot}</span>}
-                </div>
-              )}
+        <ol className="order-timeline">
+          {STATUS_ORDER.map((status, index) => (
+            <li className={index <= currentIndex ? 'order-timeline__step order-timeline__step--done' : 'order-timeline__step'} key={status}>
+              <span>{index < currentIndex ? <CheckIcon /> : index + 1}</span>
+              <small>{t(STATUS_KEY[status])}</small>
             </li>
           ))}
-        </ul>
-      )}
+        </ol>
+
+        {activeOrder.pickupCode && activeOrder.status !== 'collected' ? (
+          <div className="active-order__pickup">
+            <span><small>{t('orderPickupCode')}</small><strong>{activeOrder.pickupCode}</strong></span>
+            <span><small>{t('pickupSlot')}</small><strong>{activeOrder.pickupSlot || '16:00–17:00 · MSI Campus'}</strong></span>
+          </div>
+        ) : null}
+      </article>
+
+      {earlierOrders.length > 0 ? (
+        <section className="orders-page__earlier">
+          <span className="orders-page__section-title">{t('earlier')}</span>
+          {earlierOrders.map((order) => (
+            <article className="past-order" key={order.id}>
+              <span className="past-order__image"><img src={order.items[0]?.product.image} alt="" /></span>
+              <span><strong>#{order.id.slice(0, 8).toUpperCase()}</strong><small>{formatDate(order.createdAt)} · {t(STATUS_KEY[order.status || 'paid'])}</small></span>
+              <b>{formatCoins(order.totalPrice)} <Coin /></b>
+            </article>
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 }

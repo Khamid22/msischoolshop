@@ -1,6 +1,6 @@
 export type Language = 'ru' | 'uz' | 'en';
 
-export type View = 'home' | 'catalog' | 'orders' | 'profile' | 'news';
+export type View = 'home' | 'catalog' | 'cart' | 'orders' | 'profile' | 'news';
 
 export type OrderStatus = 'paid' | 'packed' | 'ready' | 'collected';
 
@@ -53,6 +53,9 @@ export interface FilterState {
   maxPrice: number;
   search: string;
   collection?: ProductCollection;
+  inStock?: boolean;
+  courseLinked?: boolean;
+  sort?: 'popular' | 'newest' | 'price';
 }
 
 export interface Translations {

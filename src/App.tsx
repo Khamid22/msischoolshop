@@ -5,12 +5,12 @@ import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
-import SplashScreen from './components/SplashScreen';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import ShopPage from './components/ShopPage';
 import CatalogPage from './components/CatalogPage';
 import OrdersPage from './components/OrdersPage';
+import CartPage from './components/CartPage';
 import ProfilePage from './components/ProfilePage';
 import NewsPage from './components/NewsPage';
 import SearchPage from './components/SearchPage';
@@ -21,8 +21,6 @@ import OrderSuccess from './components/OrderSuccess';
 import AuthModal from './components/AuthModal';
 import BannerProductsModal from './components/BannerProductsModal';
 import FiltersSheet from './components/FiltersSheet';
-import ShopIntro from './components/ShopIntro';
-import { useAuth } from './contexts/AuthContext';
 import { fetchProducts } from './api';
 import type { Product, FilterState, Banner as BannerType, ProductCollection, View } from './types';
 import './styles/global.scss';
@@ -33,16 +31,12 @@ const DEFAULT_FILTERS: FilterState = {
   maxPrice: 0,
   search: '',
   collection: 'all',
+  inStock: false,
+  courseLinked: false,
+  sort: 'popular',
 };
 
-function GuestIntro() {
-  const { user, isAuthOpen } = useAuth();
-  if (user || isAuthOpen) return null;
-  return <ShopIntro />;
-}
-
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -52,17 +46,12 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const handleSplashFinish = useCallback(() => {
-    setShowSplash(false);
-  }, []);
-
   useEffect(() => {
-    if (showSplash) return;
     fetchProducts().then((data) => {
       setProducts(data);
       setLoading(false);
     });
-  }, [showSplash]);
+  }, []);
 
   const changeView = useCallback((next: View) => {
     setView(next);
@@ -73,14 +62,6 @@ export default function App() {
     setFilters({ ...DEFAULT_FILTERS, collection });
     changeView('catalog');
   }, [changeView]);
-
-  if (showSplash) {
-    return (
-      <ThemeProvider>
-        <SplashScreen onFinish={handleSplashFinish} />
-      </ThemeProvider>
-    );
-  }
 
   return (
     <ThemeProvider>
@@ -124,6 +105,8 @@ export default function App() {
                       />
                     ) : view === 'orders' ? (
                       <OrdersPage />
+                    ) : view === 'cart' ? (
+                      <CartPage onBrowse={() => changeView('catalog')} />
                     ) : view === 'profile' ? (
                       <ProfilePage onNavigate={(v) => changeView(v)} />
                     ) : (
@@ -135,15 +118,16 @@ export default function App() {
 
                 <ProductDetail
                   product={selectedProduct}
-                  allProducts={products}
                   onClose={() => setSelectedProduct(null)}
-                  onOpenProduct={setSelectedProduct}
+                  onAdded={() => {
+                    setSelectedProduct(null);
+                    changeView('cart');
+                  }}
                 />
                 <FavoritesDrawer />
                 <CheckoutDrawer />
                 <OrderSuccess />
                 <AuthModal />
-                <GuestIntro />
                 <BannerProductsModal
                   banner={selectedBanner}
                   allProducts={products}

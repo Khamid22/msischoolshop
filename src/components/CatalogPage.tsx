@@ -16,44 +16,20 @@ interface Props {
   onOpenFilters: () => void;
 }
 
-interface PriceChip {
-  key: 'all' | 'under250' | 'range250_750' | 'over750';
-  label: string;
-  min: number;
-  max: number;
-}
-
 export default function CatalogPage({ products, filters, onFiltersChange, loading, onOpenProduct, onOpenSearch, onOpenFilters }: Props) {
   const { t } = useLang();
 
-  const chips: PriceChip[] = [
-    { key: 'all', label: t('allPrices'), min: 0, max: 0 },
-    { key: 'under250', label: t('under250'), min: 0, max: 250 },
-    { key: 'range250_750', label: t('range250_750'), min: 250, max: 750 },
-    { key: 'over750', label: t('over750'), min: 750, max: 0 },
-  ];
-
-  const activeChip = chips.find((c) => c.min === filters.minPrice && c.max === filters.maxPrice)?.key || 'all';
-
-  const setChip = (chip: PriceChip) => {
-    onFiltersChange({ ...filters, minPrice: chip.min, maxPrice: chip.max });
-  };
-
   const filteredCount = useMemo(() => filterProducts(products, filters, t).length, [products, filters, t]);
 
-  const collection = filters.collection || 'all';
-  const collectionLabels = {
-    study: t('categoryStudy'),
-    merch: t('categoryMerch'),
-    digital: t('categoryDigital'),
-    rewards: t('categoryRewards'),
-  };
-
-  const typeTabs: { value: FilterState['type']; label: string }[] = [
+  const collectionTabs: { value: NonNullable<FilterState['collection']>; label: string }[] = [
     { value: 'all', label: t('filterAll') },
-    { value: 'digital', label: t('filterDigital') },
-    { value: 'physical', label: t('filterPhysical') },
+    { value: 'study', label: t('categoryStudy') },
+    { value: 'merch', label: t('categoryMerch') },
+    { value: 'digital', label: t('categoryDigital') },
+    { value: 'rewards', label: t('categoryRewards') },
   ];
+
+  const hasAdvancedFilters = filters.minPrice > 0 || filters.maxPrice > 0 || filters.inStock || filters.courseLinked;
 
   return (
     <div className="catalog-page">
@@ -63,11 +39,11 @@ export default function CatalogPage({ products, filters, onFiltersChange, loadin
       </button>
 
       <div className="catalog-page__tabs">
-        {typeTabs.map((tab) => (
+        {collectionTabs.map((tab) => (
           <button
             key={tab.value}
-            className={`catalog-page__tab ${filters.type === tab.value ? 'catalog-page__tab--active' : ''}`}
-            onClick={() => onFiltersChange({ ...filters, type: tab.value, collection: 'all' })}
+            className={`catalog-page__tab ${(filters.collection || 'all') === tab.value ? 'catalog-page__tab--active' : ''}`}
+            onClick={() => onFiltersChange({ ...filters, collection: tab.value })}
           >
             {tab.label}
           </button>
@@ -75,28 +51,13 @@ export default function CatalogPage({ products, filters, onFiltersChange, loadin
       </div>
 
       <div className="catalog-page__chips">
-        {collection !== 'all' && (
-          <button
-            className="chip chip--active"
-            onClick={() => onFiltersChange({ ...filters, collection: 'all' })}
-            aria-label={t('clearFilters')}
-          >
-            {collectionLabels[collection]} ×
-          </button>
-        )}
-        {chips.map((chip) => (
-          <button
-            key={chip.key}
-            className={`chip ${activeChip === chip.key ? 'chip--active' : ''}`}
-            onClick={() => setChip(chip)}
-          >
-            {chip.label}
-          </button>
-        ))}
-        <button className="catalog-page__filters-btn" onClick={onOpenFilters}>
+        <button className={`catalog-page__filters-btn ${hasAdvancedFilters ? 'catalog-page__filters-btn--active' : ''}`} onClick={onOpenFilters}>
           <SlidersIcon className="catalog-page__filters-icon" />
           {t('filters')}
         </button>
+        <button className={`chip ${filters.minPrice === 0 && filters.maxPrice === 250 ? 'chip--active' : ''}`} onClick={() => onFiltersChange({ ...filters, minPrice: 0, maxPrice: 250 })}>{t('under250')}</button>
+        <button className={`chip ${filters.inStock ? 'chip--active' : ''}`} onClick={() => onFiltersChange({ ...filters, inStock: !filters.inStock })}>{t('inStockOnly')}</button>
+        {hasAdvancedFilters ? <button className="chip" onClick={() => onFiltersChange({ ...filters, minPrice: 0, maxPrice: 0, inStock: false, courseLinked: false })}>{t('clearFilters')} ×</button> : null}
       </div>
 
       <div className="catalog-page__count">

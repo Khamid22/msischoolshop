@@ -34,13 +34,15 @@ export function filterProducts(
 ): Product[] {
   const query = filters.search.trim().toLowerCase();
 
-  return products.filter((product) => {
+  const filtered = products.filter((product) => {
     if (!matchesCollection(product, filters.collection)) return false;
     if (filters.type !== 'all' && product.type !== filters.type) return false;
 
     const price = getProductPrice(product);
     if (filters.minPrice > 0 && price < filters.minPrice) return false;
     if (filters.maxPrice > 0 && price > filters.maxPrice) return false;
+    if (filters.inStock && product.type === 'physical' && (product.stock ?? 0) <= 0) return false;
+    if (filters.courseLinked && !product.course) return false;
 
     if (query) {
       const translatedName = translate?.(product.nameKey) || '';
@@ -53,5 +55,11 @@ export function filterProducts(
     }
 
     return true;
+  });
+
+  return filtered.sort((a, b) => {
+    if (filters.sort === 'price') return getProductPrice(a) - getProductPrice(b);
+    if (filters.sort === 'newest') return products.indexOf(b) - products.indexOf(a);
+    return (b.ratingCount ?? 0) - (a.ratingCount ?? 0) || (b.rating ?? 0) - (a.rating ?? 0);
   });
 }

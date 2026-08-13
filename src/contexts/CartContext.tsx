@@ -9,7 +9,11 @@ interface CartContextType {
   isCheckoutOpen: boolean;
   lastOrder: Order | null;
   buyNow: (product: Product) => void;
+  addToCart: (product: Product) => void;
   quickBuy: (product: Product) => boolean;
+  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+  openCheckout: () => void;
   closeCheckout: () => void;
   submitOrder: (data: {
     customerName: string;
@@ -41,6 +45,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
 
   const closeCheckout = () => setIsCheckoutOpen(false);
+
+  const addToCart = useCallback((product: Product) => {
+    setItems((current) => {
+      const existing = current.find((item) => item.product.id === product.id);
+      if (existing) {
+        return current.map((item) => (
+          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        ));
+      }
+      return [...current, { product, quantity: 1 }];
+    });
+  }, []);
+
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setItems((current) => current.filter((item) => item.product.id !== productId));
+      return;
+    }
+    setItems((current) => current.map((item) => (
+      item.product.id === productId ? { ...item, quantity } : item
+    )));
+  }, []);
+
+  const removeFromCart = useCallback((productId: string) => {
+    setItems((current) => current.filter((item) => item.product.id !== productId));
+  }, []);
+
+  const openCheckout = useCallback(() => setIsCheckoutOpen(true), []);
 
   const buyNow = useCallback((product: Product) => {
     setItems([{ product, quantity: 1 }]);
@@ -132,7 +164,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items, isCheckoutOpen, lastOrder,
-        buyNow, quickBuy, closeCheckout,
+        buyNow, addToCart, quickBuy, updateQuantity, removeFromCart, openCheckout, closeCheckout,
         submitOrder, closeSuccess,
         totalPrice, originalPrice, savings,
       }}

@@ -1,7 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
-import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCoins, getProductPrice, getUnitPrice } from '../utils/currency';
 import FavoriteButton from './FavoriteButton';
@@ -16,14 +14,7 @@ interface Props {
 
 export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const { t } = useLang();
-  const { quickBuy } = useCart();
-  const { user, openAuth } = useAuth();
-  const [error, setError] = useState('');
-  const errorTimer = useRef<number | null>(null);
-
-  useEffect(() => () => {
-    if (errorTimer.current) window.clearTimeout(errorTimer.current);
-  }, []);
+  const { user } = useAuth();
 
   const displayName = t(product.nameKey) || product.name;
   const productPrice = getProductPrice(product);
@@ -31,18 +22,6 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const hasProductDiscount = Boolean(product.discount && product.discount > 0);
   const hasStudentDiscount = finalPrice < productPrice;
   const comparePrice = hasProductDiscount ? product.price : hasStudentDiscount ? productPrice : null;
-
-  const handleQuickBuy = () => {
-    if (!user) {
-      openAuth();
-      return;
-    }
-    if (!quickBuy(product)) {
-      setError(t('insufficientBalance'));
-      if (errorTimer.current) window.clearTimeout(errorTimer.current);
-      errorTimer.current = window.setTimeout(() => setError(''), 2500);
-    }
-  };
 
   return (
     <article
@@ -86,19 +65,8 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
             ) : null}
             <span className="product-card__price">{formatCoins(finalPrice)} <Coin /></span>
           </div>
-          <button
-            className="product-card__quick"
-            type="button"
-            onClick={handleQuickBuy}
-            aria-label={`${t('quickBuy')}: ${displayName}`}
-            title={t('quickBuy')}
-          >
-            <span aria-hidden="true">＋</span>
-          </button>
         </div>
       </div>
-
-      {error ? <span className="product-card__error" role="status">{error}</span> : null}
     </article>
   );
 }

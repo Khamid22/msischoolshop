@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
 import type { Banner as BannerType, Product, ProductCollection } from '../types';
 import { useLang } from '../contexts/LangContext';
-import FeaturedReward from './FeaturedReward';
-import CategoryStrip from './CategoryStrip';
-import RewardsShowcase from './RewardsShowcase';
-import StudentRewardSummary from './StudentRewardSummary';
+import { useAuth } from '../contexts/AuthContext';
+import { formatCoins, getUnitPrice } from '../utils/currency';
 import ProductCard from './ProductCard';
 import SkeletonCard from './SkeletonCard';
 import Banner from './Banner';
+import Coin from './Coin';
 import './ShopPage.scss';
 
 interface Props {
@@ -18,65 +17,91 @@ interface Props {
   onBannerClick: (banner: BannerType) => void;
 }
 
-const FEATURED_PRODUCT_ID = 'calc-2in1';
+const HOME_CATEGORIES: Array<{ value: ProductCollection; key: string }> = [
+  { value: 'all', key: 'filterAll' },
+  { value: 'study', key: 'categoryStudy' },
+  { value: 'merch', key: 'categoryMerch' },
+  { value: 'digital', key: 'categoryDigital' },
+  { value: 'rewards', key: 'categoryRewards' },
+];
 
 export default function ShopPage({ products, loading, onOpenProduct, onBrowseCollection, onBannerClick }: Props) {
   const { t } = useLang();
-  const featured = products.find((product) => product.id === FEATURED_PRODUCT_ID) || products[0];
-  const popular = useMemo(() => (
-    [...products]
-      .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0))
-      .slice(0, 6)
+  const { user, openAuth } = useAuth();
+  const arrivals = useMemo(() => (
+    products.filter((product) => product.type === 'physical').slice(0, 4)
+  ), [products]);
+  const digital = useMemo(() => (
+    products.filter((product) => product.type === 'digital').slice(0, 4)
   ), [products]);
 
   return (
     <div className="shop-page">
-      {loading || !featured ? <div className="featured-reward featured-reward--loading" /> : (
-        <FeaturedReward product={featured} onOpen={onOpenProduct} />
-      )}
-
-      <CategoryStrip onSelect={onBrowseCollection} />
-
-      <section className="shop-section" aria-labelledby="popular-products-title">
-        <div className="shop-section__head">
-          <div>
-            <span className="shop-section__kicker">{t('curatedForStudents')}</span>
-            <h2 className="shop-section__title" id="popular-products-title">{t('popularNow')}</h2>
-          </div>
-          <button className="shop-section__link" type="button" onClick={() => onBrowseCollection('all')}>
-            {t('viewAll')} <span aria-hidden="true">→</span>
-          </button>
+      <section className="shop-balance" aria-label={t('yourBalance')}>
+        <div>
+          <span className="shop-balance__label">{t('yourBalance')}</span>
+          {user ? (
+            <strong className="shop-balance__value"><Coin /> {formatCoins(user.balance)}</strong>
+          ) : (
+            <strong className="shop-balance__guest">MSI Coin</strong>
+          )}
         </div>
-        <div className="popular-grid">
+        <button className="btn btn-ghost shop-balance__earn" type="button" onClick={user ? undefined : openAuth}>
+          {user ? t('howToEarn') : t('login')} <span aria-hidden="true">↗</span>
+        </button>
+      </section>
+
+      <section className="shop-page__banner" aria-label={t('featuredDrops')}>
+        <Banner onBannerClick={onBannerClick} />
+      </section>
+
+      <nav className="home-categories" aria-label={t('categories')}>
+        {HOME_CATEGORIES.map((category, index) => (
+          <button
+            className={index === 0 ? 'home-categories__item home-categories__item--active' : 'home-categories__item'}
+            key={category.value}
+            type="button"
+            onClick={() => onBrowseCollection(category.value)}
+          >
+            {t(category.key)}
+          </button>
+        ))}
+      </nav>
+
+      <section className="mini-section" aria-labelledby="new-arrivals-heading">
+        <div className="mini-section__head">
+          <h2 id="new-arrivals-heading">{t('newArrivals')}</h2>
+          <button type="button" onClick={() => onBrowseCollection('all')}>{t('viewAll')}</button>
+        </div>
+        <div className="mini-products">
           {loading
             ? Array.from({ length: 4 }, (_, index) => <SkeletonCard key={index} />)
-            : popular.map((product, index) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onOpen={onOpenProduct}
-                enterDelay={Math.min(index * 55, 330)}
-              />
+            : arrivals.map((product, index) => (
+              <ProductCard key={product.id} product={product} onOpen={onOpenProduct} enterDelay={index * 45} />
             ))}
         </div>
       </section>
 
-      <StudentRewardSummary products={products} />
-
-      <RewardsShowcase
-        products={products}
-        onOpen={onOpenProduct}
-        onViewAll={() => onBrowseCollection('all')}
-      />
-
-      <section className="shop-section shop-section--drops" aria-labelledby="featured-drops-title">
-        <div className="shop-section__head">
-          <div>
-            <span className="shop-section__kicker">MSI Shop</span>
-            <h2 className="shop-section__title" id="featured-drops-title">{t('featuredDrops')}</h2>
-          </div>
+      <section className="mini-section" aria-labelledby="digital-heading">
+        <div className="mini-section__head">
+          <h2 id="digital-heading">{t('digitalGoods')}</h2>
+          <button type="button" onClick={() => onBrowseCollection('digital')}>{t('viewAll')}</button>
         </div>
-        <Banner onBannerClick={onBannerClick} />
+        <div className="digital-list">
+          {digital.map((product) => {
+            const displayName = t(product.nameKey) || product.name;
+            return (
+              <button className="digital-row" type="button" key={product.id} onClick={() => onOpenProduct(product)}>
+                <span className="digital-row__image"><img src={product.image} alt="" /></span>
+                <span className="digital-row__copy">
+                  <strong>{displayName}</strong>
+                  <small>{product.course ? t('relatedCourse') : t('filterDigital')}</small>
+                </span>
+                <span className="digital-row__price"><Coin /> {formatCoins(getUnitPrice(product, user))}</span>
+              </button>
+            );
+          })}
+        </div>
       </section>
     </div>
   );

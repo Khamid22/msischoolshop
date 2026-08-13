@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
-import ProductRow from './ProductRow';
+import { useAuth } from '../contexts/AuthContext';
+import { formatCoins, getUnitPrice } from '../utils/currency';
+import Coin from './Coin';
 import { ArrowLeftIcon, SearchIcon, XIcon } from './icons';
 import './SearchPage.scss';
 
@@ -29,6 +31,7 @@ function saveHistory(list: string[]) {
 
 export default function SearchPage({ products, onBack, onOpenProduct }: Props) {
   const { t } = useLang();
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState<string[]>(getHistory);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,44 +93,55 @@ export default function SearchPage({ products, onBack, onOpenProduct }: Props) {
       </div>
 
       {!query.trim() ? (
-        <div className="search-page__recent">
-          <div className="search-page__recent-head">
-            <span className="search-page__recent-title">{t('recentSearches')}</span>
-            {history.length > 0 && (
-              <button className="search-page__recent-clear" onClick={clearHistory}>
-                {t('clearHistory')}
-              </button>
-            )}
+        <>
+          <div className="search-page__recent">
+            <div className="search-page__recent-head">
+              <span className="search-page__recent-title">{t('recentSearches')}</span>
+              {history.length > 0 && (
+                <button className="search-page__recent-clear" onClick={clearHistory}>{t('clearHistory')}</button>
+              )}
+            </div>
+            <div className="search-page__recent-list">
+              {history.length === 0 ? (
+                ['calculator', 'hoodie', 'Telegram Premium'].map((item) => (
+                  <button key={item} className="chip" onClick={() => setQuery(item)}>{item}</button>
+                ))
+              ) : history.map((item) => (
+                <button key={item} className="chip" onClick={() => { setQuery(item); commit(item); }}>{item}</button>
+              ))}
+            </div>
           </div>
-          <div className="search-page__recent-list">
-            {history.length === 0 ? (
-              <span className="search-page__recent-empty">{t('noProducts')}</span>
-            ) : (
-              history.map((item) => (
-                <button
-                  key={item}
-                  className="chip"
-                  onClick={() => {
-                    setQuery(item);
-                    commit(item);
-                  }}
-                >
-                  {item}
+          <div className="search-page__popular">
+            <span className="search-page__recent-title">{t('popularThisWeek')}</span>
+            <div className="search-page__list">
+              {products.slice(0, 4).map((product) => (
+                <button className="search-result" type="button" key={product.id} onClick={() => onOpenProduct(product)}>
+                  <span className="search-result__image"><img src={product.image} alt="" /></span>
+                  <span className="search-result__copy">
+                    <strong>{t(product.nameKey) || product.name}</strong>
+                    <small>★ {product.rating ?? '4.8'} · {product.type === 'digital' ? t('filterDigital') : t('filterPhysical')}</small>
+                  </span>
+                  <strong className="search-result__price">{formatCoins(getUnitPrice(product, user))} <Coin /></strong>
                 </button>
-              ))
-            )}
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       ) : (
         <div className="search-page__results">
-          <ProductRow
-            products={results}
-            loading={false}
-            onOpenProduct={(p) => {
-              commit(query);
-              onOpenProduct(p);
-            }}
-          />
+          <div className="search-page__results-head"><strong>{t('searchResults')}</strong><span>{results.length}</span></div>
+          <div className="search-page__list">
+            {results.map((product) => (
+              <button className="search-result" type="button" key={product.id} onClick={() => { commit(query); onOpenProduct(product); }}>
+                <span className="search-result__image"><img src={product.image} alt="" /></span>
+                <span className="search-result__copy">
+                  <strong>{t(product.nameKey) || product.name}</strong>
+                  <small>★ {product.rating ?? '4.8'} · {product.type === 'digital' ? t('filterDigital') : t('filterPhysical')}</small>
+                </span>
+                <strong className="search-result__price">{formatCoins(getUnitPrice(product, user))} <Coin /></strong>
+              </button>
+            ))}
+          </div>
           {results.length === 0 && (
             <div className="search-page__empty">{t('noProducts')}</div>
           )}
