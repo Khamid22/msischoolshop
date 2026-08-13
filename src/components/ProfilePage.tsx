@@ -113,7 +113,7 @@ export default function ProfilePage({ onNavigate }: Props) {
           <span className="profile-page__row-label">{t('themeToggle')}</span>
           <span className="profile-page__row-value">{theme === 'light' ? '◻' : '◼'}</span>
         </button>
-        <a className="profile-page__row" href="/admin-login.html">
+        <a className="profile-page__row" href="./admin-login.html">
           <span className="profile-page__row-label">{t('adminPanel')}</span>
           <ChevronRightIcon className="profile-page__row-chevron" />
         </a>

@@ -2,6 +2,7 @@ import type { Product, FilterState } from '../types';
 import { useLang } from '../contexts/LangContext';
 import ProductCard from './ProductCard';
 import SkeletonCard from './SkeletonCard';
+import { filterProducts } from '../utils/productFilters';
 import './ProductGrid.scss';
 
 interface Props {
@@ -23,33 +24,7 @@ export default function ProductGrid({ products, filters, loading, onOpenProduct 
     );
   }
 
-  const filtered = products.filter((product) => {
-    if (filters.type !== 'all' && product.type !== filters.type) {
-      return false;
-    }
-
-    const price = product.discount && product.discount > 0
-      ? Math.round(product.price * (1 - product.discount / 100))
-      : product.price;
-
-    if (filters.minPrice > 0 && price < filters.minPrice) {
-      return false;
-    }
-    if (filters.maxPrice > 0 && price > filters.maxPrice) {
-      return false;
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const name = (product.name || '').toLowerCase();
-      const desc = (product.description || '').toLowerCase();
-      if (!name.includes(searchLower) && !desc.includes(searchLower)) {
-        return false;
-      }
-    }
-
-    return true;
-  });
+  const filtered = filterProducts(products, filters, t);
 
   return (
     <section className="grid">

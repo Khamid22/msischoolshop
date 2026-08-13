@@ -35,7 +35,6 @@ function saveFor(userId: string, items: Product[]) {
   all[userId] = items;
   try {
     localStorage.setItem(KEY, JSON.stringify(all));
-    window.dispatchEvent(new Event('msi:favorites'));
   } catch { /* ignore */ }
 }
 
@@ -50,10 +49,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const sync = () => setFavorites(user ? getFor(user.id) : []);
-    window.addEventListener('msi:favorites', sync);
     window.addEventListener('storage', sync);
     return () => {
-      window.removeEventListener('msi:favorites', sync);
       window.removeEventListener('storage', sync);
     };
   }, [user]);

@@ -1,278 +1,285 @@
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
-  display: flex;
-  flex-direction: column;
+.product-card {
   position: relative;
-  cursor: pointer;
-  padding: 0;
-  gap: 0;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-divider) 72%, transparent);
+  border-radius: var(--radius-xl);
+  transition: transform var(--motion-medium) var(--ease-out), border-color var(--motion-fast) ease, box-shadow var(--motion-medium) ease;
 
   &:hover {
-    transform: translateY(-3px);
-    border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-divider));
-    box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--color-accent) 45%, rgba(23, 24, 38, 0.4));
+    border-color: var(--accent-border);
+    box-shadow: 0 24px 50px -38px rgba(var(--accent-rgb), 0.75);
+    transform: translateY(-5px);
+  }
+
+  &:active {
+    transform: scale(0.985);
   }
 
   &--enter {
-    animation: cardIn 0.4s ease backwards;
+    animation: productCardIn 0.44s var(--ease-out) backwards;
   }
 
   &__badge {
     position: absolute;
-    top: var(--space-3);
-    left: var(--space-3);
-    z-index: 2;
-    color: var(--accent-strong-text);
-    background: var(--accent-gradient);
-    border: none;
-    box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--color-accent) 70%, transparent);
+    top: 10px;
+    left: 10px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    background: var(--color-accent-700);
+    border-radius: var(--radius-pill);
+
+    &--student {
+      color: var(--accent-text);
+      background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+      border: 1px solid var(--accent-border);
+      backdrop-filter: blur(10px);
+    }
   }
 
-  &__image-wrap {
+  .fav-btn {
+    top: 8px;
+    right: 8px;
+  }
+
+  &__image-button {
+    position: relative;
+    display: grid;
     width: 100%;
-    aspect-ratio: 16 / 10;
-    border-bottom: 1px solid var(--color-divider);
-    background: var(--img-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-height: 0;
+    aspect-ratio: 1 / 1.04;
     overflow: hidden;
-    padding: var(--space-3);
+    padding: 18px 12px 8px;
+    place-items: center;
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--color-neutral-100) 72%, transparent), transparent 78%),
+      color-mix(in srgb, var(--color-bg) 64%, var(--color-surface));
+    border: 0;
+    cursor: pointer;
+  }
+
+  &__image-glow {
+    position: absolute;
+    bottom: 16%;
+    left: 18%;
+    width: 64%;
+    height: 30%;
+    background: rgba(var(--accent-rgb), 0.13);
+    border-radius: 50%;
+    filter: blur(24px);
+    transform: scale(0.8);
+    transition: transform var(--motion-medium) var(--ease-out), opacity var(--motion-medium) ease;
   }
 
   &__image {
-    width: 100%;
-    height: 100%;
+    z-index: 1;
+    width: 92%;
+    height: 92%;
     object-fit: contain;
-    display: block;
-    transition: transform 0.35s ease;
+    filter: drop-shadow(0 15px 14px rgba(31, 29, 48, 0.14));
+    transition: transform var(--motion-medium) var(--ease-out), filter var(--motion-medium) ease;
   }
 
   &:hover &__image {
-    transform: scale(1.06);
+    filter: drop-shadow(0 22px 18px rgba(31, 29, 48, 0.2));
+    transform: translateY(-5px) scale(1.045);
+  }
+
+  &:hover &__image-glow {
+    opacity: 1.3;
+    transform: scale(1.12);
   }
 
   &__body {
-    padding: var(--space-6);
     display: flex;
-    flex-direction: column;
+    min-height: 116px;
+    padding: 12px 13px 13px;
     flex: 1;
+    flex-direction: column;
   }
 
   &__title {
-    font-size: 1rem;
-    font-weight: var(--font-heading-weight);
-    color: var(--text);
-    margin: 0 0 var(--space-2);
-    line-height: 1.25;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
     min-height: 2.5em;
+    overflow: hidden;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
-  &__desc {
-    font-size: 0.8rem;
+  &__subline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 18px;
+    margin-top: 4px;
     color: var(--text-muted);
-    margin: 0 0 var(--space-6);
-    line-height: 1.4;
-    flex: 1;
+    font-size: 9px;
+  }
+
+  &__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+
+    span {
+      color: #e5ad3f;
+    }
   }
 
   &__footer {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: 8px;
     margin-top: auto;
+    padding-top: 9px;
   }
 
   &__price-wrap {
     display: flex;
+    min-width: 0;
     flex-direction: column;
-    gap: var(--space-1);
-    flex-shrink: 0;
+    gap: 1px;
   }
 
   &__price {
-    font-size: 1.05rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     color: var(--text);
-    flex-shrink: 0;
-
-    &--sale {
-      color: var(--color-accent);
-    }
+    font-size: 14px;
+    font-weight: 760;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
   }
 
   &__price-old {
-    font-size: 0.72rem;
-    font-weight: 400;
     color: var(--text-muted);
+    font-size: 9px;
+    line-height: 1;
     text-decoration: line-through;
   }
 
-  &__price-student {
-    align-self: flex-start;
-    font-size: 0.66rem;
-    font-weight: 600;
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-    padding: 1px 6px;
-    border-radius: 999px;
-  }
+  &__quick {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    padding: 0;
+    place-items: center;
+    color: var(--accent-strong-text);
+    font-size: 19px;
+    font-weight: 450;
+    background: var(--accent-gradient);
+    border: 0;
+    border-radius: 50%;
+    box-shadow: 0 9px 18px -12px rgba(var(--accent-rgb), 0.9);
+    cursor: pointer;
+    transition: transform var(--motion-fast) var(--ease-spring), box-shadow var(--motion-fast) ease;
 
-  &__btn {
-    padding: var(--space-3) var(--space-4);
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
-    border-radius: var(--radius-pill);
+    &:hover {
+      box-shadow: var(--shadow-accent);
+      transform: rotate(5deg) scale(1.06);
+    }
+
+    &:active {
+      transform: scale(0.88);
+    }
   }
 
   &__error {
-    margin-top: var(--space-2);
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-align: center;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    z-index: 4;
+    padding: 8px 10px;
     color: var(--accent-text);
-    background: var(--accent-soft);
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
     border: 1px solid var(--accent-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-2) var(--space-3);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(12px);
+    animation: cardErrorIn 0.2s var(--ease-out);
   }
 }
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(16px); }
+@keyframes productCardIn {
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 960px) {
-  .card {
+@keyframes cardErrorIn {
+  from { opacity: 0; transform: translateY(5px); }
+}
+
+@media (min-width: 700px) {
+  .product-card {
     &__body {
-      padding: var(--space-4);
+      min-height: 126px;
+      padding: 14px 15px 15px;
     }
 
     &__title {
-      font-size: 0.9rem;
+      font-size: 14px;
     }
 
-    &__desc {
-      font-size: 0.76rem;
-    }
-
-    &__btn {
-      padding: var(--space-2) var(--space-3);
-      font-size: 0.65rem;
+    &__price {
+      font-size: 15px;
     }
   }
 }
 
-@media (max-width: 480px) {
-  .card {
-    &__body {
-      padding: var(--space-3);
-    }
+@media (max-width: 340px) {
+  .product-card {
+    border-radius: 18px;
 
-    &__title {
-      font-size: 0.88rem;
-      margin-bottom: var(--space-1);
-    }
-
-    &__desc {
-      font-size: 0.74rem;
-      margin-bottom: var(--space-4);
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    &__footer {
-      gap: var(--space-2);
-    }
-
-    &__price {
-      font-size: 0.9rem;
-    }
-
-    &__btn {
-      padding: var(--space-2);
-      font-size: 0.62rem;
-    }
-  }
-}
-
-@media (max-width: 360px) {
-  .card {
-    &__body {
-      padding: var(--space-3);
-    }
-
-    &__title {
-      font-size: 0.82rem;
-    }
-
-    &__desc {
-      font-size: 0.7rem;
-    }
-
-    &__price {
-      font-size: 0.85rem;
-    }
-
-    &__btn {
-      padding: var(--space-1) var(--space-2);
-      font-size: 0.58rem;
-    }
-  }
-}
-
-@media (max-width: 320px) {
-  .card {
-    &__badge {
-      top: var(--space-2);
-      left: var(--space-2);
-      padding: var(--space-1);
-      font-size: 0.6rem;
+    &__image-button {
+      padding-inline: 8px;
     }
 
     &__body {
-      padding: var(--space-2);
+      min-height: 110px;
+      padding: 10px;
     }
 
     &__title {
-      font-size: 0.78rem;
+      font-size: 12px;
     }
 
-    &__desc {
-      font-size: 0.66rem;
-      margin-bottom: var(--space-3);
-    }
-
-    &__footer {
-      gap: var(--space-1);
+    &__subline {
+      font-size: 8px;
     }
 
     &__price {
-      font-size: 0.8rem;
+      font-size: 12px;
     }
 
-    &__price-old {
-      font-size: 0.6rem;
-    }
-
-    &__btn {
-      padding: var(--space-1) var(--space-2);
-      font-size: 0.56rem;
+    &__quick {
+      width: 40px;
+      height: 40px;
     }
   }
 }

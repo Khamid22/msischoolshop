@@ -23,7 +23,7 @@
     <div class="admin-header__right">
       <button class="admin-header__theme-btn" id="themeToggle" title="Сменить тему (светлая / тёмная)">☀</button>
       <button class="admin-header__logout-btn" id="logoutBtn" title="Выйти">⏻ Выйти</button>
-      <a href="/" class="admin-header__back-btn">На сайт →</a>
+      <a href="./" class="admin-header__back-btn">На сайт →</a>
     </div>
   </header>
 
@@ -388,7 +388,7 @@
   <script>
     /* ============ AUTH ============ */
     if (sessionStorage.getItem('msi_admin_auth') !== '1') {
-      window.location.href = '/admin-login.html';
+      window.location.href = './admin-login.html';
     }
 
     var AUTH_KEY = 'msi_admin_auth';
@@ -406,7 +406,7 @@
       }
     }
     function apiSaveProducts(l){ return lsSetSafe(STORE_KEY, l); }
-    function apiLogout()       { sessionStorage.removeItem(AUTH_KEY); window.location.href = '/admin-login.html'; }
+    function apiLogout()       { sessionStorage.removeItem(AUTH_KEY); window.location.href = './admin-login.html'; }
 
     /* ============ THEME ============ */
     var themeBtn = document.getElementById('themeToggle');
@@ -707,9 +707,9 @@
     /* ============ BANNER API ============ */
     var BANNER_KEY = 'msi_banners';
     var DEFAULT_BANNERS = [
-      { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: '/images/telegram-premium.svg', accent: '#666666', icon: '💎', active: true },
-      { id: 'banner-2', title: 'MSI Coin', subtitle: 'Подарочные MSI Coin', description: 'Отправляйте подарки друзьям и близким', image: '/images/telegram-gift-stars.svg', accent: '#999999', icon: 'Ⓒ', active: true },
-      { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: '/images/tshirt-black.svg', accent: '#333333', icon: '👕', active: true },
+      { id: 'banner-1', title: 'Telegram Premium', subtitle: 'Подписка на 6 и 12 месяцев', description: 'Получите все премиум-функции Telegram прямо сейчас', image: './images/telegram-premium.svg', accent: '#666666', icon: '💎', active: true },
+      { id: 'banner-2', title: 'MSI Coin', subtitle: 'Подарочные MSI Coin', description: 'Отправляйте подарки друзьям и близким', image: './images/telegram-gift-stars.svg', accent: '#999999', icon: 'Ⓒ', active: true },
+      { id: 'banner-3', title: 'Merch Collection', subtitle: 'Эксклюзивный мерч', description: 'Футболки и кепки MSI Bot Shop', image: './images/tshirt-black.svg', accent: '#333333', icon: '👕', active: true },
     ];
 
     function apiGetBanners() {
@@ -896,9 +896,9 @@
     /* ============ NEWS API ============ */
     var NEWS_KEY = 'msi_news';
     var DEFAULT_NEWS = [
-      { id: 'news-1', title: 'Добро пожаловать в MSI Bot Shop!', description: 'Мы запустили наш магазин. Покупайте цифровые товары и мерч за MSI Coin прямо на сайте.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
-      { id: 'news-2', title: 'Telegram Premium уже в продаже', description: 'Подписки Telegram Premium на 6 и 12 месяцев доступны для покупки. Активация происходит автоматически после оплаты.', image: '/images/telegram-premium.svg', date: new Date().toISOString(), active: true },
-      { id: 'news-3', title: 'Курс MSI Coin: 30 ◆ = 5 000 сум', description: '1 MSI Coin = 167 сум. Покупайте товары за MSI Coin — эквивалент в сумах показывается рядом с каждой ценой.', image: '/images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
+      { id: 'news-1', title: 'Добро пожаловать в MSI Bot Shop!', description: 'Мы запустили наш магазин. Покупайте цифровые товары и мерч за MSI Coin прямо на сайте.', image: './images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
+      { id: 'news-2', title: 'Telegram Premium уже в продаже', description: 'Подписки Telegram Premium на 6 и 12 месяцев доступны для покупки. Активация происходит автоматически после оплаты.', image: './images/telegram-premium.svg', date: new Date().toISOString(), active: true },
+      { id: 'news-3', title: 'Курс MSI Coin: 30 ◆ = 5 000 сум', description: '1 MSI Coin = 167 сум. Покупайте товары за MSI Coin — эквивалент в сумах показывается рядом с каждой ценой.', image: './images/telegram-gift-stars.svg', date: new Date().toISOString(), active: true },
     ];
 
     function apiGetNews() {

@@ -1,12 +1,12 @@
 .skeleton {
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--color-surface);
 
   &__image {
     width: 100%;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 1 / 1.04;
     background: var(--img-bg);
     position: relative;
     overflow: hidden;

@@ -3,11 +3,11 @@
   top: var(--space-3);
   right: var(--space-3);
   z-index: 3;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   border: 1px solid var(--color-divider);
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
   color: var(--text-muted);
   font-size: 1rem;
   line-height: 1;
@@ -15,8 +15,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.15s ease, color 0.15s ease,
-    border-color 0.15s ease;
+  backdrop-filter: blur(12px);
+  transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) ease, color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
 
   &:hover {
     background: var(--hover);
@@ -43,8 +44,8 @@
 
 @media (max-width: 480px) {
   .fav-btn {
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
     font-size: 0.9rem;
     top: var(--space-2);
     right: var(--space-2);

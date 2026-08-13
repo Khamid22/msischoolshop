@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchBanners } from '../api';
+import { useLang } from '../contexts/LangContext';
 import type { Banner as BannerType } from '../types';
 import BannerSkeleton from './BannerSkeleton';
 import './Banner.scss';
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function Banner({ onBannerClick }: Props) {
+  const { t } = useLang();
   const [banners, setBanners] = useState<BannerType[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
@@ -62,6 +64,15 @@ export default function Banner({ onBannerClick }: Props) {
             className={`banner__slide ${i === active ? 'banner__slide--active' : ''}`}
             style={{ '--slide-accent': slide.accent } as React.CSSProperties}
             onClick={() => onBannerClick?.(slide)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onBannerClick?.(slide);
+              }
+            }}
+            role={onBannerClick ? 'button' : undefined}
+            tabIndex={onBannerClick && i === active ? 0 : -1}
+            aria-label={onBannerClick ? slide.title || t('featuredDrops') : undefined}
           >
             <div
               className={`banner__content ${hasText(slide) ? 'banner__content--text' : 'banner__content--image-only'} ${slide.image ? 'banner__content--with-image' : ''}`}
@@ -82,10 +93,10 @@ export default function Banner({ onBannerClick }: Props) {
         ))}
       </div>
 
-      <button className="banner__arrow banner__arrow--left" onClick={prev}>
+      <button className="banner__arrow banner__arrow--left" type="button" onClick={prev} aria-label={t('previous')}>
         ‹
       </button>
-      <button className="banner__arrow banner__arrow--right" onClick={next}>
+      <button className="banner__arrow banner__arrow--right" type="button" onClick={next} aria-label={t('introNext')}>
         ›
       </button>
 
@@ -94,7 +105,10 @@ export default function Banner({ onBannerClick }: Props) {
           <button
             key={slide.id}
             className={`banner__dot ${i === active ? 'banner__dot--active' : ''}`}
+            type="button"
             onClick={() => setActive(i)}
+            aria-label={`${slide.title || 'Banner'} ${i + 1}`}
+            aria-current={i === active ? 'true' : undefined}
           />
         ))}
       </div>

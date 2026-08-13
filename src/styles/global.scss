@@ -37,6 +37,11 @@ body {
   overflow-x: hidden;
 }
 
+body:has(.detail),
+body:has(.shop-intro) {
+  overflow: hidden;
+}
+
 button {
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
@@ -113,7 +118,7 @@ textarea {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--color-bg) 96%, var(--color-surface));
+  background: color-mix(in srgb, var(--color-bg) 97%, var(--color-surface));
   box-shadow: 0 0 0 1px var(--color-divider), 0 24px 80px -32px rgba(23, 24, 38, 0.35);
 }
 
@@ -135,8 +140,8 @@ textarea {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  animation: viewIn 0.3s ease;
-  padding-bottom: 84px;
+  animation: viewIn var(--motion-medium) var(--ease-out);
+  padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
 }
 
 /* — hide scrollbar for horizontal scrollers — */
@@ -216,7 +221,7 @@ textarea {
 }
 
 @keyframes viewIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 

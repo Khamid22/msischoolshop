@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,13 +8,23 @@ import { XIcon } from './icons';
 import './CheckoutDrawer.scss';
 
 export default function CheckoutDrawer() {
-  const { isCheckoutOpen, closeCheckout, submitOrder, totalPrice, originalPrice, savings } = useCart();
+  const { items, isCheckoutOpen, closeCheckout, submitOrder, totalPrice, originalPrice, savings } = useCart();
   const { user, openAuth } = useAuth();
   const { t } = useLang();
 
   const [error, setError] = useState('');
 
   const insufficient = !!user && user.balance < totalPrice;
+
+  useEffect(() => {
+    if (!isCheckoutOpen) return;
+    setError('');
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeCheckout();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isCheckoutOpen, closeCheckout]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +47,20 @@ export default function CheckoutDrawer() {
   return (
     <>
       <div className={`checkout-overlay ${isCheckoutOpen ? 'checkout-overlay--open' : ''}`} onClick={closeCheckout} />
-      <aside className={`checkout-drawer ${isCheckoutOpen ? 'checkout-drawer--open' : ''}`}>
+      <aside
+        className={`checkout-drawer ${isCheckoutOpen ? 'checkout-drawer--open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!isCheckoutOpen}
+        aria-labelledby="checkout-drawer-title"
+      >
+        <div className="checkout-drawer__grab" aria-hidden="true" />
         <div className="checkout-drawer__header">
-          <h2 className="checkout-drawer__title">{t('checkoutTitle')}</h2>
-          <button className="checkout-drawer__close" onClick={closeCheckout} aria-label={t('close')}>
+          <div>
+            <span className="checkout-drawer__eyebrow">MSI Shop</span>
+            <h2 className="checkout-drawer__title" id="checkout-drawer-title">{t('checkoutTitle')}</h2>
+          </div>
+          <button className="checkout-drawer__close" type="button" onClick={closeCheckout} aria-label={t('close')}>
             <XIcon />
           </button>
         </div>
@@ -55,6 +75,19 @@ export default function CheckoutDrawer() {
             </div>
           ) : (
             <>
+              {items.map((item) => (
+                <section className="checkout-form__item" key={item.product.id}>
+                  <span className="checkout-form__item-image">
+                    <img src={item.product.image} alt="" />
+                  </span>
+                  <span className="checkout-form__item-copy">
+                    <strong>{t(item.product.nameKey) || item.product.name}</strong>
+                    <small>{item.product.type === 'digital' ? t('filterDigital') : t('filterPhysical')}</small>
+                  </span>
+                  <span className="checkout-form__item-qty">×{item.quantity}</span>
+                </section>
+              ))}
+
               <section className="checkout-form__lms card elev-sm">
                 <span className="card-kicker">{t('lmsIdentity')}</span>
                 <span className="checkout-form__lms-name">{user.name}</span>

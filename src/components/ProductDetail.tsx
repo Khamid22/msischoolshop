@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLang } from '../contexts/LangContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,23 +25,31 @@ export default function ProductDetail({ product, allProducts, onClose, onOpenPro
 
   const recommended = useMemo(() => {
     if (!product) return [];
-    return allProducts
-      .filter((p) => p.id !== product.id)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 6);
+    const sameType = allProducts.filter((item) => item.id !== product.id && item.type === product.type);
+    const remaining = allProducts.filter((item) => item.id !== product.id && item.type !== product.type);
+    return [...sameType, ...remaining].slice(0, 6);
   }, [product, allProducts]);
+
+  useEffect(() => {
+    if (!product) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [product, onClose]);
 
   if (!product) return null;
 
   const displayName = t(product.nameKey) || product.name;
-  const displayDesc = t(product.descKey) || product.description;
-  const hasDiscount = product.discount && product.discount > 0;
-  const price = getProductPrice(product);
-  const studentPrice = getUnitPrice(product, user);
-  const showStudentPrice = user?.discount && user.discount > 0 && studentPrice < price;
-  const savings = price - studentPrice;
+  const displayDescription = t(product.descKey) || product.description;
+  const productPrice = getProductPrice(product);
+  const finalPrice = getUnitPrice(product, user);
+  const hasProductDiscount = Boolean(product.discount && product.discount > 0);
+  const hasStudentDiscount = finalPrice < productPrice;
+  const savings = product.price - finalPrice;
 
-  const handleAdd = () => {
+  const handleBuy = () => {
     if (!user) {
       openAuth();
       return;
@@ -50,79 +58,105 @@ export default function ProductDetail({ product, allProducts, onClose, onOpenPro
   };
 
   return (
-    <div className="detail" onClick={onClose}>
-      <div className="detail__card" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="detail"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-detail-title"
+    >
+      <section
+        className="detail__card"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="detail__top">
-          <button className="detail__back" onClick={onClose} aria-label={t('close')}>
+          <button className="detail__back" type="button" onClick={onClose} aria-label={t('close')}>
             <ArrowLeftIcon />
           </button>
+          <span className="detail__top-label">{t('productDetails')}</span>
           <FavoriteButton product={product} />
         </div>
 
-        <div className="detail__image-wrap">
-          <img className="lighten detail__image" src={product.image} alt={displayName} />
-          {hasDiscount && (
-            <span className="tag tag-accent detail__badge">-{product.discount}%</span>
-          )}
-        </div>
-
-        <div className="detail__body">
-          <div className="detail__meta">
-            <span className="tag tag-neutral detail__type">
-              {product.type === 'digital' ? 'Digital' : 'Physical'}
-            </span>
-            <Rating value={product.rating} count={product.ratingCount} />
+        <div className="detail__layout">
+          <div className="detail__image-wrap">
+            <span className="detail__image-orbit" aria-hidden="true" />
+            <img className="detail__image" src={product.image} alt={displayName} />
+            {hasProductDiscount ? (
+              <span className="detail__badge">−{product.discount}%</span>
+            ) : null}
           </div>
 
-          <h2 className="detail__title">{displayName}</h2>
-
-          <div className="detail__price-row">
-            {hasDiscount && (
-              <span className="detail__price-old">{formatCoins(product.price)} <Coin /></span>
-            )}
-            <span className={`detail__price ${hasDiscount ? 'detail__price--sale' : ''}`}>
-              {formatCoins(price)} <Coin />
-            </span>
-            {showStudentPrice && (
-              <span className="tag tag-accent detail__save">−{user.discount}%</span>
-            )}
-          </div>
-
-          {showStudentPrice && (
-            <div className="detail__student">
-              <span className="detail__student-label">{t('studentDiscount')} ({t('youSave').toLowerCase()})</span>
-              <span className="detail__student-value">
-                {formatCoins(savings)} <Coin />
+          <div className="detail__body">
+            <div className="detail__meta">
+              <span className="detail__type">
+                {t(product.type === 'digital' ? 'filterDigital' : 'filterPhysical')}
               </span>
+              <Rating value={product.rating} count={product.ratingCount} />
             </div>
-          )}
 
-          <p className="detail__desc">{displayDesc}</p>
+            <h2 className="detail__title" id="product-detail-title">{displayName}</h2>
 
-          {product.course && (
-            <a
-              className="detail__course"
-              href={product.course.url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <span className="detail__course-label">{t('relatedCourse')}</span>
-              <span className="detail__course-title">{product.course.title}</span>
-              <span className="detail__course-open">{t('openCourse')} →</span>
-            </a>
-          )}
+            <div className="detail__price-row">
+              <span className="detail__price">{formatCoins(finalPrice)} <Coin /></span>
+              {finalPrice < product.price ? (
+                <span className="detail__price-old">{formatCoins(product.price)} <Coin /></span>
+              ) : null}
+            </div>
 
-          <button className="btn btn-primary btn-block detail__add-btn" onClick={handleAdd}>
-            {t('buy')} — {formatCoins(studentPrice)} <Coin />
-          </button>
+            {hasStudentDiscount ? (
+              <div className="detail__student">
+                <div>
+                  <span className="detail__student-label">{t('studentDiscount')}</span>
+                  <span className="detail__student-note">{t('youSave')}</span>
+                </div>
+                <span className="detail__student-value">−{formatCoins(savings)} <Coin /></span>
+              </div>
+            ) : null}
+
+            <p className="detail__desc">{displayDescription}</p>
+
+            {product.course ? (
+              <a className="detail__course" href={product.course.url} target="_blank" rel="noreferrer">
+                <span className="detail__course-label">{t('relatedCourse')}</span>
+                <span className="detail__course-title">{product.course.title}</span>
+                <span className="detail__course-open">{t('openCourse')} →</span>
+              </a>
+            ) : null}
+
+            <div className="detail__purchase">
+              <div className="detail__purchase-price">
+                <span>{t('finalPrice')}</span>
+                <strong>{formatCoins(finalPrice)} <Coin /></strong>
+              </div>
+              <button className="btn btn-primary detail__add-btn" type="button" onClick={handleBuy}>
+                {t('buy')}
+              </button>
+            </div>
+          </div>
         </div>
 
-        {recommended.length > 0 && (
+        {recommended.length > 0 ? (
           <div className="detail__recommended">
-            <h3 className="detail__rec-title">{t('recommended')}</h3>
+            <div className="detail__rec-head">
+              <span className="shop-section__kicker">MSI Shop</span>
+              <h3 className="detail__rec-title">{t('recommended')}</h3>
+            </div>
             <ProductRow products={recommended} loading={false} onOpenProduct={onOpenProduct} />
           </div>
-        )}
+        ) : null}
+      </section>
+
+      <div
+        className="detail__mobile-purchase"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="detail__purchase-price">
+          <span>{t('finalPrice')}</span>
+          <strong>{formatCoins(finalPrice)} <Coin /></strong>
+        </div>
+        <button className="btn btn-primary detail__add-btn" type="button" onClick={handleBuy}>
+          {t('buy')}
+        </button>
       </div>
     </div>
   );

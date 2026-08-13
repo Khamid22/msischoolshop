@@ -37,7 +37,10 @@ export default function BottomNav({ view, onViewChange }: Props) {
           <button
             key={item.view}
             className={`bottomnav__item ${active ? 'bottomnav__item--active' : ''}`}
+            type="button"
             onClick={() => handle(item.view)}
+            aria-label={item.label}
+            aria-current={active ? 'page' : undefined}
           >
             <span className="bottomnav__icon"><Icon /></span>
             <span className="bottomnav__label">{item.label}</span>

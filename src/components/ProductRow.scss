@@ -6,7 +6,7 @@
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
 
-  .card {
+  .product-card {
     width: 44%;
     min-width: 158px;
     flex: none;
@@ -22,7 +22,7 @@
 
 @media (max-width: 360px) {
   .prow {
-    .card {
+    .product-card {
       min-width: 140px;
     }
   }
@@ -33,7 +33,7 @@
     gap: var(--space-5);
     padding-bottom: var(--space-5);
 
-    .card,
+    .product-card,
     &__skeleton {
       width: 260px;
       min-width: 260px;

@@ -24,7 +24,7 @@ import FiltersSheet from './components/FiltersSheet';
 import ShopIntro from './components/ShopIntro';
 import { useAuth } from './contexts/AuthContext';
 import { fetchProducts } from './api';
-import type { Product, FilterState, Banner as BannerType, View } from './types';
+import type { Product, FilterState, Banner as BannerType, ProductCollection, View } from './types';
 import './styles/global.scss';
 
 const DEFAULT_FILTERS: FilterState = {
@@ -32,6 +32,7 @@ const DEFAULT_FILTERS: FilterState = {
   minPrice: 0,
   maxPrice: 0,
   search: '',
+  collection: 'all',
 };
 
 function GuestIntro() {
@@ -50,9 +51,6 @@ export default function App() {
   const [view, setView] = useState<View>('home');
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [shopType, setShopType] = useState<FilterState['type']>('all');
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(0);
 
   const handleSplashFinish = useCallback(() => {
     setShowSplash(false);
@@ -70,6 +68,11 @@ export default function App() {
     setView(next);
     setSearchOpen(false);
   }, []);
+
+  const openCollection = useCallback((collection: ProductCollection) => {
+    setFilters({ ...DEFAULT_FILTERS, collection });
+    changeView('catalog');
+  }, [changeView]);
 
   if (showSplash) {
     return (
@@ -89,12 +92,7 @@ export default function App() {
                 <div className="app">
                   <Header
                     view={view}
-                    shopType={shopType}
-                    onShopTypeChange={setShopType}
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                    onMinPriceChange={setMinPrice}
-                    onMaxPriceChange={setMaxPrice}
+                    onViewChange={changeView}
                   />
                   <main className="app-view" key={view + (searchOpen ? '-search' : '')}>
                     {searchOpen ? (
@@ -110,10 +108,9 @@ export default function App() {
                       <ShopPage
                         products={products}
                         loading={loading}
-                        type={shopType}
-                        minPrice={minPrice}
-                        maxPrice={maxPrice}
                         onOpenProduct={setSelectedProduct}
+                        onBrowseCollection={openCollection}
+                        onBannerClick={setSelectedBanner}
                       />
                     ) : view === 'catalog' ? (
                       <CatalogPage

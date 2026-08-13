@@ -40,7 +40,13 @@ export default function FiltersSheet({ open, filters, onApply, onClose }: Props)
   };
 
   const handleApply = () => {
-    onApply({ type, minPrice: Number(minPrice) || 0, maxPrice: Number(maxPrice) || 0, search: filters.search });
+    onApply({
+      type,
+      minPrice: Number(minPrice) || 0,
+      maxPrice: Number(maxPrice) || 0,
+      search: filters.search,
+      collection: type === filters.type ? filters.collection : 'all',
+    });
     onClose();
   };
 

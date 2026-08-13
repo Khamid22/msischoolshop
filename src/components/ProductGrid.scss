@@ -1,77 +1,37 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  padding: 0;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1320px;
   margin: 0 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
 
   &__empty {
     grid-column: 1 / -1;
-    text-align: center;
-    padding: 60px 20px;
+    padding: 70px 20px;
     color: var(--text-muted);
-    font-size: 1rem;
+    font-size: 13px;
     font-weight: 600;
+    text-align: center;
   }
 }
 
-@media (max-width: 960px) {
+@media (min-width: 680px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-    padding: 0;
   }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1050px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding: 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 0;
-  }
-}
-
-@media (max-width: 360px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 0;
-  }
-}
-
-@media (max-width: 320px) {
-  .grid {
-    gap: 10px;
-    padding: 0;
-
-    &__empty {
-      padding: 40px 16px;
-      font-size: 0.85rem;
-    }
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1099px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 300px));
-    justify-content: center;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1320px) {
   .grid {
-    grid-template-columns: repeat(4, minmax(0, 300px));
-    justify-content: center;
-    gap: 24px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }

@@ -1,36 +1,30 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
 import { formatCoins } from '../utils/currency';
-import type { Language, View, FilterState } from '../types';
+import type { Language, View } from '../types';
 import Coin from './Coin';
-import { BellIcon, SettingsIcon } from './icons';
+import { BellIcon } from './icons';
 import './Header.scss';
 
 interface Props {
   view: View;
-  shopType: FilterState['type'];
-  onShopTypeChange: (type: FilterState['type']) => void;
-  minPrice: number;
-  maxPrice: number;
-  onMinPriceChange: (value: number) => void;
-  onMaxPriceChange: (value: number) => void;
+  onViewChange: (view: View) => void;
 }
 
 function formatNotifDate(iso: string, lang: Language): string {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  const diff = Date.now() - d.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return lang === 'ru' ? 'только что' : lang === 'uz' ? 'hozirgina' : 'just now';
-  if (min < 60) return lang === 'ru' ? `${min} мин назад` : lang === 'uz' ? `${min} daqiqa oldin` : `${min}m ago`;
-  const hours = Math.floor(min / 60);
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return lang === 'ru' ? 'только что' : lang === 'uz' ? 'hozirgina' : 'just now';
+  if (minutes < 60) return lang === 'ru' ? `${minutes} мин назад` : lang === 'uz' ? `${minutes} daqiqa oldin` : `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
   if (hours < 24) return lang === 'ru' ? `${hours} ч назад` : lang === 'uz' ? `${hours} soat oldin` : `${hours}h ago`;
-  return d.toLocaleDateString(lang === 'uz' ? 'uz-UZ' : lang === 'ru' ? 'ru-RU' : 'en-GB');
+  return date.toLocaleDateString(lang === 'uz' ? 'uz-UZ' : lang === 'ru' ? 'ru-RU' : 'en-GB');
 }
 
-export default function Header({ view, shopType, onShopTypeChange, minPrice, maxPrice, onMinPriceChange, onMaxPriceChange }: Props) {
+export default function Header({ view, onViewChange }: Props) {
   const { lang, t } = useLang();
   const { user, openAuth } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
@@ -39,65 +33,92 @@ export default function Header({ view, shopType, onShopTypeChange, minPrice, max
 
   useEffect(() => {
     if (!notifOpen) return;
-    const onClick = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    const onClick = (event: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) setNotifOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setNotifOpen(false);
     };
     document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [notifOpen]);
 
-  const firstName = user ? user.name.split(' ')[0] : '';
+  const firstName = user?.name.split(' ')[0] || '';
+  const initials = user?.name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() || '';
   const titles: Record<View, string> = {
-    home: user ? `${t('homeGreeting')}, ${firstName}` : t('shopTitle'),
+    home: t('shopTitle'),
     catalog: t('catalogTitle'),
     orders: t('myOrders'),
     profile: t('myProfile'),
     news: t('tabNews'),
   };
 
-  const typeTabs: { value: FilterState['type']; label: string }[] = [
-    { value: 'all', label: t('filterAll') },
-    { value: 'digital', label: t('filterDigital') },
-    { value: 'physical', label: t('filterPhysical') },
-  ];
-
   return (
     <header className="topbar">
-      <div className="topbar__left">
-        <h1 className="topbar__title">{titles[view]}</h1>
-      </div>
+      <button className="topbar__brand" type="button" onClick={() => onViewChange('home')} aria-label={t('tabShop')}>
+        <span className="topbar__mark" aria-hidden="true">MSI</span>
+        <span className="topbar__brand-copy">
+          <span className="topbar__title">{titles[view]}</span>
+          {view === 'home' && <span className="topbar__eyebrow">{t('learnEarnSpend')}</span>}
+        </span>
+      </button>
 
       <div className="topbar__right">
         {user ? (
           <>
+            <button
+              className="topbar__balance"
+              type="button"
+              onClick={() => onViewChange('profile')}
+              aria-label={`${t('balance')}: ${formatCoins(user.balance)} MSI Coin`}
+            >
+              <Coin />
+              <span key={user.balance}>{formatCoins(user.balance)}</span>
+            </button>
+
             <div className="topbar__notif-wrap" ref={notifRef}>
               <button
                 className="topbar__icon-btn"
+                type="button"
                 onClick={() => {
                   if (!notifOpen && unreadCount > 0) markAllRead();
-                  setNotifOpen((o) => !o);
+                  setNotifOpen((open) => !open);
                 }}
-                title={t('notifications')}
+                aria-label={t('notifications')}
+                aria-expanded={notifOpen}
               >
                 <BellIcon className="topbar__bell" />
-                {unreadCount > 0 && (
-                  <span key={unreadCount} className="topbar__badge">{unreadCount}</span>
-                )}
+                {unreadCount > 0 && <span key={unreadCount} className="topbar__badge">{unreadCount}</span>}
               </button>
+
               {notifOpen && (
-                <div className="topbar__notif">
+                <div className="topbar__notif" role="dialog" aria-label={t('notifications')}>
+                  <div className="topbar__notif-head">
+                    <span>{t('notifications')}</span>
+                    <span>{firstName}</span>
+                  </div>
                   <div className="topbar__notif-list">
                     {notifications.length === 0 ? (
                       <div className="topbar__notif-empty">{t('noNotifications')}</div>
                     ) : (
-                      notifications.slice(0, 30).map((n) => {
-                        const positive = n.type === 'topup' || n.type === 'welcome';
-                        const label = positive ? `+${formatCoins(n.amount)}` : `−${formatCoins(n.amount)}`;
-                        const text = n.note || t(n.type === 'welcome' ? 'notifWelcome' : n.type === 'topup' ? 'notifTopup' : 'notifSpend');
+                      notifications.slice(0, 30).map((notification) => {
+                        const positive = notification.type === 'topup' || notification.type === 'welcome';
+                        const label = `${positive ? '+' : '−'}${formatCoins(notification.amount)}`;
+                        const text = notification.note || t(
+                          notification.type === 'welcome'
+                            ? 'notifWelcome'
+                            : notification.type === 'topup'
+                              ? 'notifTopup'
+                              : 'notifSpend',
+                        );
                         return (
                           <div
-                            key={n.id}
-                            className={`topbar__notif-item ${n.read ? 'topbar__notif-item--read' : ''}`}
+                            key={notification.id}
+                            className={`topbar__notif-item ${notification.read ? 'topbar__notif-item--read' : ''}`}
                           >
                             <span className={`topbar__notif-ico ${positive ? 'topbar__notif-ico--plus' : ''}`}>
                               {positive ? '＋' : '−'}
@@ -105,9 +126,9 @@ export default function Header({ view, shopType, onShopTypeChange, minPrice, max
                             <div className="topbar__notif-body">
                               <div className="topbar__notif-text">
                                 <span className="topbar__notif-amount">{label} <Coin /></span>
-                                {text && <span className="topbar__notif-note">· {text}</span>}
+                                {text ? <span className="topbar__notif-note">· {text}</span> : null}
                               </div>
-                              <div className="topbar__notif-date">{formatNotifDate(n.createdAt, lang)}</div>
+                              <div className="topbar__notif-date">{formatNotifDate(notification.createdAt, lang)}</div>
                             </div>
                           </div>
                         );
@@ -118,53 +139,21 @@ export default function Header({ view, shopType, onShopTypeChange, minPrice, max
               )}
             </div>
 
+            <button
+              className="topbar__avatar"
+              type="button"
+              onClick={() => onViewChange('profile')}
+              aria-label={t('myProfile')}
+            >
+              {user.avatar ? <img src={user.avatar} alt="" /> : initials}
+            </button>
           </>
         ) : (
-          <button className="btn btn-ghost topbar__signin" onClick={openAuth}>
+          <button className="btn btn-secondary topbar__signin" type="button" onClick={openAuth}>
             {t('login')}
           </button>
         )}
-
-        <a className="topbar__icon-btn topbar__admin" href="/admin-login.html" title={t('adminPanel')}>
-          <SettingsIcon className="topbar__settings" />
-        </a>
       </div>
-
-      {view === 'home' && (
-        <div className="topbar__tabs">
-          {typeTabs.map((tab) => (
-            <button
-              key={tab.value}
-              className={`topbar__tab ${shopType === tab.value ? 'topbar__tab--active' : ''}`}
-              onClick={() => onShopTypeChange(tab.value)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {view === 'home' && (
-        <div className="topbar__price">
-          <input
-            className="input topbar__price-input"
-            type="number"
-            min="0"
-            value={minPrice || ''}
-            placeholder={t('filterMin')}
-            onChange={(e) => onMinPriceChange(Number(e.target.value) || 0)}
-          />
-          <span className="topbar__price-sep">—</span>
-          <input
-            className="input topbar__price-input"
-            type="number"
-            min="0"
-            value={maxPrice || ''}
-            placeholder={t('filterMax')}
-            onChange={(e) => onMaxPriceChange(Number(e.target.value) || 0)}
-          />
-        </div>
-      )}
     </header>
   );
 }

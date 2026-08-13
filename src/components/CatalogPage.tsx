@@ -3,6 +3,7 @@ import type { Product, FilterState } from '../types';
 import { useLang } from '../contexts/LangContext';
 import ProductGrid from './ProductGrid';
 import { SearchIcon, SlidersIcon } from './icons';
+import { filterProducts } from '../utils/productFilters';
 import './CatalogPage.scss';
 
 interface Props {
@@ -38,17 +39,15 @@ export default function CatalogPage({ products, filters, onFiltersChange, loadin
     onFiltersChange({ ...filters, minPrice: chip.min, maxPrice: chip.max });
   };
 
-  const filteredCount = useMemo(() => {
-    return products.filter((product) => {
-      if (filters.type !== 'all' && product.type !== filters.type) return false;
-      const price = product.discount && product.discount > 0
-        ? Math.round(product.price * (1 - product.discount / 100))
-        : product.price;
-      if (filters.minPrice > 0 && price < filters.minPrice) return false;
-      if (filters.maxPrice > 0 && price > filters.maxPrice) return false;
-      return true;
-    }).length;
-  }, [products, filters]);
+  const filteredCount = useMemo(() => filterProducts(products, filters, t).length, [products, filters, t]);
+
+  const collection = filters.collection || 'all';
+  const collectionLabels = {
+    study: t('categoryStudy'),
+    merch: t('categoryMerch'),
+    digital: t('categoryDigital'),
+    rewards: t('categoryRewards'),
+  };
 
   const typeTabs: { value: FilterState['type']; label: string }[] = [
     { value: 'all', label: t('filterAll') },
@@ -68,7 +67,7 @@ export default function CatalogPage({ products, filters, onFiltersChange, loadin
           <button
             key={tab.value}
             className={`catalog-page__tab ${filters.type === tab.value ? 'catalog-page__tab--active' : ''}`}
-            onClick={() => onFiltersChange({ ...filters, type: tab.value })}
+            onClick={() => onFiltersChange({ ...filters, type: tab.value, collection: 'all' })}
           >
             {tab.label}
           </button>
@@ -76,6 +75,15 @@ export default function CatalogPage({ products, filters, onFiltersChange, loadin
       </div>
 
       <div className="catalog-page__chips">
+        {collection !== 'all' && (
+          <button
+            className="chip chip--active"
+            onClick={() => onFiltersChange({ ...filters, collection: 'all' })}
+            aria-label={t('clearFilters')}
+          >
+            {collectionLabels[collection]} ×
+          </button>
+        )}
         {chips.map((chip) => (
           <button
             key={chip.key}

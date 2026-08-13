@@ -18,6 +18,8 @@ export interface AppNotification {
 
 export type Theme = 'light' | 'dark';
 
+export type ProductCollection = 'all' | 'study' | 'merch' | 'digital' | 'rewards';
+
 export interface Product {
   id: string;
   image: string;
@@ -50,6 +52,7 @@ export interface FilterState {
   minPrice: number;
   maxPrice: number;
   search: string;
+  collection?: ProductCollection;
 }
 
 export interface Translations {
