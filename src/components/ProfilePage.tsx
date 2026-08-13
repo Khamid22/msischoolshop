@@ -19,7 +19,7 @@ const LANGUAGES: { code: Language; label: string }[] = [
 ];
 
 export default function ProfilePage({ onNavigate }: Props) {
-  const { user, openAuth, logout } = useAuth();
+  const { user, studentStatus } = useAuth();
   const { t, lang, setLang } = useLang();
   const { theme, toggleTheme } = useTheme();
   const { open: openFavorites } = useFavorites();
@@ -28,11 +28,15 @@ export default function ProfilePage({ onNavigate }: Props) {
     return (
       <div className="profile-page">
         <div className="profile-page__guest">
-          <div className="profile-page__guest-avatar">?</div>
-          <p className="profile-page__guest-text">{t('account')}</p>
-          <button className="btn btn-primary profile-page__guest-btn" onClick={openAuth}>
-            {t('login')} / {t('register')}
-          </button>
+          <div className="profile-page__guest-avatar">TG</div>
+          <p className="profile-page__guest-text">{t('studentAccess')}</p>
+          <small className="profile-page__guest-help">
+            {studentStatus === 'checking'
+              ? t('checkingStudent')
+              : studentStatus === 'outside_telegram'
+                ? t('openInTelegram')
+                : t('studentNotFound')}
+          </small>
         </div>
       </div>
     );
@@ -110,9 +114,6 @@ export default function ProfilePage({ onNavigate }: Props) {
         </a>
       </nav>
 
-      <button className="btn btn-secondary btn-block profile-page__logout" onClick={logout}>
-        {t('logout')}
-      </button>
     </div>
   );
 }

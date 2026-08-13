@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLang } from '../contexts/LangContext';
-import { useAuth } from '../contexts/AuthContext';
 import Coin from './Coin';
 import { BoxIcon, UserIcon } from './icons';
 import './ShopIntro.scss';
@@ -93,7 +92,6 @@ function IntroArtwork({ visual }: { visual: IntroVisual }) {
 
 export default function ShopIntro() {
   const { t } = useLang();
-  const { openAuth } = useAuth();
   const [slide, setSlide] = useState(0);
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(INTRO_KEY) === '1');
   const touchStartX = useRef(0);
@@ -170,14 +168,9 @@ export default function ShopIntro() {
 
         <div className={`shop-intro__actions ${isLast ? 'shop-intro__actions--final' : ''}`}>
           {isLast ? (
-            <>
-              <button className="btn btn-primary shop-intro__cta" type="button" onClick={() => { finish(); openAuth(); }}>
-                {t('introEnterShop')}
-              </button>
-              <button className="btn btn-ghost shop-intro__guest" type="button" onClick={finish}>
-                {t('introGuest')}
-              </button>
-            </>
+            <button className="btn btn-primary shop-intro__cta" type="button" onClick={finish}>
+              {t('introEnterShop')}
+            </button>
           ) : (
             <>
               <button

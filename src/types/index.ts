@@ -1,6 +1,6 @@
 export type Language = 'ru' | 'uz' | 'en';
 
-export type View = 'home' | 'catalog' | 'cart' | 'orders' | 'profile' | 'news';
+export type View = 'home' | 'catalog' | 'orders' | 'profile' | 'news';
 
 export type OrderStatus = 'paid' | 'packed' | 'ready' | 'collected';
 
@@ -71,6 +71,7 @@ export interface CartItem {
 
 export interface User {
   id: string;
+  telegramId?: string;
   name: string;
   email: string;
   phone: string;

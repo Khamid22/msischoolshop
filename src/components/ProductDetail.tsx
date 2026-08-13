@@ -12,15 +12,14 @@ import './ProductDetail.scss';
 interface Props {
   product: Product | null;
   onClose: () => void;
-  onAdded: () => void;
 }
 
 const APPAREL_PRODUCT_IDS = new Set(['tshirt-1', 'tshirt-white', 'msi-hoodie']);
 
-export default function ProductDetail({ product, onClose, onAdded }: Props) {
+export default function ProductDetail({ product, onClose }: Props) {
   const { t } = useLang();
-  const { addToCart } = useCart();
-  const { user } = useAuth();
+  const { buyNow } = useCart();
+  const { user, openAuth } = useAuth();
   const [variant, setVariant] = useState('M');
 
   useEffect(() => {
@@ -46,8 +45,12 @@ export default function ProductDetail({ product, onClose, onAdded }: Props) {
     : APPAREL_PRODUCT_IDS.has(product.id) ? ['S', 'M', 'L', 'XL'] : [];
 
   const handleAdd = () => {
-    addToCart(product);
-    onAdded();
+    if (!user) {
+      openAuth();
+      return;
+    }
+    buyNow(product);
+    onClose();
   };
 
   return (
@@ -134,7 +137,7 @@ export default function ProductDetail({ product, onClose, onAdded }: Props) {
 
       <div className="detail__purchase" onClick={(event) => event.stopPropagation()}>
         <div className="detail__purchase-price"><span>{t('total')}</span><strong>{formatCoins(finalPrice)} <Coin /></strong></div>
-        <button className="btn btn-primary detail__add-btn" type="button" onClick={handleAdd}>{t('addToCart')}</button>
+        <button className="btn btn-primary detail__add-btn" type="button" onClick={handleAdd}>{t('buy')}</button>
       </div>
     </div>
   );

@@ -5,15 +5,10 @@ import { useAuth } from './AuthContext';
 import { getProductPrice, getUnitPrice } from '../utils/currency';
 
 interface CartContextType {
-  items: CartItem[];
+  currentItem: CartItem | null;
   isCheckoutOpen: boolean;
   lastOrder: Order | null;
   buyNow: (product: Product) => void;
-  addToCart: (product: Product) => void;
-  quickBuy: (product: Product) => boolean;
-  updateQuantity: (productId: string, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  openCheckout: () => void;
   closeCheckout: () => void;
   submitOrder: (data: {
     customerName: string;
@@ -40,74 +35,19 @@ function saveOrder(order: Order) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user, spendStars } = useAuth();
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [currentItem, setCurrentItem] = useState<CartItem | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
 
-  const closeCheckout = () => setIsCheckoutOpen(false);
-
-  const addToCart = useCallback((product: Product) => {
-    setItems((current) => {
-      const existing = current.find((item) => item.product.id === product.id);
-      if (existing) {
-        return current.map((item) => (
-          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        ));
-      }
-      return [...current, { product, quantity: 1 }];
-    });
+  const closeCheckout = useCallback(() => {
+    setIsCheckoutOpen(false);
+    setCurrentItem(null);
   }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      setItems((current) => current.filter((item) => item.product.id !== productId));
-      return;
-    }
-    setItems((current) => current.map((item) => (
-      item.product.id === productId ? { ...item, quantity } : item
-    )));
-  }, []);
-
-  const removeFromCart = useCallback((productId: string) => {
-    setItems((current) => current.filter((item) => item.product.id !== productId));
-  }, []);
-
-  const openCheckout = useCallback(() => setIsCheckoutOpen(true), []);
 
   const buyNow = useCallback((product: Product) => {
-    setItems([{ product, quantity: 1 }]);
+    setCurrentItem({ product, quantity: 1 });
     setIsCheckoutOpen(true);
   }, []);
-
-  const quickBuy = useCallback((product: Product): boolean => {
-    if (!user) return false;
-    const price = getUnitPrice(product, user);
-    if (user.balance < price) return false;
-
-    const order: Order = {
-      id: crypto.randomUUID(),
-      items: [{ product, quantity: 1 }],
-      totalPrice: price,
-      originalPrice: getProductPrice(product),
-      customerName: user.name,
-      customerPhone: user.phone,
-      deliveryAddress: user.address || '',
-      deliveryMethod: 'pickup',
-      userId: user.id,
-      customerEmail: user.email,
-      createdAt: new Date().toISOString(),
-      status: 'paid',
-      pickupCode: 'K-' + Math.floor(1000 + Math.random() * 9000),
-    };
-
-    if (!spendStars(price, product.name || product.nameKey)) return false;
-
-    saveOrder(order);
-    setLastOrder(order);
-    setItems([]);
-    setIsCheckoutOpen(false);
-    return true;
-  }, [user, spendStars]);
 
   const submitOrder = useCallback((data: {
     customerName: string;
@@ -116,15 +56,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     deliveryMethod: DeliveryMethod;
     pickupSlot?: string;
   }) => {
-    if (!user) return false;
-    const totalPrice = items.reduce((sum, i) => sum + getUnitPrice(i.product, user) * i.quantity, 0);
+    if (!user || !currentItem) return false;
+    const totalPrice = getUnitPrice(currentItem.product, user);
     if (user.balance < totalPrice) return false;
 
     const order: Order = {
       id: crypto.randomUUID(),
-      items: [...items],
+      items: [currentItem],
       totalPrice,
-      originalPrice: items.reduce((sum, i) => sum + getProductPrice(i.product) * i.quantity, 0),
+      originalPrice: getProductPrice(currentItem.product),
       ...data,
       userId: user.id,
       customerEmail: user.email,
@@ -134,39 +74,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
       pickupSlot: data.pickupSlot,
     };
 
-    if (!spendStars(totalPrice, items.map((i) => (i.product.name || i.product.nameKey)).join(', '))) return false;
+    if (!spendStars(totalPrice, currentItem.product.name || currentItem.product.nameKey)) return false;
 
     saveOrder(order);
-    console.log('📦 Order submitted:', order);
-
-    // TODO: send to Telegram webhook / API
-    // fetch('YOUR_WEBHOOK_URL', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(order),
-    // });
-
     setLastOrder(order);
-    setItems([]);
+    setCurrentItem(null);
     setIsCheckoutOpen(false);
     return true;
-  }, [items, user, spendStars]);
+  }, [currentItem, user, spendStars]);
 
-  const closeSuccess = useCallback(() => {
-    setLastOrder(null);
-  }, []);
+  const closeSuccess = useCallback(() => setLastOrder(null), []);
 
-  const totalPrice = items.reduce((sum, i) => sum + getUnitPrice(i.product, user) * i.quantity, 0);
-  const originalPrice = items.reduce((sum, i) => sum + getProductPrice(i.product) * i.quantity, 0);
+  const totalPrice = currentItem ? getUnitPrice(currentItem.product, user) : 0;
+  const originalPrice = currentItem ? getProductPrice(currentItem.product) : 0;
   const savings = originalPrice - totalPrice;
 
   return (
     <CartContext.Provider
       value={{
-        items, isCheckoutOpen, lastOrder,
-        buyNow, addToCart, quickBuy, updateQuantity, removeFromCart, openCheckout, closeCheckout,
-        submitOrder, closeSuccess,
-        totalPrice, originalPrice, savings,
+        currentItem,
+        isCheckoutOpen,
+        lastOrder,
+        buyNow,
+        closeCheckout,
+        submitOrder,
+        closeSuccess,
+        totalPrice,
+        originalPrice,
+        savings,
       }}
     >
       {children}

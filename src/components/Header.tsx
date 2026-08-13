@@ -27,7 +27,7 @@ function formatNotifDate(iso: string, lang: Language): string {
 
 export default function Header({ view, onViewChange }: Props) {
   const { lang, t } = useLang();
-  const { user, openAuth } = useAuth();
+  const { user, studentStatus } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const { theme, toggleTheme } = useTheme();
   const [notifOpen, setNotifOpen] = useState(false);
@@ -54,7 +54,6 @@ export default function Header({ view, onViewChange }: Props) {
   const titles: Record<View, string> = {
     home: t('shopTitle'),
     catalog: t('catalogTitle'),
-    cart: t('cartTitle'),
     orders: t('myOrders'),
     profile: t('myProfile'),
     news: t('tabNews'),
@@ -151,8 +150,8 @@ export default function Header({ view, onViewChange }: Props) {
             </button>
           </>
         ) : (
-          <button className="btn btn-secondary topbar__signin" type="button" onClick={openAuth}>
-            {t('login')}
+          <button className="btn btn-secondary topbar__signin" type="button" onClick={() => onViewChange('profile')}>
+            {studentStatus === 'checking' ? t('checkingStudent') : t('studentAccess')}
           </button>
         )}
       </div>

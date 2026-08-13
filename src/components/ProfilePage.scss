@@ -7,6 +7,7 @@
   &__guest { display: flex; min-height: 55vh; align-items: center; justify-content: center; flex-direction: column; gap: 12px; text-align: center; }
   &__guest-avatar { display: grid; width: 52px; height: 52px; place-items: center; color: var(--text-muted); border: 1px solid var(--color-divider); border-radius: 50%; }
   &__guest-text { font-size: 15px; font-weight: 650; }
+  &__guest-help { max-width: 280px; color: var(--text-muted); font-size: 11px; line-height: 1.6; }
 
   &__card {
     position: relative;
@@ -45,7 +46,6 @@
   &__lang { display: flex; gap: 4px; }
   &__lang-btn { min-width: 31px; min-height: 27px; padding: 0 6px; color: var(--text-muted); font-size: 9px; background: transparent; border: 1px solid var(--color-divider); border-radius: var(--radius-pill); cursor: pointer; }
   &__lang-btn--active { color: var(--accent-text); background: var(--accent-soft); border-color: var(--accent-border); }
-  &__logout { min-height: 42px; margin-top: 2px; }
 }
 
 .profile-balance {

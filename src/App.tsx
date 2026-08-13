@@ -10,7 +10,6 @@ import BottomNav from './components/BottomNav';
 import ShopPage from './components/ShopPage';
 import CatalogPage from './components/CatalogPage';
 import OrdersPage from './components/OrdersPage';
-import CartPage from './components/CartPage';
 import ProfilePage from './components/ProfilePage';
 import NewsPage from './components/NewsPage';
 import SearchPage from './components/SearchPage';
@@ -18,7 +17,6 @@ import ProductDetail from './components/ProductDetail';
 import FavoritesDrawer from './components/FavoritesDrawer';
 import CheckoutDrawer from './components/CheckoutDrawer';
 import OrderSuccess from './components/OrderSuccess';
-import AuthModal from './components/AuthModal';
 import BannerProductsModal from './components/BannerProductsModal';
 import FiltersSheet from './components/FiltersSheet';
 import { fetchProducts } from './api';
@@ -105,8 +103,6 @@ export default function App() {
                       />
                     ) : view === 'orders' ? (
                       <OrdersPage />
-                    ) : view === 'cart' ? (
-                      <CartPage onBrowse={() => changeView('catalog')} />
                     ) : view === 'profile' ? (
                       <ProfilePage onNavigate={(v) => changeView(v)} />
                     ) : (
@@ -119,15 +115,10 @@ export default function App() {
                 <ProductDetail
                   product={selectedProduct}
                   onClose={() => setSelectedProduct(null)}
-                  onAdded={() => {
-                    setSelectedProduct(null);
-                    changeView('cart');
-                  }}
                 />
                 <FavoritesDrawer />
                 <CheckoutDrawer />
                 <OrderSuccess />
-                <AuthModal />
                 <BannerProductsModal
                   banner={selectedBanner}
                   allProducts={products}

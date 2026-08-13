@@ -58,7 +58,7 @@ export default function ShopPage({ products, loading, onOpenProduct, onBrowseCol
           )}
         </div>
         <button className="btn btn-ghost shop-balance__earn" type="button" onClick={user ? undefined : openAuth}>
-          {user ? t('howToEarn') : t('login')} <span aria-hidden="true">↗</span>
+          {user ? t('howToEarn') : t('studentAccess')} <span aria-hidden="true">↗</span>
         </button>
       </section>
 

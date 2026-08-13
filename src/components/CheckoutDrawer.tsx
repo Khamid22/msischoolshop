@@ -14,8 +14,8 @@ const PICKUP_SLOTS = [
 ];
 
 export default function CheckoutDrawer() {
-  const { isCheckoutOpen, closeCheckout, submitOrder, totalPrice, originalPrice, savings } = useCart();
-  const { user, openAuth } = useAuth();
+  const { currentItem, isCheckoutOpen, closeCheckout, submitOrder, totalPrice, originalPrice, savings } = useCart();
+  const { user, studentStatus } = useAuth();
   const { t } = useLang();
   const [selectedSlot, setSelectedSlot] = useState(PICKUP_SLOTS[0].id);
   const [error, setError] = useState('');
@@ -38,7 +38,7 @@ export default function CheckoutDrawer() {
     event.preventDefault();
     setError('');
     if (!user) {
-      openAuth();
+      setError(t('studentAccessRequired'));
       return;
     }
     const slot = PICKUP_SLOTS.find((item) => item.id === selectedSlot) || PICKUP_SLOTS[0];
@@ -64,11 +64,28 @@ export default function CheckoutDrawer() {
         <form className="checkout-form" onSubmit={handleSubmit}>
           {!user ? (
             <div className="checkout-form__auth">
-              <p>{t('account')}</p>
-              <button type="button" className="btn btn-primary btn-block" onClick={openAuth}>{t('login')} / {t('register')}</button>
+              <strong>{t('studentAccess')}</strong>
+              <p>
+                {studentStatus === 'checking'
+                  ? t('checkingStudent')
+                  : studentStatus === 'outside_telegram'
+                    ? t('openInTelegram')
+                    : t('studentNotFound')}
+              </p>
             </div>
           ) : (
             <>
+              {currentItem ? (
+                <section className="checkout-section">
+                  <div className="checkout-section__head"><strong>{t('productDetails')}</strong></div>
+                  <div className="checkout-product">
+                    <img src={currentItem.product.image} alt="" />
+                    <span><strong>{t(currentItem.product.nameKey) || currentItem.product.name}</strong><small>{t(currentItem.product.type === 'digital' ? 'filterDigital' : 'filterPhysical')}</small></span>
+                    <b>{formatCoins(totalPrice)} <Coin /></b>
+                  </div>
+                </section>
+              ) : null}
+
               <section className="checkout-section">
                 <div className="checkout-section__head"><strong>{t('lmsIdentity')}</strong><span><CheckIcon /> {t('fromLms')}</span></div>
                 <div className="checkout-identity">

@@ -5,31 +5,25 @@ import { pushNotification } from '../utils/notifications';
 
 const DEFAULT_BALANCE = 0;
 
+export type StudentStatus = 'checking' | 'verified' | 'not_student' | 'outside_telegram';
+
 interface AuthContextType {
   user: User | null;
-  isAuthOpen: boolean;
-  isProfileOpen: boolean;
+  studentStatus: StudentStatus;
   openAuth: () => void;
-  closeAuth: () => void;
-  openProfile: () => void;
-  closeProfile: () => void;
-  register: (data: { name: string }) => string | null;
-  login: (email: string, password: string) => string | null;
-  demoLogin: () => void;
-  logout: () => void;
-  updateProfile: (data: Partial<Omit<User, 'id'>>) => void;
   spendStars: (amount: number, note?: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface StoredUser extends User {
-  password: string;
+  password?: string;
 }
 
 function normalizeStoredUser(u: Partial<StoredUser>): StoredUser {
   return {
     id: u.id || '',
+    telegramId: u.telegramId,
     name: u.name || '',
     email: u.email || '',
     phone: u.phone || '',
@@ -47,6 +41,7 @@ function normalizeStoredUser(u: Partial<StoredUser>): StoredUser {
 function normalizePublicUser(u: Partial<User>): User {
   return {
     id: u.id || '',
+    telegramId: u.telegramId,
     name: u.name || '',
     email: u.email || '',
     phone: u.phone || '',
@@ -93,101 +88,98 @@ function saveCurrentUser(user: User | null) {
   }
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(getCurrentUser);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+async function verifyTelegramStudent(): Promise<User | null> {
+  const webApp = window.Telegram?.WebApp;
+  const telegramUser = webApp?.initDataUnsafe.user;
+  if (!webApp || !telegramUser) return null;
 
-  const openAuth = () => setIsAuthOpen(true);
-  const closeAuth = () => setIsAuthOpen(false);
-  const openProfile = () => setIsProfileOpen(true);
-  const closeProfile = () => setIsProfileOpen(false);
+  const endpoint = import.meta.env.VITE_TELEGRAM_STUDENT_ENDPOINT;
+  if (endpoint && webApp.initData) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: webApp.initData }),
+      });
+      if (response.ok) return normalizePublicUser(await response.json());
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Local mock until the backend endpoint validates Telegram initData.
+  const telegramId = String(telegramUser.id);
+  const match = getUsers().find((candidate) => (
+    String(candidate.telegramId || '') === telegramId
+    || candidate.id === telegramId
+    || candidate.id === `telegram-${telegramId}`
+  ));
+  return match ? normalizePublicUser(match) : null;
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const hasTelegramUser = Boolean(window.Telegram?.WebApp.initDataUnsafe.user);
+  const [user, setUser] = useState<User | null>(() => (hasTelegramUser ? null : getCurrentUser()));
+  const [studentStatus, setStudentStatus] = useState<StudentStatus>(() => (
+    hasTelegramUser ? 'checking' : getCurrentUser() ? 'verified' : 'outside_telegram'
+  ));
+
+  const syncIdentity = useCallback(async () => {
+    const webApp = window.Telegram?.WebApp;
+    if (!webApp?.initDataUnsafe.user) {
+      const cached = getCurrentUser();
+      setUser(cached);
+      setStudentStatus(cached ? 'verified' : 'outside_telegram');
+      return;
+    }
+
+    setStudentStatus('checking');
+    const student = await verifyTelegramStudent();
+    setUser(student);
+    saveCurrentUser(student);
+    setStudentStatus(student ? 'verified' : 'not_student');
+  }, []);
 
   useEffect(() => {
-    const sync = () => setUser(getCurrentUser());
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== 'msi_users' && e.key !== 'msi_current_user') return;
-      sync();
+    const webApp = window.Telegram?.WebApp;
+    webApp?.ready();
+    webApp?.expand();
+
+    const timer = window.setTimeout(() => void syncIdentity(), 0);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === 'msi_users' || event.key === 'msi_current_user') void syncIdentity();
     };
-    const onFocus = () => sync();
     const onVisible = () => {
-      if (!document.hidden) sync();
+      if (!document.hidden) void syncIdentity();
     };
     window.addEventListener('storage', onStorage);
-    window.addEventListener('focus', onFocus);
+    window.addEventListener('focus', syncIdentity);
     document.addEventListener('visibilitychange', onVisible);
     return () => {
+      window.clearTimeout(timer);
       window.removeEventListener('storage', onStorage);
-      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('focus', syncIdentity);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, []);
+  }, [syncIdentity]);
 
-  const register = useCallback((data: { name: string }): string | null => {
-    const users = getUsers();
-    const newUser: StoredUser = {
-      id: crypto.randomUUID(),
-      name: data.name.trim(),
-      email: '',
-      phone: '',
-      address: '',
-      balance: DEFAULT_BALANCE,
-      studentId: 'STU-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
-      discount: 10,
-      earned: 0,
-      password: '',
-    };
-    users.push(newUser);
-    saveUsers(users);
-    if (DEFAULT_BALANCE > 0) {
-      pushNotification({ userId: newUser.id, type: 'welcome', amount: DEFAULT_BALANCE });
+  const openAuth = useCallback(() => {
+    const outsideTelegram = !window.Telegram?.WebApp.initDataUnsafe.user;
+    const message = outsideTelegram
+      ? 'Open MSI Shop from the Telegram bot to verify your student account.'
+      : 'This Telegram account is not linked to an MSI student.';
+    if (window.Telegram?.WebApp.showAlert) {
+      window.Telegram.WebApp.showAlert(message);
+    } else {
+      window.alert(message);
     }
-    const { password: _, ...publicUser } = newUser;
-    setUser(publicUser);
-    saveCurrentUser(publicUser);
-    setIsAuthOpen(false);
-    return null;
   }, []);
-
-  const login = useCallback((email: string, password: string): string | null => {
-    const users = getUsers();
-    const found = users.find((u) => u.email === email && u.password === password);
-    if (!found) {
-      return 'invalid_credentials';
-    }
-    const { password: _, ...publicUser } = found;
-    setUser(publicUser);
-    saveCurrentUser(publicUser);
-    setIsAuthOpen(false);
-    return null;
-  }, []);
-
-  const demoLogin = useCallback(() => {
-    login('aisha@msi.uz', 'demo');
-  }, [login]);
-
-  const logout = useCallback(() => {
-    setUser(null);
-    saveCurrentUser(null);
-    setIsProfileOpen(false);
-  }, []);
-
-  const updateProfile = useCallback((data: Partial<Omit<User, 'id'>>) => {
-    if (!user) return;
-    const users = getUsers();
-    const idx = users.findIndex((u) => u.id === user.id);
-    if (idx === -1) return;
-    users[idx] = normalizeStoredUser({ ...users[idx], ...data });
-    saveUsers(users);
-    const updated: User = { ...user, ...data, balance: users[idx].balance };
-    setUser(updated);
-    saveCurrentUser(updated);
-  }, [user]);
 
   const spendStars = useCallback((amount: number, note?: string): boolean => {
     if (!user || amount <= 0 || user.balance < amount) return false;
     const users = getUsers();
-    const idx = users.findIndex((u) => u.id === user.id);
+    const idx = users.findIndex((candidate) => candidate.id === user.id);
     const newBalance = user.balance - amount;
     if (idx !== -1) {
       users[idx].balance = newBalance;
@@ -201,23 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthOpen,
-        isProfileOpen,
-        openAuth,
-        closeAuth,
-        openProfile,
-        closeProfile,
-        register,
-        login,
-        demoLogin,
-        logout,
-        updateProfile,
-        spendStars,
-      }}
-    >
+    <AuthContext.Provider value={{ user, studentStatus, openAuth, spendStars }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,7 +5,7 @@
   left: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   max-width: 480px;
   margin: 0 auto;
   padding: 7px 8px calc(9px + env(safe-area-inset-bottom, 0px));
@@ -74,21 +74,6 @@
     white-space: nowrap;
   }
 
-  &__count {
-    position: absolute;
-    top: -5px;
-    right: -7px;
-    display: grid;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    place-items: center;
-    color: var(--color-accent-100);
-    font-size: 8px;
-    background: var(--color-accent-700);
-    border: 2px solid var(--color-bg);
-    border-radius: var(--radius-pill);
-  }
 }
 
 @media (min-width: 769px) {
