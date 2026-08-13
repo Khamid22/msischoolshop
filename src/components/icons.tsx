@@ -70,6 +70,23 @@ export function CheckIcon(props: IconProps) {
   return <Base {...props}><path d="m5 12 4 4L19 6" /></Base>;
 }
 
+export function MoonIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M20 15.3A8.5 8.5 0 0 1 8.7 4a8.5 8.5 0 1 0 11.3 11.3Z" />
+    </Base>
+  );
+}
+
+export function SunIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </Base>
+  );
+}
+
 export function UserIcon(props: IconProps) {
   return (
     <Base {...props}>

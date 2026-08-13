@@ -4,6 +4,8 @@ export const translations: Translations = {
   ru: {
     shopTitle: 'MSI Shop',
     miniApp: 'Telegram Mini App',
+    switchDarkMode: 'Включить тёмную тему',
+    switchLightMode: 'Включить светлую тему',
     cartTitle: 'Корзина',
     cartEmptyTitle: 'Корзина пуста',
     cartEmptyBody: 'Добавьте товары из каталога, чтобы оформить заказ.',
@@ -262,6 +264,8 @@ export const translations: Translations = {
   uz: {
     shopTitle: "MSI Shop",
     miniApp: 'Telegram Mini App',
+    switchDarkMode: "Qorong'i mavzuni yoqish",
+    switchLightMode: "Yorug' mavzuni yoqish",
     cartTitle: 'Savat',
     cartEmptyTitle: "Savat bo'sh",
     cartEmptyBody: "Buyurtma berish uchun katalogdan mahsulot qo'shing.",
@@ -520,6 +524,8 @@ export const translations: Translations = {
   en: {
     shopTitle: 'MSI Shop',
     miniApp: 'Telegram Mini App',
+    switchDarkMode: 'Switch to dark mode',
+    switchLightMode: 'Switch to light mode',
     cartTitle: 'Cart',
     cartEmptyTitle: 'Your cart is empty',
     cartEmptyBody: 'Add products from the catalog to place an order.',

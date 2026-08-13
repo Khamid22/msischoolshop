@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { formatCoins } from '../utils/currency';
 import type { Language, View } from '../types';
 import Coin from './Coin';
-import { BellIcon } from './icons';
+import { BellIcon, MoonIcon, SunIcon } from './icons';
 import './Header.scss';
 
 interface Props {
@@ -28,6 +29,7 @@ export default function Header({ view, onViewChange }: Props) {
   const { lang, t } = useLang();
   const { user, openAuth } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
+  const { theme, toggleTheme } = useTheme();
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +71,15 @@ export default function Header({ view, onViewChange }: Props) {
       </button>
 
       <div className="topbar__right">
+        <button
+          className="topbar__icon-btn topbar__theme-btn"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={t(theme === 'dark' ? 'switchLightMode' : 'switchDarkMode')}
+          title={t(theme === 'dark' ? 'switchLightMode' : 'switchDarkMode')}
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
         {user ? (
           <>
             <div className="topbar__notif-wrap" ref={notifRef}>
