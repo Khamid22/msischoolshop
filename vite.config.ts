@@ -6,6 +6,9 @@ import { resolve } from 'path'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  preview: {
+    allowedHosts: ['msi-shop-development.up.railway.app'],
+  },
   build: {
     rollupOptions: {
       input: {
