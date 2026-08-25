@@ -15,6 +15,7 @@ sys.path.insert(0, str(BACKEND_ROOT))
 database_file = tempfile.NamedTemporaryFile(prefix="msishop-test-", suffix=".db", delete=False)
 database_file.close()
 os.environ["DATABASE_URL"] = f"sqlite:///{database_file.name}"
+os.environ["SEED_DEMO_DATA"] = "true"
 os.environ["ADMIN_PASSWORD"] = "test-admin-password"
 os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ["BOT_TOKEN"] = "test-bot-token"

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-React 19 + TypeScript + Vite Telegram Shop in `frontend/`, with a local FastAPI + SQLite compatibility backend in `backend/`. The production target is the existing LMS API and PostgreSQL coin ledger. All frontend paths below are relative to `frontend/` unless stated otherwise.
+React 19 + TypeScript + Vite Telegram Shop in `frontend/`, with a FastAPI backend in `backend/`. Development uses SQLite; Railway uses the existing PostgreSQL service with shop-owned tables in the isolated `msi_shop` schema. The production target is the existing LMS API and PostgreSQL coin ledger. All frontend paths below are relative to `frontend/` unless stated otherwise.
 
 ## Commands
 - `cd frontend && npm run dev` — Vite dev server
@@ -16,11 +16,11 @@ Verification is backend pytest plus frontend lint and build.
 - **Multi-entry build** (vite.config.ts): `index.html` = React storefront, plus `admin.html` and `admin-login.html` as inputs.
 - `admin.html` / `admin-login.html` are **plain HTML + inline vanilla JS at the frontend project root** (NOT React) — not covered by `tsc -b` or oxlint, so edits there are never typechecked/linted. Styles come from `/admin/*.css` in `public/`.
 - React app entry: `src/main.tsx` -> `src/App.tsx`. State via contexts in `src/contexts/` (Auth, Cart, Favorites, Lang, Notifications, Theme) wrapping an inline page router (view state in App, no react-router).
-- FastAPI entry: `backend/app/main.py`. Routers cover catalog, auth/users, orders, and admin operations. SQLite models live in `backend/app/models.py`.
+- FastAPI entry: `backend/app/main.py`. Routers cover catalog, auth/users, orders, and admin operations. SQLAlchemy models live in `backend/app/models.py`.
 
 ## Data layer: local adapter and LMS target
 - `src/api.ts` calls `/api`; Vite proxies that prefix to `http://127.0.0.1:8000` in development.
-- Local products, banners, news, users, orders, notifications, pickup slots, and grant logs live in SQLite. Seed data is in `backend/app/seed.py`.
+- Local data lives in SQLite. Railway data lives in PostgreSQL under `msi_shop`; `SEED_DEMO_DATA=false` keeps production free of demo products and users. Seed data is in `backend/app/seed.py` for development only.
 - Local checkout and balance deduction happen in one backend transaction in `backend/app/routers/orders.py`. `requestId` makes repeated purchase requests idempotent.
 - Production must use the LMS PostgreSQL student coin ledger and the contract in `docs/LMS_INTEGRATION.md`; never treat the local SQLite balance as authoritative LMS data.
 - The vanilla admin hydrates a browser cache from `/api/admin/bootstrap` and synchronizes edits to authenticated bulk endpoints. The cache is not the source of truth.

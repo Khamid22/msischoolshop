@@ -19,7 +19,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title="MSI Shop API",
     version="1.0.0",
-    description="FastAPI and SQLite backend for the MSI Telegram shop.",
+    description="FastAPI backend for the MSI Telegram shop.",
     lifespan=lifespan,
 )
 app.add_middleware(

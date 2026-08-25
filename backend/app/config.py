@@ -15,6 +15,11 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL",
     f"sqlite:///{(BACKEND_DIR / 'msishop.db').as_posix()}",
 )
+DATABASE_SCHEMA = os.getenv("DATABASE_SCHEMA", "msi_shop").strip() or "msi_shop"
+SEED_DEMO_DATA = os.getenv(
+    "SEED_DEMO_DATA",
+    "true" if DATABASE_URL.startswith("sqlite") else "false",
+).lower() in {"1", "true", "yes", "on"}
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "123456789")
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-development-secret")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
