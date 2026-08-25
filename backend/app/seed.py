@@ -73,8 +73,13 @@ def _product_model(data: dict, position: int) -> Product:
 def seed_database(database: Session) -> None:
     now = datetime.now(timezone.utc)
 
-    if database.scalar(select(func.count()).select_from(Product)) == 0:
-        database.add_all(_product_model(product, position) for position, product in enumerate(PRODUCTS))
+    existing_ids = set(database.scalars(select(Product.id)).all())
+    new_products = [p for p in PRODUCTS if p["id"] not in existing_ids]
+    if new_products:
+        max_pos = database.scalar(select(func.coalesce(func.max(Product.position), -1)))
+        database.add_all(
+            _product_model(p, max_pos + i + 1) for i, p in enumerate(new_products)
+        )
 
     if database.scalar(select(func.count()).select_from(Banner)) == 0:
         database.add_all(
