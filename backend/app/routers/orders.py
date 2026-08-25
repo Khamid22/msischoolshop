@@ -1,0 +1,110 @@
+from datetime import datetime, timezone
+from math import floor
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..models import Notification, Order, Product, User
+from ..schemas import OrderCreate, OrderStatusUpdate
+from ..security import current_claims, require_admin, require_user
+from ..serializers import order_to_dict, product_to_dict, user_to_dict
+
+
+router = APIRouter(prefix="/api/orders", tags=["orders"])
+
+
+def js_round(value: float) -> int:
+    """Match Math.round for the non-negative shop prices used here."""
+    return floor(value + 0.5)
+
+
+@router.get("")
+def list_orders(claims: dict = Depends(current_claims), database: Session = Depends(get_db)) -> list[dict]:
+    query = select(Order).order_by(Order.created_at.desc())
+    if claims.get("role") != "admin":
+        query = query.where(Order.user_id == claims.get("sub"))
+    orders = database.scalars(query).all()
+    return [order_to_dict(order) for order in orders]
+
+
+@router.post("", status_code=201)
+def create_order(
+    data: OrderCreate,
+    claims: dict = Depends(require_user),
+    database: Session = Depends(get_db),
+) -> dict:
+    user = database.get(User, claims["sub"])
+    if user is None:
+        raise HTTPException(status_code=401, detail="User no longer exists")
+
+    if data.requestId:
+        existing_order = database.get(Order, data.requestId)
+        if existing_order is not None:
+            if existing_order.user_id != user.id:
+                raise HTTPException(status_code=409, detail="Purchase request ID is already in use")
+            return {"order": order_to_dict(existing_order), "user": user_to_dict(user)}
+
+    product = database.get(Product, data.productId)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product.stock is not None and product.stock < data.quantity:
+        raise HTTPException(status_code=409, detail="Not enough stock")
+
+    product_price = product.price
+    if product.discount and product.discount > 0:
+        product_price = js_round(product_price * (1 - product.discount / 100))
+    original_price = product_price * data.quantity
+    unit_price = product_price
+    if user.discount and user.discount > 0:
+        unit_price = js_round(unit_price * (1 - user.discount / 100))
+    total_price = unit_price * data.quantity
+    if user.balance < total_price:
+        raise HTTPException(status_code=409, detail="Insufficient balance")
+
+    now = datetime.now(timezone.utc).isoformat()
+    user.balance -= total_price
+    order = Order(
+        id=data.requestId or str(uuid4()), items=[{"product": product_to_dict(product), "quantity": data.quantity}],
+        total_price=total_price, original_price=original_price, customer_name=data.customerName,
+        customer_phone=data.customerPhone, delivery_address=data.deliveryAddress,
+        delivery_method=data.deliveryMethod, created_at=now, user_id=user.id,
+        customer_email=user.email, status="paid", pickup_code=f"K-{uuid4().int % 9000 + 1000}",
+        pickup_slot=data.pickupSlot,
+    )
+    notification = Notification(
+        id=f"notif-{uuid4().hex}", user_id=user.id, notification_type="spend", amount=total_price,
+        note=product.name or product.name_key, created_at=now, read=False,
+    )
+    database.add_all([order, notification])
+    database.commit()
+    return {"order": order_to_dict(order), "user": user_to_dict(user)}
+
+
+@router.patch("/{order_id}/status", dependencies=[Depends(require_admin)])
+def update_order_status(order_id: str, data: OrderStatusUpdate, database: Session = Depends(get_db)) -> dict:
+    order = database.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    order.status = data.status
+    database.commit()
+    return order_to_dict(order)
+
+
+@router.delete("/{order_id}", status_code=204, dependencies=[Depends(require_admin)])
+def delete_order(order_id: str, database: Session = Depends(get_db)) -> Response:
+    order = database.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    database.delete(order)
+    database.commit()
+    return Response(status_code=204)
+
+
+@router.delete("", status_code=204, dependencies=[Depends(require_admin)])
+def clear_orders(database: Session = Depends(get_db)) -> Response:
+    database.execute(delete(Order))
+    database.commit()
+    return Response(status_code=204)

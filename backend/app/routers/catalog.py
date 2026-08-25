@@ -1,0 +1,177 @@
+from datetime import datetime, timezone
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..models import Banner, News, PickupSlot, Product
+from ..schemas import BannerCreate, BannerUpdate, NewsCreate, NewsUpdate, ProductCreate, ProductUpdate
+from ..security import require_admin
+from ..serializers import banner_to_dict, news_to_dict, product_to_dict, slot_to_dict
+
+
+router = APIRouter(prefix="/api", tags=["catalog"])
+
+
+PRODUCT_FIELDS = {
+    "image": "image", "price": "price", "nameKey": "name_key", "descKey": "desc_key",
+    "name": "name", "description": "description", "type": "product_type", "carousel": "carousel",
+    "downloadUrl": "download_url", "licenseKey": "license_key", "weight": "weight", "stock": "stock",
+    "discount": "discount", "rating": "rating", "ratingCount": "rating_count", "course": "course",
+}
+BANNER_FIELDS = {
+    "title": "title", "subtitle": "subtitle", "description": "description", "image": "image",
+    "accent": "accent", "icon": "icon", "active": "active", "productIds": "product_ids",
+}
+NEWS_FIELDS = {"title": "title", "description": "description", "image": "image", "date": "date", "active": "active"}
+
+
+def apply_fields(instance: object, data: dict, field_map: dict[str, str]) -> None:
+    for source, target in field_map.items():
+        if source in data:
+            setattr(instance, target, data[source])
+
+
+def next_position(database: Session, model: type) -> int:
+    current = database.scalar(select(func.max(model.position)))
+    return 0 if current is None else int(current) + 1
+
+
+@router.get("/products")
+def list_products(database: Session = Depends(get_db)) -> list[dict]:
+    products = database.scalars(select(Product).order_by(Product.position, Product.id)).all()
+    return [product_to_dict(product) for product in products]
+
+
+@router.get("/products/{product_id}")
+def get_product(product_id: str, database: Session = Depends(get_db)) -> dict:
+    product = database.get(Product, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product_to_dict(product)
+
+
+@router.post("/products", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
+def create_product(data: ProductCreate, database: Session = Depends(get_db)) -> dict:
+    product = Product(id=f"product-{uuid4().hex[:12]}", position=next_position(database, Product), image="", price=0)
+    apply_fields(product, data.model_dump(), PRODUCT_FIELDS)
+    database.add(product)
+    database.commit()
+    return product_to_dict(product)
+
+
+@router.patch("/products/{product_id}", dependencies=[Depends(require_admin)])
+def update_product(product_id: str, data: ProductUpdate, database: Session = Depends(get_db)) -> dict:
+    product = database.get(Product, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    apply_fields(product, data.model_dump(exclude_unset=True), PRODUCT_FIELDS)
+    database.commit()
+    return product_to_dict(product)
+
+
+@router.delete("/products/{product_id}", status_code=204, dependencies=[Depends(require_admin)])
+def delete_product(product_id: str, database: Session = Depends(get_db)) -> Response:
+    product = database.get(Product, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    database.delete(product)
+    database.commit()
+    return Response(status_code=204)
+
+
+@router.get("/banners")
+def list_banners(database: Session = Depends(get_db)) -> list[dict]:
+    banners = database.scalars(select(Banner).order_by(Banner.position, Banner.id)).all()
+    return [banner_to_dict(banner) for banner in banners]
+
+
+@router.get("/banners/{banner_id}")
+def get_banner(banner_id: str, database: Session = Depends(get_db)) -> dict:
+    banner = database.get(Banner, banner_id)
+    if banner is None:
+        raise HTTPException(status_code=404, detail="Banner not found")
+    return banner_to_dict(banner)
+
+
+@router.post("/banners", status_code=201, dependencies=[Depends(require_admin)])
+def create_banner(data: BannerCreate, database: Session = Depends(get_db)) -> dict:
+    banner = Banner(id=f"banner-{uuid4().hex[:12]}", position=next_position(database, Banner))
+    apply_fields(banner, data.model_dump(), BANNER_FIELDS)
+    database.add(banner)
+    database.commit()
+    return banner_to_dict(banner)
+
+
+@router.patch("/banners/{banner_id}", dependencies=[Depends(require_admin)])
+def update_banner(banner_id: str, data: BannerUpdate, database: Session = Depends(get_db)) -> dict:
+    banner = database.get(Banner, banner_id)
+    if banner is None:
+        raise HTTPException(status_code=404, detail="Banner not found")
+    apply_fields(banner, data.model_dump(exclude_unset=True), BANNER_FIELDS)
+    database.commit()
+    return banner_to_dict(banner)
+
+
+@router.delete("/banners/{banner_id}", status_code=204, dependencies=[Depends(require_admin)])
+def delete_banner(banner_id: str, database: Session = Depends(get_db)) -> Response:
+    banner = database.get(Banner, banner_id)
+    if banner is None:
+        raise HTTPException(status_code=404, detail="Banner not found")
+    database.delete(banner)
+    database.commit()
+    return Response(status_code=204)
+
+
+@router.get("/news")
+def list_news(database: Session = Depends(get_db)) -> list[dict]:
+    items = database.scalars(select(News).order_by(News.position, News.id)).all()
+    return [news_to_dict(item) for item in items]
+
+
+@router.get("/news/{news_id}")
+def get_news(news_id: str, database: Session = Depends(get_db)) -> dict:
+    item = database.get(News, news_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="News item not found")
+    return news_to_dict(item)
+
+
+@router.post("/news", status_code=201, dependencies=[Depends(require_admin)])
+def create_news(data: NewsCreate, database: Session = Depends(get_db)) -> dict:
+    item = News(
+        id=f"news-{uuid4().hex[:12]}", position=next_position(database, News), title=data.title,
+        description=data.description, image=data.image,
+        date=data.date or datetime.now(timezone.utc).isoformat(), active=data.active,
+    )
+    database.add(item)
+    database.commit()
+    return news_to_dict(item)
+
+
+@router.patch("/news/{news_id}", dependencies=[Depends(require_admin)])
+def update_news(news_id: str, data: NewsUpdate, database: Session = Depends(get_db)) -> dict:
+    item = database.get(News, news_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="News item not found")
+    apply_fields(item, data.model_dump(exclude_unset=True), NEWS_FIELDS)
+    database.commit()
+    return news_to_dict(item)
+
+
+@router.delete("/news/{news_id}", status_code=204, dependencies=[Depends(require_admin)])
+def delete_news(news_id: str, database: Session = Depends(get_db)) -> Response:
+    item = database.get(News, news_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="News item not found")
+    database.delete(item)
+    database.commit()
+    return Response(status_code=204)
+
+
+@router.get("/pickup-slots")
+def list_pickup_slots(database: Session = Depends(get_db)) -> list[dict]:
+    slots = database.scalars(select(PickupSlot).order_by(PickupSlot.position, PickupSlot.id)).all()
+    return [slot_to_dict(slot) for slot in slots]
