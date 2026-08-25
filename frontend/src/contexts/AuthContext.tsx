@@ -7,6 +7,8 @@ import {
   clearUserSession,
   fetchCurrentUser,
   getUserToken,
+  loginStudent,
+  logoutUser,
 } from '../api';
 
 
@@ -17,6 +19,8 @@ interface AuthContextType {
   studentStatus: StudentStatus;
   openAuth: () => void;
   refreshUser: () => Promise<void>;
+  signIn: (studentId: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,9 +74,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStudentStatus('checking');
       try {
         const student = await authenticateTelegram(webApp.initData);
-        setUser(student);
-        cacheUser(student);
-        setStudentStatus(student ? 'verified' : 'not_student');
+        if (student) {
+          setUser(student);
+          cacheUser(student);
+          setStudentStatus('verified');
+        } else if (getUserToken()) {
+          await refreshUser();
+        } else {
+          setUser(null);
+          cacheUser(null);
+          setStudentStatus('not_student');
+        }
       } catch {
         if (getCachedUser()) await refreshUser();
         else setStudentStatus('not_student');
@@ -114,8 +126,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else window.alert(message);
   }, []);
 
+  const signIn = useCallback(async (studentId: string, password: string) => {
+    const student = await loginStudent(studentId, password);
+    setUser(student);
+    cacheUser(student);
+    setStudentStatus('verified');
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await logoutUser();
+    setUser(null);
+    cacheUser(null);
+    setStudentStatus(window.Telegram?.WebApp.initDataUnsafe.user ? 'not_student' : 'outside_telegram');
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, studentStatus, openAuth, refreshUser }}>
+    <AuthContext.Provider value={{ user, studentStatus, openAuth, refreshUser, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,5 +3,6 @@ uvicorn[standard]==0.52.0
 SQLAlchemy==2.0.52
 psycopg[binary]==3.3.4
 python-dotenv==1.2.2
+Werkzeug==3.1.8
 pytest==9.0.2
 httpx==0.28.1

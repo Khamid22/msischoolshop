@@ -22,8 +22,10 @@ os.environ["BOT_TOKEN"] = "test-bot-token"
 os.environ["DEMO_TELEGRAM_ID"] = "777000"
 
 from fastapi.testclient import TestClient  # noqa: E402
+from werkzeug.security import generate_password_hash  # noqa: E402
 
 from app.main import app  # noqa: E402
+from app.routers.auth import authenticate_lms_student  # noqa: E402
 
 
 def auth_header(token: str) -> dict[str, str]:
@@ -40,6 +42,62 @@ def telegram_init_data() -> str:
     secret = hmac.new(b"WebAppData", b"test-bot-token", hashlib.sha256).digest()
     values["hash"] = hmac.new(secret, data_check_string.encode(), hashlib.sha256).hexdigest()
     return urlencode(values)
+
+
+class FakeLmsResult:
+    def __init__(self, account: dict) -> None:
+        self.account = account
+
+    def mappings(self) -> "FakeLmsResult":
+        return self
+
+    def first(self) -> dict:
+        return self.account
+
+
+class FakeLmsSession:
+    def __init__(self, account: dict) -> None:
+        self.account = account
+        self.added = None
+        self.committed = False
+
+    def execute(self, *_args, **_kwargs) -> FakeLmsResult:
+        return FakeLmsResult(self.account)
+
+    def get(self, *_args, **_kwargs):
+        return None
+
+    def scalar(self, *_args, **_kwargs):
+        return None
+
+    def add(self, user) -> None:
+        self.added = user
+
+    def commit(self) -> None:
+        self.committed = True
+
+
+def test_lms_login_creates_shop_profile_without_copying_credentials() -> None:
+    lms_hash = generate_password_hash("student-password")
+    database = FakeLmsSession({
+        "account_id": 41,
+        "password_hash": lms_hash,
+        "account_name": "Aisha Karimova",
+        "phone": "+998 90 123 45 67",
+        "student_id": 114,
+        "student_code": "MSI00114",
+        "student_name": "Aisha Karimova",
+    })
+
+    user = authenticate_lms_student("MSI00114", "student-password", database)  # type: ignore[arg-type]
+
+    assert user is database.added
+    assert user is not None
+    assert user.id == "lms-student-114"
+    assert user.student_id == "MSI00114"
+    assert user.balance == 0
+    assert user.password_hash != lms_hash
+    assert database.committed is True
 
 
 def test_complete_api_workflow() -> None:
@@ -94,6 +152,9 @@ def test_complete_api_workflow() -> None:
             assert client.delete(f"/api/news/{news_id}", headers=admin_headers).status_code == 204
 
             assert client.post("/api/auth/login", json={"email": "aisha@msi.uz", "password": "wrong"}).status_code == 401
+            student_id_login = client.post("/api/auth/login", json={"studentId": "2023114", "password": "demo"})
+            assert student_id_login.status_code == 200
+            assert student_id_login.json()["user"]["studentId"] == "2023114"
             student_login = client.post("/api/auth/login", json={"email": "aisha@msi.uz", "password": "demo"})
             assert student_login.status_code == 200
             student_headers = auth_header(student_login.json()["token"])

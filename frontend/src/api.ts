@@ -164,8 +164,8 @@ export async function authenticateTelegram(initData: string): Promise<User | nul
   }
 }
 
-export async function loginStudent(email: string, password: string): Promise<User> {
-  return saveUserSession(await request<AuthResult>('/auth/login', json('POST', { email, password })));
+export async function loginStudent(studentId: string, password: string): Promise<User> {
+  return saveUserSession(await request<AuthResult>('/auth/login', json('POST', { studentId, password })));
 }
 
 export function fetchCurrentUser(): Promise<User> {

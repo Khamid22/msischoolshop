@@ -8,6 +8,14 @@
   &__guest-avatar { display: grid; width: 52px; height: 52px; place-items: center; color: var(--text-muted); border: 1px solid var(--color-divider); border-radius: 50%; }
   &__guest-text { font-size: 15px; font-weight: 650; }
   &__guest-help { max-width: 280px; color: var(--text-muted); font-size: 11px; line-height: 1.6; }
+  &__login { display: flex; width: min(100%, 320px); margin-top: 8px; padding: 16px; flex-direction: column; gap: 12px; text-align: left; background: var(--color-surface); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); }
+  &__login > p { margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; text-align: center; }
+  &__login label { display: flex; flex-direction: column; gap: 6px; color: var(--color-text); font-size: 10px; font-weight: 600; }
+  &__login input { width: 100%; min-height: 44px; padding: 0 12px; color: var(--color-text); font: inherit; background: var(--color-bg); border: 1px solid var(--color-divider); border-radius: var(--radius-md); outline: none; }
+  &__login input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  &__login input:disabled { opacity: .65; }
+  &__login .btn { min-height: 44px; }
+  &__login &__login-error { color: #e57373; text-align: left; }
 
   &__card {
     position: relative;

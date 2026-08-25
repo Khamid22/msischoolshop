@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { ApiError } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -21,10 +24,38 @@ const LANGUAGES: { code: Language; label: string }[] = [
 const CUSTOMER_SUPPORT_URL = import.meta.env.VITE_CUSTOMER_SUPPORT_URL || './admin-login.html';
 
 export default function ProfilePage({ onNavigate }: Props) {
-  const { user, studentStatus } = useAuth();
+  const { user, studentStatus, signIn, signOut } = useAuth();
   const { t, lang, setLang } = useLang();
   const { theme, toggleTheme } = useTheme();
   const { open: openFavorites } = useFavorites();
+  const [studentId, setStudentId] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!studentId.trim() || !password) {
+      setLoginError(t('errorFillRequired'));
+      return;
+    }
+    setIsSigningIn(true);
+    setLoginError('');
+    try {
+      await signIn(studentId.trim(), password);
+      setPassword('');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 429) {
+        setLoginError(t('errorTooManyLoginAttempts'));
+      } else if (error instanceof ApiError && error.status === 401) {
+        setLoginError(t('errorInvalidStudentCredentials'));
+      } else {
+        setLoginError(t('errorLoginUnavailable'));
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -39,6 +70,39 @@ export default function ProfilePage({ onNavigate }: Props) {
                 ? t('openInTelegram')
                 : t('studentNotFound')}
           </small>
+          <form className="profile-page__login" onSubmit={(event) => void handleSignIn(event)}>
+            <p>{t('studentLoginHelp')}</p>
+            <label>
+              <span>{t('studentId')}</span>
+              <input
+                type="text"
+                name="studentId"
+                value={studentId}
+                onChange={(event) => setStudentId(event.target.value)}
+                autoComplete="username"
+                autoCapitalize="characters"
+                spellCheck={false}
+                disabled={isSigningIn}
+                required
+              />
+            </label>
+            <label>
+              <span>{t('password')}</span>
+              <input
+                type="password"
+                name="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                disabled={isSigningIn}
+                required
+              />
+            </label>
+            {loginError ? <p className="profile-page__login-error" role="alert">{loginError}</p> : null}
+            <button className="btn btn-primary" type="submit" disabled={isSigningIn}>
+              {isSigningIn ? t('signingIn') : t('login')}
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -114,6 +178,9 @@ export default function ProfilePage({ onNavigate }: Props) {
           <span className="profile-page__row-label">{t('adminPanel')}</span>
           <ChevronRightIcon className="profile-page__row-chevron" />
         </a>
+        <button className="profile-page__row" type="button" onClick={() => void signOut()}>
+          <span className="profile-page__row-label">{t('logout')}</span>
+        </button>
       </nav>
 
     </div>

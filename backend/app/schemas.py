@@ -68,8 +68,9 @@ class NewsUpdate(BaseModel):
 
 
 class StudentLogin(BaseModel):
-    email: str
-    password: str
+    studentId: str | None = Field(default=None, max_length=100)
+    email: str | None = Field(default=None, max_length=320)
+    password: str = Field(max_length=256)
 
 
 class TelegramLogin(BaseModel):

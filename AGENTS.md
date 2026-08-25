@@ -28,7 +28,7 @@ Verification is backend pytest plus frontend lint and build.
 - Theme, language, favorites, search history, and the current session cache remain in localStorage because they are client preferences/session data.
 
 ## Auth (do not conflate the three)
-- **Storefront users:** Telegram `initData` is validated by FastAPI with `BOT_TOKEN`, then matched to `users.telegram_id`. User tokens are signed by the backend and cached as `msi_user_token`.
+- **Storefront users:** Telegram `initData` is validated by FastAPI with `BOT_TOKEN`, then matched to `users.telegram_id`. Manual production login verifies Student ID/password read-only against canonical `msi_v2` student accounts and creates/updates a minimal `msi_shop.users` profile; LMS credential hashes are never copied. Local SQLite login uses the seeded shop user. User tokens are signed by the backend and cached as `msi_user_token`.
 - **Admin panel:** `admin-login.html` sends the password to `/api/admin/login`; the signed admin token is kept in sessionStorage as `msi_admin_token`.
 - Development defaults are documented in `backend/.env.example`; never commit real secrets.
 

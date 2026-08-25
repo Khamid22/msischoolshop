@@ -25,7 +25,9 @@ Open `http://localhost:5173`. API documentation is at `http://127.0.0.1:8000/doc
 
 The development admin password is `123456789`. Copy `backend/.env.example` to `backend/.env` and replace the password and secret. Set `BOT_TOKEN` and link a student's `telegramId` to test verified Telegram sign-in. The seeded local demo user is `aisha@msi.uz` / `demo`.
 
-The PostgreSQL connection makes shop products, users, and orders persistent, but it does not map shop users to LMS students. LMS identity and authoritative MSI Coin transactions still require the integration described in [`docs/LMS_INTEGRATION.md`](docs/LMS_INTEGRATION.md).
+The PostgreSQL connection makes shop products, users, and orders persistent, but it does not automatically link a Telegram account to an LMS student. Authoritative MSI Coin transactions still require the integration described in [`docs/LMS_INTEGRATION.md`](docs/LMS_INTEGRATION.md).
+
+Production students can sign in from the Profile page with their LMS Student ID and password. The Shop verifies the canonical `msi_v2` account read-only and stores only a minimal shop profile with a random local password; it never copies the LMS password or password hash. MSI Coin purchases are still not written to the LMS ledger yet.
 
 ## Repository structure
 
