@@ -70,6 +70,7 @@ def user_to_dict(user: User) -> dict:
         "studentId": user.student_id,
         "discount": user.discount,
         "earned": user.earned,
+        "activeCourses": getattr(user, "active_courses", 0),
     })
 
 

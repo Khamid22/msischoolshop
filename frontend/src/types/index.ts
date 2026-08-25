@@ -82,6 +82,7 @@ export interface User {
   studentId?: string;
   discount?: number;
   earned?: number;
+  activeCourses?: number;
 }
 
 export interface Order {

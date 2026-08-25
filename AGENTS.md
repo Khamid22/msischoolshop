@@ -22,6 +22,7 @@ Verification is backend pytest plus frontend lint and build.
 - `src/api.ts` calls `/api`; Vite proxies that prefix to `http://127.0.0.1:8000` in development.
 - Local data lives in SQLite. Railway data lives in PostgreSQL under `msi_shop`; `SEED_DEMO_DATA=false` keeps production free of demo products and users. Seed data is in `backend/app/seed.py` for development only.
 - Local checkout and balance deduction happen in one backend transaction in `backend/app/routers/orders.py`. `requestId` makes repeated purchase requests idempotent.
+- For LMS-backed users, `/api/auth/me` refreshes the active group, total coin balance, positive coins earned in the current month, and active subject count from canonical `msi_v2` tables. Do not replace these with frontend constants.
 - Production must use the LMS PostgreSQL student coin ledger and the contract in `docs/LMS_INTEGRATION.md`; never treat the local SQLite balance as authoritative LMS data.
 - The vanilla admin hydrates a browser cache from `/api/admin/bootstrap` and synchronizes edits to authenticated bulk endpoints. The cache is not the source of truth.
 - The vanilla admin is a local compatibility tool. Production product and purchase management belongs to the LMS Customer Support workspace.

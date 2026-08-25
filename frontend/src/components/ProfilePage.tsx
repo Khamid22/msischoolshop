@@ -150,7 +150,7 @@ export default function ProfilePage({ onNavigate }: Props) {
         </button>
         <button className="profile-page__row" onClick={() => onNavigate('news')}>
           <span className="profile-page__row-icon"><GridIcon /></span>
-          <span className="profile-page__row-label">{t('myCourses')}<small>3 {t('activeCourses')}</small></span>
+          <span className="profile-page__row-label">{t('myCourses')}<small>{user.activeCourses ?? 0} {t('activeCourses')}</small></span>
           <ChevronRightIcon className="profile-page__row-chevron" />
         </button>
       </nav>

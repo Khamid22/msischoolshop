@@ -29,6 +29,8 @@ The PostgreSQL connection makes shop products, users, and orders persistent, but
 
 Production students can sign in from the Profile page with their LMS Student ID and password. The Shop verifies the canonical `msi_v2` account read-only and stores only a minimal shop profile with a random local password; it never copies the LMS password or password hash. MSI Coin purchases are still not written to the LMS ledger yet.
 
+Each profile refresh reads the student's active group, current MSI Coin total, positive coins earned this month, and active subject count from the LMS. These values are no longer demo defaults.
+
 ## Repository structure
 
 - `frontend/src/` contains the React storefront and its API client.

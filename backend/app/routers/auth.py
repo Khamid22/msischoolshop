@@ -49,6 +49,71 @@ def authenticate_local_student(identifier: str, password: str, database: Session
     return user
 
 
+def refresh_lms_student_profile(user: User, lms_student_id: int, database: Session) -> User:
+    details = database.execute(
+        text(
+            """
+            SELECT
+                COALESCE(academic.group_names, '') AS group_names,
+                COALESCE(academic.active_course_count, 0)::integer AS active_course_count,
+                COALESCE(coins.total_coins, 0)::integer AS total_coins,
+                COALESCE(coins.earned_this_month, 0)::integer AS earned_this_month
+            FROM msi_v2.students student
+            LEFT JOIN LATERAL (
+                SELECT
+                    string_agg(DISTINCT groups.group_name, ', ' ORDER BY groups.group_name)
+                        FILTER (WHERE lower(groups.group_name) <> 'online') AS group_names,
+                    count(DISTINCT programs.subject_id)
+                        FILTER (WHERE lower(groups.group_name) <> 'online') AS active_course_count
+                FROM msi_v2.group_students enrollment
+                JOIN msi_v2.groups groups ON groups.id = enrollment.group_id
+                JOIN msi_v2.subject_programs programs ON programs.id = groups.program_id
+                WHERE enrollment.student_id = student.id
+                  AND enrollment.enrollment_status = 'active'
+            ) academic ON true
+            LEFT JOIN LATERAL (
+                SELECT
+                    sum(event.amount) AS total_coins,
+                    sum(event.amount) FILTER (
+                        WHERE event.amount > 0
+                          AND event.occurred_at >= date_trunc('month', now())
+                          AND event.occurred_at < date_trunc('month', now()) + interval '1 month'
+                    ) AS earned_this_month
+                FROM msi_v2.coin_events event
+                WHERE event.student_id = student.id
+            ) coins ON true
+            WHERE student.id = :student_id
+            LIMIT 1
+            """
+        ),
+        {"student_id": lms_student_id},
+    ).mappings().first()
+    if details is None:
+        return user
+
+    group_name = str(details["group_names"] or "").strip()[:100] or None
+    balance = int(details["total_coins"] or 0)
+    earned = int(details["earned_this_month"] or 0)
+    if user.group_name != group_name or user.balance != balance or user.earned != earned:
+        user.group_name = group_name
+        user.balance = balance
+        user.earned = earned
+        database.commit()
+    user.active_courses = int(details["active_course_count"] or 0)
+    return user
+
+
+def refresh_lms_user(user: User, database: Session) -> User:
+    prefix = "lms-student-"
+    if not user.id.startswith(prefix):
+        return user
+    try:
+        lms_student_id = int(user.id.removeprefix(prefix))
+    except ValueError:
+        return user
+    return refresh_lms_student_profile(user, lms_student_id, database)
+
+
 def authenticate_lms_student(identifier: str, password: str, database: Session) -> User | None:
     account = database.execute(
         text(
@@ -106,14 +171,14 @@ def authenticate_lms_student(identifier: str, password: str, database: Session) 
         shop_user.phone = str(account["phone"] or shop_user.phone or "")
         shop_user.student_id = student_code
     database.commit()
-    return shop_user
+    return refresh_lms_student_profile(shop_user, int(account["student_id"]), database)
 
 
 def authenticated_user(claims: dict, database: Session) -> User:
     user = database.get(User, claims["sub"])
     if user is None:
         raise HTTPException(status_code=401, detail="User no longer exists")
-    return user
+    return refresh_lms_user(user, database)
 
 
 def auth_response(user: User) -> dict:
@@ -145,6 +210,7 @@ def telegram_login(data: TelegramLogin, database: Session = Depends(get_db)) -> 
     user = database.scalar(select(User).where(User.telegram_id == telegram_id))
     if user is None:
         raise HTTPException(status_code=404, detail="Telegram account is not linked to a student")
+    user = refresh_lms_user(user, database)
     if telegram_user.get("photo_url") and not user.avatar:
         user.avatar = telegram_user["photo_url"]
         database.commit()

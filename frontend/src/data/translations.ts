@@ -57,7 +57,7 @@ export const translations: Translations = {
     howToEarnCoins: 'Как заработать MSI Coin',
     synced: 'Синхронизировано',
     myCourses: 'Мои курсы',
-    activeCourses: 'активных курса',
+    activeCourses: 'активных курсов',
     earlier: 'Ранее',
     today: 'Сегодня',
     viewOrder: 'Посмотреть заказ',

@@ -87,6 +87,10 @@ def test_lms_login_creates_shop_profile_without_copying_credentials() -> None:
         "student_id": 114,
         "student_code": "MSI00114",
         "student_name": "Aisha Karimova",
+        "group_names": "MG1",
+        "active_course_count": 3,
+        "total_coins": 143,
+        "earned_this_month": 25,
     })
 
     user = authenticate_lms_student("MSI00114", "student-password", database)  # type: ignore[arg-type]
@@ -95,7 +99,10 @@ def test_lms_login_creates_shop_profile_without_copying_credentials() -> None:
     assert user is not None
     assert user.id == "lms-student-114"
     assert user.student_id == "MSI00114"
-    assert user.balance == 0
+    assert user.group_name == "MG1"
+    assert user.balance == 143
+    assert user.earned == 25
+    assert user.active_courses == 3
     assert user.password_hash != lms_hash
     assert database.committed is True
 
