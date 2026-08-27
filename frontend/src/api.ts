@@ -1,4 +1,14 @@
-import type { AppNotification, Banner, News, Order, PickupSlot, Product, User } from './types';
+import type {
+  AdminBootstrap,
+  AppNotification,
+  Banner,
+  News,
+  Order,
+  OrderStatus,
+  PickupSlot,
+  Product,
+  User,
+} from './types';
 
 
 const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
@@ -17,7 +27,7 @@ export interface CreateOrderInput {
   customerName: string;
   customerPhone: string;
   deliveryAddress: string;
-  deliveryMethod: 'courier' | 'pickup' | 'post';
+  deliveryMethod: 'courier' | 'pickup' | 'post' | 'digital';
   pickupSlot?: string;
 }
 
@@ -218,4 +228,24 @@ export async function isAuthenticated(): Promise<boolean> {
     sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     return false;
   }
+}
+
+export function fetchAdminBootstrap(): Promise<AdminBootstrap> {
+  return request('/admin/bootstrap', {}, getAdminToken());
+}
+
+export function updateAdminOrderStatus(id: string, status: OrderStatus): Promise<Order> {
+  return request(`/orders/${encodeURIComponent(id)}/status`, json('PATCH', { status }), getAdminToken());
+}
+
+export function changeAdminUserBalance(
+  id: string,
+  amount: number,
+  note: string,
+): Promise<{ user: User; amount: number }> {
+  return request(
+    `/admin/users/${encodeURIComponent(id)}/balance`,
+    json('POST', { amount, note }),
+    getAdminToken(),
+  );
 }

@@ -1,7 +1,7 @@
 from collections.abc import Generator
 import re
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import DATABASE_SCHEMA, DATABASE_URL, SEED_DEMO_DATA
@@ -59,8 +59,41 @@ def initialize_database() -> None:
             connection.exec_driver_sql(f'SET search_path TO "{DATABASE_SCHEMA}"')
             Base.metadata.create_all(bind=connection)
 
+    _ensure_product_fulfillment_columns()
+
     if SEED_DEMO_DATA:
         from .seed import seed_database
 
         with SessionLocal() as database:
             seed_database(database)
+
+
+def _ensure_product_fulfillment_columns() -> None:
+    """Apply the small additive schema evolution used by this standalone app."""
+    columns = {column["name"] for column in inspect(engine).get_columns("products", schema=None if IS_SQLITE else DATABASE_SCHEMA)}
+    statements: list[str] = []
+    if "fulfillment_type" not in columns:
+        statements.append(
+            "ALTER TABLE products ADD COLUMN fulfillment_type VARCHAR(30)"
+        )
+    if "active" not in columns:
+        statements.append(
+            "ALTER TABLE products ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE"
+        )
+
+    with engine.begin() as connection:
+        if not IS_SQLITE:
+            connection.exec_driver_sql(f'SET search_path TO "{DATABASE_SCHEMA}"')
+        for statement in statements:
+            connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(
+            """
+            UPDATE products
+            SET fulfillment_type = CASE
+                WHEN product_type = 'physical' THEN 'physical_pickup'
+                WHEN download_url IS NOT NULL AND download_url <> '' THEN 'digital_delivery'
+                ELSE 'digital_activation'
+            END
+            WHERE fulfillment_type IS NULL OR fulfillment_type = ''
+            """
+        )

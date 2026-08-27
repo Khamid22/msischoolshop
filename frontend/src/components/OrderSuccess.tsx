@@ -11,6 +11,9 @@ export default function OrderSuccess() {
   const { t } = useLang();
 
   if (!lastOrder) return null;
+  const isPhysical = lastOrder.fulfillmentType
+    ? lastOrder.fulfillmentType === 'physical_pickup'
+    : lastOrder.items[0]?.product.type === 'physical';
 
   return (
     <>
@@ -18,7 +21,9 @@ export default function OrderSuccess() {
       <div className="success-modal">
         <div className="success-modal__icon">✓</div>
         <h2 className="success-modal__title">{t('orderSuccessTitle')}</h2>
-        <p className="success-modal__subtitle">{t('orderSuccessSubtitle')} {lastOrder.customerName}.</p>
+        <p className="success-modal__subtitle">
+          {t(isPhysical ? 'orderSuccessPhysicalSubtitle' : 'orderSuccessDigitalSubtitle')}
+        </p>
 
         {lastOrder.pickupCode && (
           <div className="success-modal__code">

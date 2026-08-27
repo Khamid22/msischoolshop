@@ -60,6 +60,10 @@ def _product_model(data: dict, position: int) -> Product:
         id=data["id"], position=position, image=data["image"], price=data["price"],
         name_key=data.get("nameKey", ""), desc_key=data.get("descKey", ""),
         name=data.get("name"), description=data.get("description"), product_type=data.get("type"),
+        fulfillment_type=data.get("fulfillmentType") or (
+            "physical_pickup" if data.get("type") == "physical" else "digital_activation"
+        ),
+        active=data.get("active", True),
         carousel=data.get("carousel"), download_url=data.get("downloadUrl"),
         license_key=data.get("licenseKey"), weight=data.get("weight"), stock=data.get("stock"),
         discount=data.get("discount"), rating=data.get("rating"), rating_count=data.get("ratingCount"),
@@ -117,8 +121,8 @@ def seed_database(database: Session) -> None:
                 id="order-demo-1", items=[{"product": product_by_id["la2-bundle"], "quantity": 1}],
                 total_price=1080, original_price=1200, customer_name="Aisha Karimova",
                 customer_phone="+998 90 123 45 67", delivery_address="Campus A · Room 112",
-                delivery_method="pickup", user_id="student-2023114", customer_email="aisha@msi.uz",
-                status="ready", pickup_code="K-4821", pickup_slot="After Calculus II · Tue 14:30",
+                delivery_method="digital", user_id="student-2023114", customer_email="aisha@msi.uz",
+                status="connected", pickup_code=None, pickup_slot=None,
                 created_at=(now - timedelta(hours=5)).isoformat(),
             ),
             Order(

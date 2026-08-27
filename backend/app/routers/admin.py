@@ -33,7 +33,12 @@ from ..serializers import (
     product_to_dict,
     user_to_dict,
 )
-from .catalog import BANNER_FIELDS, PRODUCT_FIELDS, apply_fields
+from .catalog import (
+    BANNER_FIELDS,
+    PRODUCT_FIELDS,
+    apply_fields,
+    normalize_product_fulfillment,
+)
 
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -142,7 +147,9 @@ def sync_products(database: Session, items: list[dict]) -> None:
     for position, raw in enumerate(items):
         data = ProductCreate.model_validate(raw)
         product = Product(id=str(raw.get("id") or f"product-{uuid4().hex[:12]}"), position=position, image="", price=0)
-        apply_fields(product, data.model_dump(), PRODUCT_FIELDS)
+        fields = data.model_dump()
+        apply_fields(product, fields, PRODUCT_FIELDS)
+        normalize_product_fulfillment(product, set(fields))
         database.add(product)
 
 

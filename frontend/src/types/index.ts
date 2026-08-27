@@ -2,7 +2,17 @@ export type Language = 'ru' | 'uz' | 'en';
 
 export type View = 'home' | 'catalog' | 'orders' | 'profile' | 'news';
 
-export type OrderStatus = 'paid' | 'packed' | 'ready' | 'collected';
+export type OrderStatus =
+  | 'paid'
+  | 'packed'
+  | 'ready'
+  | 'collected'
+  | 'activating'
+  | 'connected'
+  | 'sent'
+  | 'received';
+
+export type FulfillmentType = 'physical_pickup' | 'digital_activation' | 'digital_delivery';
 
 export type NotificationType = 'welcome' | 'spend' | 'topup';
 
@@ -29,6 +39,8 @@ export interface Product {
   name?: string;
   description?: string;
   type?: 'digital' | 'physical';
+  fulfillmentType?: FulfillmentType;
+  active?: boolean;
   carousel?: boolean;
   downloadUrl?: string;
   licenseKey?: string;
@@ -97,12 +109,15 @@ export interface Order {
   userId?: string;
   customerEmail?: string;
   status?: OrderStatus;
+  fulfillmentType?: FulfillmentType;
+  statusFlow?: OrderStatus[];
+  nextStatus?: OrderStatus;
   pickupCode?: string;
   pickupSlot?: string;
   originalPrice?: number;
 }
 
-export type DeliveryMethod = 'courier' | 'pickup' | 'post';
+export type DeliveryMethod = 'courier' | 'pickup' | 'post' | 'digital';
 
 export interface Banner {
   id: string;
@@ -123,4 +138,24 @@ export interface News {
   image?: string;
   date: string;
   active: boolean;
+}
+
+export interface GrantLog {
+  id: string;
+  admin: string;
+  userName: string;
+  userEmail?: string;
+  amount: number;
+  type?: 'grant' | 'withdraw' | 'writeoff';
+  createdAt: string;
+}
+
+export interface AdminBootstrap {
+  products: Product[];
+  banners: Banner[];
+  news: News[];
+  orders: Order[];
+  users: User[];
+  notifications: AppNotification[];
+  grants: GrantLog[];
 }

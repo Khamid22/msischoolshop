@@ -8,6 +8,13 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Notification, Order, Product, User
+from ..order_fulfillment import (
+    fulfillment_type_from_order,
+    fulfillment_type_from_product,
+    is_allowed_transition,
+    next_status,
+    status_for_fulfillment,
+)
 from ..schemas import OrderCreate, OrderStatusUpdate
 from ..security import current_claims, require_admin, require_user
 from ..serializers import order_to_dict, product_to_dict, user_to_dict
@@ -36,7 +43,9 @@ def create_order(
     claims: dict = Depends(require_user),
     database: Session = Depends(get_db),
 ) -> dict:
-    user = database.get(User, claims["sub"])
+    user = database.scalar(
+        select(User).where(User.id == claims["sub"]).with_for_update()
+    )
     if user is None:
         raise HTTPException(status_code=401, detail="User no longer exists")
 
@@ -47,9 +56,13 @@ def create_order(
                 raise HTTPException(status_code=409, detail="Purchase request ID is already in use")
             return {"order": order_to_dict(existing_order), "user": user_to_dict(user)}
 
-    product = database.get(Product, data.productId)
+    product = database.scalar(
+        select(Product).where(Product.id == data.productId).with_for_update()
+    )
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
+    if not product.active:
+        raise HTTPException(status_code=409, detail="Product is not available")
     if product.stock is not None and product.stock < data.quantity:
         raise HTTPException(status_code=409, detail="Not enough stock")
 
@@ -65,14 +78,24 @@ def create_order(
         raise HTTPException(status_code=409, detail="Insufficient balance")
 
     now = datetime.now(timezone.utc).isoformat()
+    fulfillment_type = fulfillment_type_from_product(product)
+    is_physical = fulfillment_type == "physical_pickup"
+    delivery_method = data.deliveryMethod if is_physical else "digital"
+    pickup_code = (
+        f"K-{uuid4().int % 9000 + 1000}"
+        if is_physical and delivery_method == "pickup"
+        else None
+    )
     user.balance -= total_price
+    if product.stock is not None:
+        product.stock -= data.quantity
     order = Order(
         id=data.requestId or str(uuid4()), items=[{"product": product_to_dict(product), "quantity": data.quantity}],
         total_price=total_price, original_price=original_price, customer_name=data.customerName,
         customer_phone=data.customerPhone, delivery_address=data.deliveryAddress,
-        delivery_method=data.deliveryMethod, created_at=now, user_id=user.id,
-        customer_email=user.email, status="paid", pickup_code=f"K-{uuid4().int % 9000 + 1000}",
-        pickup_slot=data.pickupSlot,
+        delivery_method=delivery_method, created_at=now, user_id=user.id,
+        customer_email=user.email, status="paid", pickup_code=pickup_code,
+        pickup_slot=data.pickupSlot if is_physical else None,
     )
     notification = Notification(
         id=f"notif-{uuid4().hex}", user_id=user.id, notification_type="spend", amount=total_price,
@@ -88,6 +111,18 @@ def update_order_status(order_id: str, data: OrderStatusUpdate, database: Sessio
     order = database.get(Order, order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
+    fulfillment_type = fulfillment_type_from_order(order)
+    current_status = status_for_fulfillment(fulfillment_type, order.status)
+    if not is_allowed_transition(fulfillment_type, current_status, data.status):
+        expected = next_status(fulfillment_type, current_status)
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Invalid status transition. Expected {expected}."
+                if expected
+                else "This order is already complete."
+            ),
+        )
     order.status = data.status
     database.commit()
     return order_to_dict(order)

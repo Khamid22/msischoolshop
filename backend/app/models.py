@@ -18,6 +18,8 @@ class Product(Base):
     name: Mapped[str | None] = mapped_column(String(300), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     product_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    fulfillment_type: Mapped[str] = mapped_column(String(30), default="physical_pickup")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
     carousel: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     download_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     license_key: Mapped[str | None] = mapped_column(Text, nullable=True)

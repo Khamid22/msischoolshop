@@ -1,4 +1,11 @@
 from .models import Banner, GrantLog, News, Notification, Order, PickupSlot, Product, User
+from .order_fulfillment import (
+    flow_for_fulfillment,
+    fulfillment_type_from_order,
+    fulfillment_type_from_product,
+    next_status,
+    status_for_fulfillment,
+)
 
 
 def without_none(data: dict) -> dict:
@@ -15,6 +22,8 @@ def product_to_dict(product: Product) -> dict:
         "name": product.name,
         "description": product.description,
         "type": product.product_type,
+        "fulfillmentType": fulfillment_type_from_product(product),
+        "active": product.active,
         "carousel": product.carousel,
         "downloadUrl": product.download_url,
         "licenseKey": product.license_key,
@@ -75,6 +84,9 @@ def user_to_dict(user: User) -> dict:
 
 
 def order_to_dict(order: Order) -> dict:
+    fulfillment_type = fulfillment_type_from_order(order)
+    status = status_for_fulfillment(fulfillment_type, order.status)
+    is_physical = fulfillment_type == "physical_pickup"
     return without_none({
         "id": order.id,
         "items": order.items,
@@ -87,9 +99,12 @@ def order_to_dict(order: Order) -> dict:
         "createdAt": order.created_at,
         "userId": order.user_id,
         "customerEmail": order.customer_email,
-        "status": order.status,
-        "pickupCode": order.pickup_code,
-        "pickupSlot": order.pickup_slot,
+        "status": status,
+        "fulfillmentType": fulfillment_type,
+        "statusFlow": list(flow_for_fulfillment(fulfillment_type)),
+        "nextStatus": next_status(fulfillment_type, status),
+        "pickupCode": order.pickup_code if is_physical else None,
+        "pickupSlot": order.pickup_slot if is_physical else None,
     })
 
 

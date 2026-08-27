@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import { fetchOrders } from '../api';
 import { formatCoins } from '../utils/currency';
-import type { Order, OrderStatus } from '../types';
+import type { FulfillmentType, Order, OrderStatus } from '../types';
 import Coin from './Coin';
 import { CheckIcon } from './icons';
 import './OrdersPage.scss';
@@ -13,9 +13,31 @@ const STATUS_KEY: Record<OrderStatus, string> = {
   packed: 'statusPacked',
   ready: 'statusReady',
   collected: 'statusCollected',
+  activating: 'statusActivating',
+  connected: 'statusConnected',
+  sent: 'statusSent',
+  received: 'statusReceived',
 };
 
-const STATUS_ORDER: OrderStatus[] = ['paid', 'packed', 'ready', 'collected'];
+const STATUS_ORDER: Record<FulfillmentType, OrderStatus[]> = {
+  physical_pickup: ['paid', 'packed', 'ready', 'collected'],
+  digital_activation: ['paid', 'activating', 'connected'],
+  digital_delivery: ['paid', 'sent', 'received'],
+};
+
+function fulfillmentType(order: Order): FulfillmentType {
+  if (order.fulfillmentType) return order.fulfillmentType;
+  return order.items[0]?.product.type === 'physical' ? 'physical_pickup' : 'digital_activation';
+}
+
+function statusFlow(order: Order): OrderStatus[] {
+  return order.statusFlow?.length ? order.statusFlow : STATUS_ORDER[fulfillmentType(order)];
+}
+
+function isComplete(order: Order): boolean {
+  const flow = statusFlow(order);
+  return (order.status || 'paid') === flow[flow.length - 1];
+}
 
 export default function OrdersPage() {
   const { user } = useAuth();
@@ -46,9 +68,10 @@ export default function OrdersPage() {
     return <div className="orders-page"><div className="orders-page__empty"><span aria-hidden="true">□</span><strong>{t('ordersEmpty')}</strong></div></div>;
   }
 
-  const activeOrder = orders.find((order) => (order.status || 'paid') !== 'collected') || orders[0];
+  const activeOrder = orders.find((order) => !isComplete(order)) || orders[0];
   const earlierOrders = orders.filter((order) => order.id !== activeOrder.id);
-  const currentIndex = STATUS_ORDER.indexOf(activeOrder.status || 'paid');
+  const activeFlow = statusFlow(activeOrder);
+  const currentIndex = Math.max(0, activeFlow.indexOf(activeOrder.status || 'paid'));
 
   return (
     <div className="orders-page">
@@ -65,7 +88,7 @@ export default function OrdersPage() {
         </div>
 
         <ol className="order-timeline">
-          {STATUS_ORDER.map((status, index) => (
+          {activeFlow.map((status, index) => (
             <li className={index <= currentIndex ? 'order-timeline__step order-timeline__step--done' : 'order-timeline__step'} key={status}>
               <span>{index < currentIndex ? <CheckIcon /> : index + 1}</span>
               <small>{t(STATUS_KEY[status])}</small>
@@ -73,7 +96,7 @@ export default function OrdersPage() {
           ))}
         </ol>
 
-        {activeOrder.pickupCode && activeOrder.status !== 'collected' ? (
+        {fulfillmentType(activeOrder) === 'physical_pickup' && activeOrder.pickupCode && !isComplete(activeOrder) ? (
           <div className="active-order__pickup">
             <span><small>{t('orderPickupCode')}</small><strong>{activeOrder.pickupCode}</strong></span>
             <span><small>{t('pickupSlot')}</small><strong>{activeOrder.pickupSlot || '16:00–17:00 · MSI Campus'}</strong></span>

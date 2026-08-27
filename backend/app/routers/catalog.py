@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Banner, News, PickupSlot, Product
+from ..order_fulfillment import default_fulfillment_type, normalize_fulfillment_type
 from ..schemas import BannerCreate, BannerUpdate, NewsCreate, NewsUpdate, ProductCreate, ProductUpdate
 from ..security import require_admin
 from ..serializers import banner_to_dict, news_to_dict, product_to_dict, slot_to_dict
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/api", tags=["catalog"])
 PRODUCT_FIELDS = {
     "image": "image", "price": "price", "nameKey": "name_key", "descKey": "desc_key",
     "name": "name", "description": "description", "type": "product_type", "carousel": "carousel",
+    "fulfillmentType": "fulfillment_type", "active": "active",
     "downloadUrl": "download_url", "licenseKey": "license_key", "weight": "weight", "stock": "stock",
     "discount": "discount", "rating": "rating", "ratingCount": "rating_count", "course": "course",
 }
@@ -34,6 +36,23 @@ def apply_fields(instance: object, data: dict, field_map: dict[str, str]) -> Non
             setattr(instance, target, data[source])
 
 
+def normalize_product_fulfillment(product: Product, changed_fields: set[str]) -> None:
+    if "type" in changed_fields and "fulfillmentType" not in changed_fields:
+        product.fulfillment_type = default_fulfillment_type(
+            product.product_type,
+            product.download_url,
+        )
+    else:
+        product.fulfillment_type = normalize_fulfillment_type(
+            product.fulfillment_type,
+            product_type=product.product_type,
+            download_url=product.download_url,
+        )
+    product.product_type = (
+        "physical" if product.fulfillment_type == "physical_pickup" else "digital"
+    )
+
+
 def next_position(database: Session, model: type) -> int:
     current = database.scalar(select(func.max(model.position)))
     return 0 if current is None else int(current) + 1
@@ -41,7 +60,9 @@ def next_position(database: Session, model: type) -> int:
 
 @router.get("/products")
 def list_products(database: Session = Depends(get_db)) -> list[dict]:
-    products = database.scalars(select(Product).order_by(Product.position, Product.id)).all()
+    products = database.scalars(
+        select(Product).where(Product.active.is_(True)).order_by(Product.position, Product.id)
+    ).all()
     return [product_to_dict(product) for product in products]
 
 
@@ -56,7 +77,9 @@ def get_product(product_id: str, database: Session = Depends(get_db)) -> dict:
 @router.post("/products", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
 def create_product(data: ProductCreate, database: Session = Depends(get_db)) -> dict:
     product = Product(id=f"product-{uuid4().hex[:12]}", position=next_position(database, Product), image="", price=0)
-    apply_fields(product, data.model_dump(), PRODUCT_FIELDS)
+    fields = data.model_dump()
+    apply_fields(product, fields, PRODUCT_FIELDS)
+    normalize_product_fulfillment(product, set(fields))
     database.add(product)
     database.commit()
     return product_to_dict(product)
@@ -67,7 +90,9 @@ def update_product(product_id: str, data: ProductUpdate, database: Session = Dep
     product = database.get(Product, product_id)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    apply_fields(product, data.model_dump(exclude_unset=True), PRODUCT_FIELDS)
+    fields = data.model_dump(exclude_unset=True)
+    apply_fields(product, fields, PRODUCT_FIELDS)
+    normalize_product_fulfillment(product, set(fields))
     database.commit()
     return product_to_dict(product)
 

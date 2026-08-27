@@ -2,6 +2,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from .order_fulfillment import FulfillmentType, OrderStatus
+
 
 class ProductCreate(BaseModel):
     image: str
@@ -11,6 +13,8 @@ class ProductCreate(BaseModel):
     name: str | None = None
     description: str | None = None
     type: Literal["digital", "physical"] | None = None
+    fulfillmentType: FulfillmentType | None = None
+    active: bool = True
     carousel: bool | None = None
     downloadUrl: str | None = None
     licenseKey: str | None = None
@@ -27,6 +31,7 @@ class ProductUpdate(ProductCreate):
     price: int | None = Field(default=None, ge=0)
     nameKey: str | None = None
     descKey: str | None = None
+    active: bool | None = None
 
 
 class BannerCreate(BaseModel):
@@ -97,14 +102,14 @@ class OrderCreate(BaseModel):
     requestId: str | None = Field(default=None, max_length=100)
     quantity: int = Field(default=1, ge=1, le=100)
     customerName: str
-    customerPhone: str
-    deliveryAddress: str
-    deliveryMethod: Literal["courier", "pickup", "post"]
+    customerPhone: str = ""
+    deliveryAddress: str = ""
+    deliveryMethod: Literal["courier", "pickup", "post", "digital"] = "digital"
     pickupSlot: str | None = None
 
 
 class OrderStatusUpdate(BaseModel):
-    status: Literal["paid", "packed", "ready", "collected"]
+    status: OrderStatus
 
 
 class BalanceChange(BaseModel):

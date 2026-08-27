@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from types import SimpleNamespace
 from urllib.parse import urlencode
 
 
@@ -27,6 +28,12 @@ from fastapi.testclient import TestClient  # noqa: E402
 from werkzeug.security import generate_password_hash  # noqa: E402
 
 from app.main import app  # noqa: E402
+from app.order_fulfillment import (  # noqa: E402
+    FULFILLMENT_FLOWS,
+    fulfillment_type_from_order,
+    next_status,
+    status_for_fulfillment,
+)
 from app.routers.auth import authenticate_lms_student  # noqa: E402
 
 
@@ -159,6 +166,32 @@ def test_lms_customer_support_assertion_creates_admin_session() -> None:
         assert expired.status_code == 401
 
 
+def test_each_fulfillment_type_has_a_distinct_order_path() -> None:
+    assert FULFILLMENT_FLOWS["physical_pickup"] == (
+        "paid", "packed", "ready", "collected",
+    )
+    assert FULFILLMENT_FLOWS["digital_activation"] == (
+        "paid", "activating", "connected",
+    )
+    assert FULFILLMENT_FLOWS["digital_delivery"] == (
+        "paid", "sent", "received",
+    )
+    assert next_status("digital_delivery", "paid") == "sent"
+    assert next_status("digital_delivery", "received") is None
+
+
+def test_legacy_digital_order_does_not_keep_physical_pickup_flow() -> None:
+    legacy_order = SimpleNamespace(
+        items=[{"product": {"type": "digital"}, "quantity": 1}],
+        delivery_method="pickup",
+        pickup_code="K-6799",
+        status="ready",
+    )
+    fulfillment_type = fulfillment_type_from_order(legacy_order)
+    assert fulfillment_type == "digital_activation"
+    assert status_for_fulfillment(fulfillment_type, legacy_order.status) == "activating"
+
+
 def test_complete_api_workflow() -> None:
     try:
         with TestClient(app) as client:
@@ -182,9 +215,12 @@ def test_complete_api_workflow() -> None:
 
             product_create = client.post("/api/products", headers=admin_headers, json={
                 "image": "./images/mug.svg", "price": 300, "nameKey": "products.test",
-                "descKey": "products.testDesc", "name": "API Test Product", "type": "physical", "stock": 2,
+                "descKey": "products.testDesc", "name": "API Test Product", "type": "physical",
+                "fulfillmentType": "physical_pickup", "stock": 2,
             })
             assert product_create.status_code == 201
+            assert product_create.json()["fulfillmentType"] == "physical_pickup"
+            assert product_create.json()["active"] is True
             product_id = product_create.json()["id"]
             product_update = client.patch(
                 f"/api/products/{product_id}", headers=admin_headers, json={"price": 321, "discount": 5}
@@ -236,6 +272,11 @@ def test_complete_api_workflow() -> None:
             assert order_create.status_code == 201
             created_order = order_create.json()["order"]
             assert created_order["totalPrice"] == 23
+            assert created_order["fulfillmentType"] == "digital_activation"
+            assert created_order["statusFlow"] == ["paid", "activating", "connected"]
+            assert created_order["nextStatus"] == "activating"
+            assert "pickupCode" not in created_order
+            assert "pickupSlot" not in created_order
             assert order_create.json()["user"]["balance"] == before_balance - 23
             order_id = created_order["id"]
             duplicate_order = client.post("/api/orders", headers=student_headers, json=order_payload)
@@ -253,9 +294,66 @@ def test_complete_api_workflow() -> None:
 
             admin_orders = client.get("/api/orders", headers=admin_headers)
             assert any(order["id"] == order_id for order in admin_orders.json())
-            status_update = client.patch(f"/api/orders/{order_id}/status", headers=admin_headers, json={"status": "ready"})
-            assert status_update.json()["status"] == "ready"
+            invalid_status = client.patch(
+                f"/api/orders/{order_id}/status",
+                headers=admin_headers,
+                json={"status": "ready"},
+            )
+            assert invalid_status.status_code == 409
+            status_update = client.patch(
+                f"/api/orders/{order_id}/status",
+                headers=admin_headers,
+                json={"status": "activating"},
+            )
+            assert status_update.json()["status"] == "activating"
+            assert status_update.json()["nextStatus"] == "connected"
+            completed = client.patch(
+                f"/api/orders/{order_id}/status",
+                headers=admin_headers,
+                json={"status": "connected"},
+            )
+            assert completed.json()["status"] == "connected"
+            assert "nextStatus" not in completed.json()
             assert client.delete(f"/api/orders/{order_id}", headers=admin_headers).status_code == 204
+
+            physical_before = client.get("/api/products/student-sticker-pack").json()["stock"]
+            physical_payload = {
+                "productId": "student-sticker-pack", "quantity": 1,
+                "customerName": "Aisha Karimova", "customerPhone": "+998 90 123 45 67",
+                "deliveryAddress": "MSI Campus · Lobby", "deliveryMethod": "pickup",
+                "pickupSlot": "16:00–17:00 · MSI Campus · Lobby",
+                "requestId": "api-test-physical-purchase-1",
+            }
+            physical = client.post("/api/orders", headers=student_headers, json=physical_payload)
+            assert physical.status_code == 201
+            assert physical.json()["order"]["fulfillmentType"] == "physical_pickup"
+            assert physical.json()["order"]["pickupCode"].startswith("K-")
+            assert physical.json()["order"]["nextStatus"] == "packed"
+            assert client.get("/api/products/student-sticker-pack").json()["stock"] == physical_before - 1
+            duplicate_physical = client.post("/api/orders", headers=student_headers, json=physical_payload)
+            assert duplicate_physical.status_code == 201
+            assert client.get("/api/products/student-sticker-pack").json()["stock"] == physical_before - 1
+            physical_id = physical.json()["order"]["id"]
+            assert client.patch(
+                f"/api/orders/{physical_id}/status",
+                headers=admin_headers,
+                json={"status": "packed"},
+            ).json()["nextStatus"] == "ready"
+            assert client.delete(f"/api/orders/{physical_id}", headers=admin_headers).status_code == 204
+
+            inactive_product = client.post("/api/products", headers=admin_headers, json={
+                "image": "./images/course.svg", "price": 5, "name": "Inactive link",
+                "type": "digital", "fulfillmentType": "digital_delivery", "active": False,
+            })
+            assert inactive_product.status_code == 201
+            inactive_id = inactive_product.json()["id"]
+            assert all(item["id"] != inactive_id for item in client.get("/api/products").json())
+            unavailable = client.post("/api/orders", headers=student_headers, json={
+                "productId": inactive_id, "quantity": 1, "customerName": "Aisha Karimova",
+                "requestId": "api-test-inactive-purchase",
+            })
+            assert unavailable.status_code == 409
+            assert client.delete(f"/api/products/{inactive_id}", headers=admin_headers).status_code == 204
 
             users = client.get("/api/admin/users", headers=admin_headers)
             assert users.status_code == 200

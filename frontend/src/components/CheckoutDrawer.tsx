@@ -21,6 +21,9 @@ export default function CheckoutDrawer() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const insufficient = Boolean(user && user.balance < totalPrice);
+  const isPhysical = currentItem?.product.fulfillmentType
+    ? currentItem.product.fulfillmentType === 'physical_pickup'
+    : currentItem?.product.type === 'physical';
 
   useEffect(() => {
     if (!isCheckoutOpen) return;
@@ -48,9 +51,9 @@ export default function CheckoutDrawer() {
     const ok = await submitOrder({
       customerName: user.name,
       customerPhone: user.phone,
-      deliveryAddress: slot.place,
-      deliveryMethod: 'pickup',
-      pickupSlot: `${slot.time} · ${slot.place}`,
+      deliveryAddress: isPhysical ? slot.place : '',
+      deliveryMethod: isPhysical ? 'pickup' : 'digital',
+      pickupSlot: isPhysical ? `${slot.time} · ${slot.place}` : undefined,
     });
     if (!ok) setError(t('insufficientBalance'));
     setSubmitting(false);
@@ -99,18 +102,28 @@ export default function CheckoutDrawer() {
                 </div>
               </section>
 
-              <section className="checkout-section">
-                <div className="checkout-section__head checkout-section__head--stack"><strong>{t('pickupSlot')}</strong><small>{t('pickupSlotHelp')}</small></div>
-                <div className="pickup-slots">
-                  {PICKUP_SLOTS.map((slot, index) => (
-                    <label className={selectedSlot === slot.id ? 'pickup-slot pickup-slot--active' : 'pickup-slot'} key={slot.id}>
-                      <input type="radio" name="pickup-slot" checked={selectedSlot === slot.id} onChange={() => setSelectedSlot(slot.id)} />
-                      <span><strong>{index === 0 ? t('today') : t('nextPickup')}</strong><small>{slot.place}</small></span>
-                      <b>{slot.time}</b>
-                    </label>
-                  ))}
-                </div>
-              </section>
+              {isPhysical ? (
+                <section className="checkout-section">
+                  <div className="checkout-section__head checkout-section__head--stack"><strong>{t('pickupSlot')}</strong><small>{t('pickupSlotHelp')}</small></div>
+                  <div className="pickup-slots">
+                    {PICKUP_SLOTS.map((slot, index) => (
+                      <label className={selectedSlot === slot.id ? 'pickup-slot pickup-slot--active' : 'pickup-slot'} key={slot.id}>
+                        <input type="radio" name="pickup-slot" checked={selectedSlot === slot.id} onChange={() => setSelectedSlot(slot.id)} />
+                        <span><strong>{index === 0 ? t('today') : t('nextPickup')}</strong><small>{slot.place}</small></span>
+                        <b>{slot.time}</b>
+                      </label>
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                <section className="checkout-section">
+                  <div className="checkout-section__head checkout-section__head--stack">
+                    <strong>{t('digitalFulfillment')}</strong>
+                    <small>{t('digitalFulfillmentHelp')}</small>
+                  </div>
+                  <div className="checkout-digital-note">{t('digitalFulfillmentNote')}</div>
+                </section>
+              )}
 
               <section className="checkout-section">
                 <div className="checkout-section__head"><strong>{t('payment')}</strong></div>
@@ -132,7 +145,7 @@ export default function CheckoutDrawer() {
 
               <div className="checkout-form__submit-wrap">
                 <button className="btn btn-primary btn-block checkout-form__submit" type="submit" disabled={insufficient || submitting}>{t('payCoins')} · {formatCoins(totalPrice)}</button>
-                <p className="checkout-form__hint">{t('sendCodeToChat')}</p>
+                <p className="checkout-form__hint">{t(isPhysical ? 'sendCodeToChat' : 'digitalStatusHint')}</p>
               </div>
             </>
           )}
