@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import hmac
 import json
@@ -18,6 +19,7 @@ os.environ["DATABASE_URL"] = f"sqlite:///{database_file.name}"
 os.environ["SEED_DEMO_DATA"] = "true"
 os.environ["ADMIN_PASSWORD"] = "test-admin-password"
 os.environ["SECRET_KEY"] = "test-secret-key"
+os.environ["SHOP_ADMIN_SSO_SECRET"] = "test-shop-admin-sso-secret-that-is-long-enough"
 os.environ["BOT_TOKEN"] = "test-bot-token"
 os.environ["DEMO_TELEGRAM_ID"] = "777000"
 
@@ -42,6 +44,31 @@ def telegram_init_data() -> str:
     secret = hmac.new(b"WebAppData", b"test-bot-token", hashlib.sha256).digest()
     values["hash"] = hmac.new(secret, data_check_string.encode(), hashlib.sha256).hexdigest()
     return urlencode(values)
+
+
+def admin_sso_assertion(**overrides) -> str:
+    now = int(time.time())
+    payload = {
+        "aud": "msi-shop-admin",
+        "exp": now + 45,
+        "iat": now,
+        "iss": "msi-lms",
+        "nonce": "test-nonce-123",
+        "role": "customer_support",
+        "sub": "41",
+        **overrides,
+    }
+    encoded = base64.urlsafe_b64encode(
+        json.dumps(payload, separators=(",", ":"), sort_keys=True).encode()
+    ).decode().rstrip("=")
+    signature = base64.urlsafe_b64encode(
+        hmac.new(
+            os.environ["SHOP_ADMIN_SSO_SECRET"].encode(),
+            encoded.encode(),
+            hashlib.sha256,
+        ).digest()
+    ).decode().rstrip("=")
+    return f"{encoded}.{signature}"
 
 
 class FakeLmsResult:
@@ -105,6 +132,31 @@ def test_lms_login_creates_shop_profile_without_copying_credentials() -> None:
     assert user.active_courses == 3
     assert user.password_hash != lms_hash
     assert database.committed is True
+
+
+def test_lms_customer_support_assertion_creates_admin_session() -> None:
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/admin/sso",
+            json={"assertion": admin_sso_assertion()},
+        )
+        assert response.status_code == 200
+        assert client.get(
+            "/api/admin/me",
+            headers=auth_header(response.json()["token"]),
+        ).json() == {"authenticated": True, "role": "admin"}
+
+        invalid = client.post(
+            "/api/admin/sso",
+            json={"assertion": admin_sso_assertion(role="student")},
+        )
+        assert invalid.status_code == 401
+
+        expired = client.post(
+            "/api/admin/sso",
+            json={"assertion": admin_sso_assertion(iat=1, exp=2)},
+        )
+        assert expired.status_code == 401
 
 
 def test_complete_api_workflow() -> None:

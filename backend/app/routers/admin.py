@@ -9,8 +9,21 @@ from sqlalchemy.orm import Session
 from ..config import ADMIN_PASSWORD
 from ..database import get_db
 from ..models import Banner, GrantLog, News, Notification, Order, Product, User
-from ..schemas import AdminLogin, BalanceChange, BannerCreate, BulkSync, NewsCreate, ProductCreate
-from ..security import create_token, hash_password, require_admin
+from ..schemas import (
+    AdminLogin,
+    AdminSsoLogin,
+    BalanceChange,
+    BannerCreate,
+    BulkSync,
+    NewsCreate,
+    ProductCreate,
+)
+from ..security import (
+    create_token,
+    hash_password,
+    require_admin,
+    verify_lms_admin_assertion,
+)
 from ..serializers import (
     banner_to_dict,
     grant_to_dict,
@@ -31,6 +44,12 @@ def login(data: AdminLogin) -> dict:
     if not secrets.compare_digest(data.password, ADMIN_PASSWORD):
         raise HTTPException(status_code=401, detail="Invalid admin password")
     return {"token": create_token("admin", "admin")}
+
+
+@router.post("/sso")
+def sso_login(data: AdminSsoLogin) -> dict:
+    claims = verify_lms_admin_assertion(data.assertion)
+    return {"token": create_token(f"lms:{claims['sub']}", "admin")}
 
 
 @router.get("/me")

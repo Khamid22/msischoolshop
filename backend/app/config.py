@@ -21,6 +21,7 @@ SEED_DEMO_DATA = os.getenv(
     "true" if DATABASE_URL.startswith("sqlite") else "false",
 ).lower() in {"1", "true", "yes", "on"}
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "123456789")
+SHOP_ADMIN_SSO_SECRET = os.getenv("SHOP_ADMIN_SSO_SECRET", "").strip()
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-development-secret")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 DEMO_TELEGRAM_ID = os.getenv("DEMO_TELEGRAM_ID") or None

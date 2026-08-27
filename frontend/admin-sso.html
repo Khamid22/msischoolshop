@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>MSI Shop Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f6f7fb; color: #18213a; }
+    .status { display: grid; justify-items: center; gap: 16px; padding: 32px; text-align: center; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #dfe3ef; border-top-color: #202f75; border-radius: 999px; animation: spin .75s linear infinite; }
+    h1 { margin: 0; font-size: 18px; }
+    p { max-width: 420px; margin: 0; color: #687086; font-size: 14px; line-height: 1.5; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <main class="status" aria-live="polite">
+    <div class="spinner" id="spinner" aria-hidden="true"></div>
+    <h1 id="title">Открываем MSI Shop Admin…</h1>
+    <p id="detail">Проверяем защищённый доступ Customer Support.</p>
+  </main>
+
+  <script>
+    var AUTH_KEY = 'msi_admin_token';
+    var SSO_KEY = 'msi_admin_lms_sso';
+    var API_BASE = window.MSI_API_URL || '/api';
+    var params = new URLSearchParams(window.location.hash.slice(1));
+    var assertion = params.get('assertion') || '';
+    var title = document.getElementById('title');
+    var detail = document.getElementById('detail');
+    var spinner = document.getElementById('spinner');
+
+    history.replaceState(null, '', window.location.pathname);
+
+    async function exchangeAssertion() {
+      if (!assertion) throw new Error('Missing assertion');
+      var response = await fetch(API_BASE + '/admin/sso', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assertion: assertion })
+      });
+      if (!response.ok) throw new Error('SSO exchange failed');
+      var result = await response.json();
+      sessionStorage.setItem(AUTH_KEY, result.token);
+      sessionStorage.setItem(SSO_KEY, '1');
+      window.location.replace('./admin.html');
+    }
+
+    exchangeAssertion().catch(function() {
+      spinner.style.display = 'none';
+      title.textContent = 'Сессия Customer Support закончилась';
+      detail.textContent = 'Вернитесь в Customer Support и снова откройте раздел «Магазин».';
+    });
+  </script>
+</body>
+</html>

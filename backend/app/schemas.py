@@ -81,6 +81,10 @@ class AdminLogin(BaseModel):
     password: str
 
 
+class AdminSsoLogin(BaseModel):
+    assertion: str = Field(min_length=32, max_length=4096)
+
+
 class UserUpdate(BaseModel):
     name: str | None = None
     phone: str | None = None

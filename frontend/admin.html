@@ -388,10 +388,13 @@
   <script>
     /* ============ AUTH ============ */
     var AUTH_KEY = 'msi_admin_token';
+    var SSO_KEY = 'msi_admin_lms_sso';
     var API_BASE = window.MSI_API_URL || '/api';
     var adminToken = sessionStorage.getItem(AUTH_KEY);
     if (!adminToken) {
-      window.location.href = './admin-login.html';
+      window.location.href = sessionStorage.getItem(SSO_KEY) === '1'
+        ? './admin-sso.html'
+        : './admin-login.html';
     }
 
     var STORE_KEY = 'msi_products';
@@ -403,7 +406,11 @@
       var response = await fetch(API_BASE + path, init);
       if (response.status === 401 || response.status === 403) {
         sessionStorage.removeItem(AUTH_KEY);
-        window.location.href = './admin-login.html';
+        if (sessionStorage.getItem(SSO_KEY) === '1') {
+          window.location.href = './admin-sso.html';
+        } else {
+          window.location.href = './admin-login.html';
+        }
         throw new Error('Admin session expired');
       }
       if (!response.ok) {
@@ -478,7 +485,12 @@
       if (typeof renderAnalytics === 'function') renderAnalytics();
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', apiLogout);
+    var logoutBtn = document.getElementById('logoutBtn');
+    if (sessionStorage.getItem(SSO_KEY) === '1') {
+      logoutBtn.style.display = 'none';
+    } else {
+      logoutBtn.addEventListener('click', apiLogout);
+    }
 
     /* ============ DYNAMIC FIELDS ============ */
     var pType = document.getElementById('pType');

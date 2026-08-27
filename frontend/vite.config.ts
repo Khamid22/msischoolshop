@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
           main: resolve(__dirname, 'index.html'),
           admin: resolve(__dirname, 'admin.html'),
           'admin-login': resolve(__dirname, 'admin-login.html'),
+          'admin-sso': resolve(__dirname, 'admin-sso.html'),
         },
       },
     },

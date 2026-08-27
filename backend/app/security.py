@@ -10,7 +10,13 @@ from urllib.parse import parse_qsl
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from .config import BOT_TOKEN, SECRET_KEY, TELEGRAM_AUTH_MAX_AGE_SECONDS, TOKEN_LIFETIME_SECONDS
+from .config import (
+    BOT_TOKEN,
+    SECRET_KEY,
+    SHOP_ADMIN_SSO_SECRET,
+    TELEGRAM_AUTH_MAX_AGE_SECONDS,
+    TOKEN_LIFETIME_SECONDS,
+)
 
 
 bearer = HTTPBearer(auto_error=False)
@@ -48,6 +54,47 @@ def create_token(subject: str, role: str) -> str:
     encoded = _base64_encode(json.dumps(payload, separators=(",", ":")).encode())
     signature = _base64_encode(hmac.new(SECRET_KEY.encode(), encoded.encode(), hashlib.sha256).digest())
     return f"{encoded}.{signature}"
+
+
+def verify_lms_admin_assertion(assertion: str) -> dict[str, Any]:
+    if len(SHOP_ADMIN_SSO_SECRET) < 32:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LMS Shop Admin SSO is not configured",
+        )
+    try:
+        encoded, supplied_signature = assertion.split(".", 1)
+        expected_signature = _base64_encode(
+            hmac.new(
+                SHOP_ADMIN_SSO_SECRET.encode("utf-8"),
+                encoded.encode("ascii"),
+                hashlib.sha256,
+            ).digest()
+        )
+        if not hmac.compare_digest(supplied_signature, expected_signature):
+            raise ValueError
+        payload = json.loads(_base64_decode(encoded))
+        now = int(time.time())
+        issued_at = int(payload.get("iat", 0))
+        expires_at = int(payload.get("exp", 0))
+        if payload.get("iss") != "msi-lms" or payload.get("aud") != "msi-shop-admin":
+            raise ValueError
+        if payload.get("role") != "customer_support":
+            raise ValueError
+        if not str(payload.get("sub") or "").isdigit():
+            raise ValueError
+        if len(str(payload.get("nonce") or "")) < 8:
+            raise ValueError
+        if issued_at > now + 10 or expires_at < now:
+            raise ValueError
+        if expires_at <= issued_at or expires_at - issued_at > 60:
+            raise ValueError
+        return payload
+    except (ValueError, TypeError, json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired LMS admin assertion",
+        )
 
 
 def decode_token(token: str) -> dict[str, Any]:
