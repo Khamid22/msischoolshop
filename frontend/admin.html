@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Панель администратора — MSI Bot Shop</title>
+  <script>
+    if (new URLSearchParams(window.location.search).get('embedded') === '1') {
+      document.documentElement.setAttribute('data-embedded', 'true');
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -35,7 +40,7 @@
         <span class="admin-section__icon">◔</span>
         Аналитика продаж
         <button class="admin-btn admin-btn--secondary" id="analyticsRefresh" style="margin-left:auto;">↻ Обновить</button>
-        <button class="admin-btn admin-btn--danger" id="analyticsClear" style="margin-left:8px;">🗑 Удалить всё</button>
+        <button class="admin-btn admin-btn--danger" id="analyticsClear" style="margin-left:8px;">Удалить данные</button>
       </h2>
 
       <div class="admin-stats">
@@ -390,6 +395,12 @@
     var AUTH_KEY = 'msi_admin_token';
     var SSO_KEY = 'msi_admin_lms_sso';
     var API_BASE = window.MSI_API_URL || '/api';
+    var embeddedMode = document.documentElement.getAttribute('data-embedded') === 'true';
+    if (embeddedMode) {
+      document.querySelectorAll('.admin-chart canvas').forEach(function(canvas) {
+        canvas.setAttribute('height', '176');
+      });
+    }
     var adminToken = sessionStorage.getItem(AUTH_KEY);
     if (!adminToken) {
       window.location.href = sessionStorage.getItem(SSO_KEY) === '1'

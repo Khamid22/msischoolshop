@@ -1874,3 +1874,138 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================
+   LMS CUSTOMER SUPPORT EMBEDDED MODE
+   ============================================ */
+
+html[data-embedded="true"] {
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #172036;
+  --color-accent: #223271;
+  --color-accent-2: #33458c;
+  --color-divider: #d9dfeb;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f6f8fc;
+  --bg-hover: #f1f4f9;
+  --text-primary: #172036;
+  --text-secondary: #5f697c;
+  --text-muted: #7d8799;
+  --accent: #223271;
+  --accent-hover: #18275f;
+  --accent-glow: rgba(34, 50, 113, 0.16);
+  --accent-tint: rgba(34, 50, 113, 0.1);
+  --accent-soft: rgba(34, 50, 113, 0.06);
+  --hover: rgba(34, 50, 113, 0.05);
+  --border: #d9dfeb;
+  --border-focus: #223271;
+  --shadow-sm: none;
+  --shadow-md: 0 8px 24px rgba(23, 32, 54, 0.08);
+  --shadow-lg: 0 16px 36px rgba(23, 32, 54, 0.12);
+  color-scheme: light;
+}
+
+html[data-embedded="true"] body {
+  min-height: 100%;
+  background: var(--bg-primary);
+  transition: none;
+}
+
+html[data-embedded="true"] .admin-header,
+html[data-embedded="true"] .admin-anchors {
+  display: none;
+}
+
+html[data-embedded="true"] .admin {
+  max-width: none;
+  margin: 0;
+  padding: 16px 18px 28px;
+  gap: 14px;
+}
+
+html[data-embedded="true"] .admin-section {
+  padding: 16px 18px;
+  gap: 12px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+html[data-embedded="true"] .admin-section__title {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+html[data-embedded="true"] .admin-section__icon {
+  display: none;
+}
+
+html[data-embedded="true"] .admin-stats {
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+html[data-embedded="true"] .admin-stats__card {
+  min-height: 74px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+html[data-embedded="true"] .admin-stats__value {
+  font-size: 1.15rem;
+}
+
+html[data-embedded="true"] .admin-stats__label {
+  font-size: 0.72rem;
+  letter-spacing: 0;
+}
+
+html[data-embedded="true"] .admin-charts {
+  gap: 10px;
+}
+
+html[data-embedded="true"] .admin-chart {
+  padding: 12px 14px;
+  gap: 8px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+html[data-embedded="true"] .admin-chart__canvas-wrap {
+  min-height: 176px;
+}
+
+html[data-embedded="true"] .admin-chart__canvas-wrap canvas {
+  height: 176px;
+}
+
+html[data-embedded="true"] .admin-chart__legend {
+  max-height: none;
+  overflow: visible;
+}
+
+html[data-embedded="true"] .admin-btn,
+html[data-embedded="true"] .admin-section__add-btn {
+  min-height: 36px;
+}
+
+html[data-embedded="true"] .admin-table th,
+html[data-embedded="true"] .admin-table td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+@media (max-width: 820px) {
+  html[data-embedded="true"] .admin {
+    padding: 12px;
+  }
+
+  html[data-embedded="true"] .admin-section {
+    padding: 14px;
+  }
+}

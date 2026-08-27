@@ -30,6 +30,7 @@
     var AUTH_KEY = 'msi_admin_token';
     var SSO_KEY = 'msi_admin_lms_sso';
     var API_BASE = window.MSI_API_URL || '/api';
+    var embedded = new URLSearchParams(window.location.search).get('embedded') === '1';
     var params = new URLSearchParams(window.location.hash.slice(1));
     var assertion = params.get('assertion') || '';
     var title = document.getElementById('title');
@@ -49,7 +50,7 @@
       var result = await response.json();
       sessionStorage.setItem(AUTH_KEY, result.token);
       sessionStorage.setItem(SSO_KEY, '1');
-      window.location.replace('./admin.html');
+      window.location.replace(embedded ? './admin.html?embedded=1' : './admin.html');
     }
 
     exchangeAssertion().catch(function() {
