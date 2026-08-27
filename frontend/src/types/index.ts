@@ -28,12 +28,31 @@ export interface AppNotification {
 
 export type Theme = 'light' | 'dark';
 
-export type ProductCollection = 'all' | 'study' | 'merch' | 'digital' | 'rewards';
+export type ProductCollection = string;
+
+export interface CatalogCategory {
+  id: string;
+  nameRu: string;
+  nameUz: string;
+  nameEn: string;
+  active: boolean;
+  position: number;
+}
+
+export interface ProductVariant {
+  id: string;
+  label: string;
+  price: number;
+  stock?: number;
+  active: boolean;
+}
 
 export interface Product {
   id: string;
   image: string;
+  images?: string[];
   price: number;
+  categoryId?: string;
   nameKey: string;
   descKey: string;
   name?: string;
@@ -46,6 +65,8 @@ export interface Product {
   licenseKey?: string;
   weight?: number;
   stock?: number;
+  variantLabel?: string;
+  variants?: ProductVariant[];
   discount?: number;
   rating?: number;
   ratingCount?: number;
@@ -79,6 +100,7 @@ export interface Translations {
 export interface CartItem {
   product: Product;
   quantity: number;
+  variant?: ProductVariant;
 }
 
 export interface User {
@@ -152,6 +174,7 @@ export interface GrantLog {
 
 export interface AdminBootstrap {
   products: Product[];
+  categories: CatalogCategory[];
   banners: Banner[];
   news: News[];
   orders: Order[];

@@ -28,6 +28,20 @@ def js_round(value: float) -> int:
     return floor(value + 0.5)
 
 
+def resolve_variant(product: Product, variant_id: str | None) -> dict | None:
+    variants = [variant for variant in (product.variants or []) if variant.get("active", True)]
+    if not variants:
+        if variant_id:
+            raise HTTPException(status_code=409, detail="Product variant is not available")
+        return None
+    if not variant_id:
+        raise HTTPException(status_code=422, detail="Choose a product variant")
+    variant = next((item for item in variants if item.get("id") == variant_id), None)
+    if variant is None:
+        raise HTTPException(status_code=409, detail="Product variant is not available")
+    return variant
+
+
 @router.get("")
 def list_orders(claims: dict = Depends(current_claims), database: Session = Depends(get_db)) -> list[dict]:
     query = select(Order).order_by(Order.created_at.desc())
@@ -63,10 +77,12 @@ def create_order(
         raise HTTPException(status_code=404, detail="Product not found")
     if not product.active:
         raise HTTPException(status_code=409, detail="Product is not available")
-    if product.stock is not None and product.stock < data.quantity:
+    variant = resolve_variant(product, data.variantId)
+    available_stock = variant.get("stock") if variant and variant.get("stock") is not None else product.stock
+    if available_stock is not None and int(available_stock) < data.quantity:
         raise HTTPException(status_code=409, detail="Not enough stock")
 
-    product_price = product.price
+    product_price = int(variant["price"]) if variant else product.price
     if product.discount and product.discount > 0:
         product_price = js_round(product_price * (1 - product.discount / 100))
     original_price = product_price * data.quantity
@@ -87,10 +103,22 @@ def create_order(
         else None
     )
     user.balance -= total_price
-    if product.stock is not None:
+    if variant and variant.get("stock") is not None:
+        product.variants = [
+            {**item, "stock": int(item["stock"]) - data.quantity}
+            if item.get("id") == variant.get("id")
+            else item
+            for item in (product.variants or [])
+        ]
+    elif product.stock is not None:
         product.stock -= data.quantity
     order = Order(
-        id=data.requestId or str(uuid4()), items=[{"product": product_to_dict(product), "quantity": data.quantity}],
+        id=data.requestId or str(uuid4()),
+        items=[{
+            "product": product_to_dict(product),
+            "quantity": data.quantity,
+            **({"variant": variant} if variant else {}),
+        }],
         total_price=total_price, original_price=original_price, customer_name=data.customerName,
         customer_phone=data.customerPhone, delivery_address=data.deliveryAddress,
         delivery_method=delivery_method, created_at=now, user_id=user.id,

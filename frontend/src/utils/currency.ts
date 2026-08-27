@@ -14,11 +14,12 @@ export function coinsToSum(coins: number): string {
   return Math.round(value).toLocaleString('ru-RU') + ' сум';
 }
 
-export function getProductPrice(product: Product): number {
+export function getProductPrice(product: Product, variantPrice?: number): number {
+  const basePrice = variantPrice ?? product.price;
   if (product.discount && product.discount > 0) {
-    return Math.round(product.price * (1 - product.discount / 100));
+    return Math.round(basePrice * (1 - product.discount / 100));
   }
-  return product.price;
+  return basePrice;
 }
 
 export function getStudentPrice(price: number, user: User | null): number {
@@ -27,6 +28,6 @@ export function getStudentPrice(price: number, user: User | null): number {
   return Math.round(price * (1 - discount / 100));
 }
 
-export function getUnitPrice(product: Product, user: User | null): number {
-  return getStudentPrice(getProductPrice(product), user);
+export function getUnitPrice(product: Product, user: User | null, variantPrice?: number): number {
+  return getStudentPrice(getProductPrice(product, variantPrice), user);
 }

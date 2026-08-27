@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { CartItem, DeliveryMethod, Order, Product } from '../types';
+import type { CartItem, DeliveryMethod, Order, Product, ProductVariant } from '../types';
 import { createOrder } from '../api';
 import { useAuth } from './AuthContext';
 import { getProductPrice, getUnitPrice } from '../utils/currency';
@@ -9,7 +9,7 @@ interface CartContextType {
   currentItem: CartItem | null;
   isCheckoutOpen: boolean;
   lastOrder: Order | null;
-  buyNow: (product: Product) => void;
+  buyNow: (product: Product, variant?: ProductVariant) => void;
   closeCheckout: () => void;
   submitOrder: (data: {
     customerName: string;
@@ -43,8 +43,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setPurchaseRequestId(null);
   }, []);
 
-  const buyNow = useCallback((product: Product) => {
-    setCurrentItem({ product, quantity: 1 });
+  const buyNow = useCallback((product: Product, variant?: ProductVariant) => {
+    setCurrentItem({ product, quantity: 1, variant });
     setPurchaseRequestId(createPurchaseRequestId());
     setIsCheckoutOpen(true);
   }, []);
@@ -57,12 +57,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     pickupSlot?: string;
   }): Promise<boolean> => {
     if (!user || !currentItem) return false;
-    const totalPrice = getUnitPrice(currentItem.product, user) * currentItem.quantity;
+    const totalPrice = getUnitPrice(currentItem.product, user, currentItem.variant?.price) * currentItem.quantity;
     if (user.balance < totalPrice) return false;
 
     try {
       const result = await createOrder({
         productId: currentItem.product.id,
+        variantId: currentItem.variant?.id,
         requestId: purchaseRequestId || createPurchaseRequestId(),
         quantity: currentItem.quantity,
         ...data,
@@ -82,8 +83,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const closeSuccess = useCallback(() => setLastOrder(null), []);
 
-  const totalPrice = currentItem ? getUnitPrice(currentItem.product, user) * currentItem.quantity : 0;
-  const originalPrice = currentItem ? getProductPrice(currentItem.product) * currentItem.quantity : 0;
+  const totalPrice = currentItem ? getUnitPrice(currentItem.product, user, currentItem.variant?.price) * currentItem.quantity : 0;
+  const originalPrice = currentItem ? getProductPrice(currentItem.product, currentItem.variant?.price) * currentItem.quantity : 0;
   const savings = originalPrice - totalPrice;
 
   return (

@@ -1,13 +1,23 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .order_fulfillment import FulfillmentType, OrderStatus
 
 
-class ProductCreate(BaseModel):
-    image: str
+class ProductVariantInput(BaseModel):
+    id: str = Field(min_length=1, max_length=100)
+    label: str = Field(min_length=1, max_length=100)
     price: int = Field(ge=0)
+    stock: int | None = Field(default=None, ge=0)
+    active: bool = True
+
+
+class ProductCreate(BaseModel):
+    image: str = ""
+    images: list[str] = Field(default_factory=list, max_length=6)
+    price: int = Field(ge=0)
+    categoryId: str | None = Field(default=None, max_length=100)
     nameKey: str = ""
     descKey: str = ""
     name: str | None = None
@@ -20,10 +30,27 @@ class ProductCreate(BaseModel):
     licenseKey: str | None = None
     weight: float | None = None
     stock: int | None = Field(default=None, ge=0)
+    variantLabel: str | None = Field(default=None, max_length=100)
+    variants: list[ProductVariantInput] = Field(default_factory=list, max_length=30)
     discount: float | None = Field(default=None, ge=0, le=100)
     rating: float | None = Field(default=None, ge=0, le=5)
     ratingCount: int | None = Field(default=None, ge=0)
     course: dict[str, Any] | None = None
+
+    @field_validator("image", "images")
+    @classmethod
+    def validate_media_size(cls, value: str | list[str]) -> str | list[str]:
+        values = [value] if isinstance(value, str) else value
+        if any(len(item) > 2_800_000 for item in values):
+            raise ValueError("Each image must be smaller than 2 MB")
+        return value
+
+    @model_validator(mode="after")
+    def validate_variant_ids(self) -> "ProductCreate":
+        variant_ids = [variant.id for variant in self.variants]
+        if len(variant_ids) != len(set(variant_ids)):
+            raise ValueError("Variant IDs must be unique")
+        return self
 
 
 class ProductUpdate(ProductCreate):
@@ -31,6 +58,21 @@ class ProductUpdate(ProductCreate):
     price: int | None = Field(default=None, ge=0)
     nameKey: str | None = None
     descKey: str | None = None
+    active: bool | None = None
+
+
+class CatalogCategoryCreate(BaseModel):
+    id: str | None = Field(default=None, max_length=100, pattern=r"^[a-z0-9][a-z0-9-]*$")
+    nameRu: str = Field(min_length=1, max_length=100)
+    nameUz: str = Field(min_length=1, max_length=100)
+    nameEn: str = Field(min_length=1, max_length=100)
+    active: bool = True
+
+
+class CatalogCategoryUpdate(BaseModel):
+    nameRu: str | None = Field(default=None, min_length=1, max_length=100)
+    nameUz: str | None = Field(default=None, min_length=1, max_length=100)
+    nameEn: str | None = Field(default=None, min_length=1, max_length=100)
     active: bool | None = None
 
 
@@ -99,6 +141,7 @@ class UserUpdate(BaseModel):
 
 class OrderCreate(BaseModel):
     productId: str
+    variantId: str | None = Field(default=None, max_length=100)
     requestId: str | None = Field(default=None, max_length=100)
     quantity: int = Field(default=1, ge=1, le=100)
     customerName: str

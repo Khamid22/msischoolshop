@@ -2,6 +2,7 @@ import type {
   AdminBootstrap,
   AppNotification,
   Banner,
+  CatalogCategory,
   News,
   Order,
   OrderStatus,
@@ -22,6 +23,7 @@ interface AuthResult {
 
 export interface CreateOrderInput {
   productId: string;
+  variantId?: string;
   requestId?: string;
   quantity: number;
   customerName: string;
@@ -92,6 +94,18 @@ function json(method: string, data?: unknown): RequestInit {
 
 export function fetchProducts(): Promise<Product[]> {
   return request('/products');
+}
+
+export function fetchCategories(): Promise<CatalogCategory[]> {
+  return request('/categories');
+}
+
+export function createCategory(data: Omit<CatalogCategory, 'position' | 'id'> & { id?: string }): Promise<CatalogCategory> {
+  return request('/categories', json('POST', data), getAdminToken());
+}
+
+export function updateCategory(id: string, data: Partial<CatalogCategory>): Promise<CatalogCategory> {
+  return request(`/categories/${encodeURIComponent(id)}`, json('PATCH', data), getAdminToken());
 }
 
 export function createProduct(data: Omit<Product, 'id'>): Promise<Product> {

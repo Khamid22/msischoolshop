@@ -1,4 +1,4 @@
-from .models import Banner, GrantLog, News, Notification, Order, PickupSlot, Product, User
+from .models import Banner, CatalogCategory, GrantLog, News, Notification, Order, PickupSlot, Product, User
 from .order_fulfillment import (
     flow_for_fulfillment,
     fulfillment_type_from_order,
@@ -13,10 +13,13 @@ def without_none(data: dict) -> dict:
 
 
 def product_to_dict(product: Product) -> dict:
+    images = product.images or ([product.image] if product.image else [])
     return without_none({
         "id": product.id,
         "image": product.image,
+        "images": images,
         "price": product.price,
+        "categoryId": product.category_id,
         "nameKey": product.name_key,
         "descKey": product.desc_key,
         "name": product.name,
@@ -29,11 +32,24 @@ def product_to_dict(product: Product) -> dict:
         "licenseKey": product.license_key,
         "weight": product.weight,
         "stock": product.stock,
+        "variantLabel": product.variant_label,
+        "variants": product.variants or [],
         "discount": product.discount,
         "rating": product.rating,
         "ratingCount": product.rating_count,
         "course": product.course,
     })
+
+
+def category_to_dict(category: CatalogCategory) -> dict:
+    return {
+        "id": category.id,
+        "nameRu": category.name_ru,
+        "nameUz": category.name_uz,
+        "nameEn": category.name_en,
+        "active": category.active,
+        "position": category.position,
+    }
 
 
 def banner_to_dict(banner: Banner) -> dict:

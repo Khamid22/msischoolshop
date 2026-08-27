@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..config import ADMIN_PASSWORD
 from ..database import get_db
-from ..models import Banner, GrantLog, News, Notification, Order, Product, User
+from ..models import Banner, CatalogCategory, GrantLog, News, Notification, Order, Product, User
 from ..schemas import (
     AdminLogin,
     AdminSsoLogin,
@@ -26,6 +26,7 @@ from ..security import (
 )
 from ..serializers import (
     banner_to_dict,
+    category_to_dict,
     grant_to_dict,
     news_to_dict,
     notification_to_dict,
@@ -133,6 +134,7 @@ def reset_balances(database: Session = Depends(get_db)) -> dict:
 def bootstrap(database: Session = Depends(get_db)) -> dict:
     return {
         "products": [product_to_dict(item) for item in database.scalars(select(Product).order_by(Product.position)).all()],
+        "categories": [category_to_dict(item) for item in database.scalars(select(CatalogCategory).order_by(CatalogCategory.position)).all()],
         "banners": [banner_to_dict(item) for item in database.scalars(select(Banner).order_by(Banner.position)).all()],
         "news": [news_to_dict(item) for item in database.scalars(select(News).order_by(News.position)).all()],
         "orders": [order_to_dict(item) for item in database.scalars(select(Order).order_by(Order.created_at.desc())).all()],

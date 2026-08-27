@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
-  ApiError, changeAdminUserBalance, createProduct, deleteProduct,
-  fetchAdminBootstrap, isAuthenticated, updateAdminOrderStatus, updateProduct,
+  ApiError, changeAdminUserBalance, fetchAdminBootstrap, isAuthenticated, updateAdminOrderStatus,
 } from '../api';
 import {
-  BagIcon, BoxIcon, GridIcon, PlusIcon, SearchIcon, TrashIcon, UserIcon, XIcon,
+  BagIcon, BoxIcon, GridIcon, SearchIcon, UserIcon, XIcon,
 } from '../components/icons';
 import type { AdminBootstrap, FulfillmentType, Order, OrderStatus, Product, User } from '../types';
+import { CatalogTab } from './CatalogTab';
 
-type AdminTab = 'overview' | 'products' | 'orders' | 'students';
-const EMPTY_DATA: AdminBootstrap = { products: [], banners: [], news: [], orders: [], users: [], notifications: [], grants: [] };
-const TAB_LABELS: Record<AdminTab, string> = { overview: 'Обзор', products: 'Товары', orders: 'Покупки', students: 'Ученики и коины' };
+type AdminTab = 'overview' | 'catalog' | 'orders' | 'students';
+const EMPTY_DATA: AdminBootstrap = { products: [], categories: [], banners: [], news: [], orders: [], users: [], notifications: [], grants: [] };
+const TAB_LABELS: Record<AdminTab, string> = { overview: 'Обзор', catalog: 'Каталог', orders: 'Покупки', students: 'Ученики и коины' };
 const STATUS_LABELS: Record<OrderStatus, string> = {
   paid: 'Оплачен', packed: 'Собран', ready: 'Готов к выдаче', collected: 'Выдан',
   activating: 'Активация', connected: 'Подключён', sent: 'Отправлен', received: 'Получен',
@@ -25,14 +25,13 @@ const FULFILLMENT_LABELS: Record<FulfillmentType, string> = {
   physical_pickup: 'Физический · выдача', digital_activation: 'Цифровой · активация', digital_delivery: 'Цифровой · отправка',
 };
 const TABS: Array<{ id: AdminTab; icon: typeof GridIcon }> = [
-  { id: 'overview', icon: GridIcon }, { id: 'products', icon: BoxIcon },
+  { id: 'overview', icon: GridIcon }, { id: 'catalog', icon: BoxIcon },
   { id: 'orders', icon: BagIcon }, { id: 'students', icon: UserIcon },
 ];
 
 const formatCoins = (value: number) => new Intl.NumberFormat('ru-RU').format(value);
 const productTitle = (product?: Product) => product?.name || product?.nameKey || 'Товар';
 const orderTitle = (order: Order) => order.items.map((item) => productTitle(item.product)).join(', ') || 'Покупка';
-const fulfillmentOf = (product: Product): FulfillmentType => product.fulfillmentType || (product.type === 'physical' ? 'physical_pickup' : 'digital_activation');
 function formatDate(value?: string): string {
   if (!value) return '—';
   const date = new Date(value);
@@ -85,70 +84,6 @@ function Overview({ data, navigate }: { data: AdminBootstrap; navigate: (tab: Ad
   </div>;
 }
 
-function ProductModal({ product, close, saved }: { product?: Product; close: () => void; saved: () => void }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const fulfillmentType = String(form.get('fulfillmentType')) as FulfillmentType;
-    const name = String(form.get('name') || '').trim();
-    const description = String(form.get('description') || '').trim();
-    const payload: Omit<Product, 'id'> = {
-      nameKey: name, descKey: description, name, description,
-      image: String(form.get('image') || '').trim(), price: Number(form.get('price') || 0),
-      stock: fulfillmentType === 'physical_pickup' ? Number(form.get('stock') || 0) : undefined,
-      type: fulfillmentType === 'physical_pickup' ? 'physical' : 'digital', fulfillmentType,
-      active: form.get('active') === 'on',
-    };
-    setBusy(true); setError('');
-    try {
-      if (product) await updateProduct(product.id, payload);
-      else await createProduct(payload);
-      saved();
-    }
-    catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Не удалось сохранить товар'); }
-    finally { setBusy(false); }
-  };
-  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
-    <section className="modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
-      <header className="modal__header"><div><h2 id="product-modal-title">{product ? 'Изменить товар' : 'Новый товар'}</h2><p>Тип товара определяет действие после оплаты.</p></div><button className="icon-button" type="button" onClick={close} aria-label="Закрыть"><XIcon /></button></header>
-      <form onSubmit={submit}><div className="modal__body form-grid">
-        <label className="field field--wide"><span>Название</span><input name="name" defaultValue={product?.name || product?.nameKey} required /></label>
-        <label className="field"><span>Цена в коинах</span><input name="price" type="number" min="0" defaultValue={product?.price || 0} required /></label>
-        <label className="field"><span>Процесс</span><select name="fulfillmentType" defaultValue={product ? fulfillmentOf(product) : 'digital_activation'}><option value="digital_activation">Цифровой — подключить</option><option value="digital_delivery">Цифровой — отправить</option><option value="physical_pickup">Физический — выдать</option></select></label>
-        <label className="field field--wide"><span>Описание</span><textarea name="description" rows={3} defaultValue={product?.description || product?.descKey} /></label>
-        <label className="field field--wide"><span>Ссылка на изображение</span><input name="image" type="url" defaultValue={product?.image} required /></label>
-        <label className="field"><span>Остаток физического товара</span><input name="stock" type="number" min="0" defaultValue={product?.stock || 0} /></label>
-        <label className="check-field"><input name="active" type="checkbox" defaultChecked={product?.active !== false} /><span>Показывать в магазине</span></label>
-        {error && <p className="form-error field--wide" role="alert">{error}</p>}
-      </div><footer className="modal__footer"><button className="button" type="button" onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button></footer></form>
-    </section>
-  </div>;
-}
-
-function ProductsTab({ products, refresh }: { products: Product[]; refresh: () => Promise<void> }) {
-  const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<Product | 'new' | null>(null);
-  const [busyId, setBusyId] = useState('');
-  const filtered = products.filter((item) => `${productTitle(item)} ${item.description || ''}`.toLowerCase().includes(search.toLowerCase()));
-  const toggle = async (product: Product) => { setBusyId(product.id); try { await updateProduct(product.id, { active: product.active === false }); await refresh(); } finally { setBusyId(''); } };
-  const remove = async (product: Product) => {
-    if (!window.confirm(`Удалить товар «${productTitle(product)}»? Это действие нельзя отменить.`)) return;
-    setBusyId(product.id); try { await deleteProduct(product.id); await refresh(); } finally { setBusyId(''); }
-  };
-  return <div className="page-stack">
-    <header className="section-heading"><div><h1>Товары</h1><p>Что видит ученик и что делать после покупки.</p></div><button className="button button--primary" type="button" onClick={() => setEditing('new')}><PlusIcon /> Новый товар</button></header>
-    <section className="panel"><div className="table-toolbar"><label className="search-field"><SearchIcon /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Поиск товара" /></label><span>{filtered.length} товаров</span></div>
-      <div className="table-scroll"><table><thead><tr><th>Товар</th><th>Цена</th><th>Процесс</th><th>Остаток</th><th>Статус</th><th /></tr></thead><tbody>
-        {filtered.map((product) => <tr key={product.id}><td><div className="product-cell"><img src={product.image} alt="" /><div><strong>{productTitle(product)}</strong><small>{product.description || product.descKey || 'Без описания'}</small></div></div></td><td><strong>{formatCoins(product.price)}</strong> <small>коинов</small></td><td><span className={`type-badge type-badge--${fulfillmentOf(product)}`}>{FULFILLMENT_LABELS[fulfillmentOf(product)]}</span></td><td>{fulfillmentOf(product) === 'physical_pickup' ? product.stock ?? 0 : '—'}</td><td><button className={`status-toggle ${product.active === false ? '' : 'is-active'}`} type="button" disabled={busyId === product.id} onClick={() => void toggle(product)}>{product.active === false ? 'Скрыт' : 'Активен'}</button></td><td><div className="row-actions"><button className="button button--small" type="button" onClick={() => setEditing(product)}>Изменить</button><button className="icon-button icon-button--danger" type="button" onClick={() => void remove(product)} aria-label={`Удалить ${productTitle(product)}`}><TrashIcon /></button></div></td></tr>)}
-        {!filtered.length && <tr><td colSpan={6}><div className="empty-row">Товары не найдены</div></td></tr>}
-      </tbody></table></div>
-    </section>
-    {editing && <ProductModal product={editing === 'new' ? undefined : editing} close={() => setEditing(null)} saved={() => { setEditing(null); void refresh(); }} />}
-  </div>;
-}
-
 function OrdersTable({ orders, compact, advance }: { orders: Order[]; compact?: boolean; advance?: (order: Order) => void }) {
   return <div className="table-scroll"><table><thead><tr><th>Покупка</th><th>Ученик</th><th>Стоимость</th><th>Процесс</th><th>Статус</th>{!compact && <th>Действие</th>}</tr></thead><tbody>
     {orders.map((order) => <tr key={order.id}><td><strong>{orderTitle(order)}</strong><small className="cell-subline">{order.id.slice(0, 10)} · {formatDate(order.createdAt)}</small></td><td>{order.customerName || order.customerEmail || '—'}</td><td><strong>{formatCoins(order.totalPrice)}</strong> <small>коинов</small></td><td><span className={`type-badge type-badge--${order.fulfillmentType || 'physical_pickup'}`}>{FULFILLMENT_LABELS[order.fulfillmentType || 'physical_pickup']}</span></td><td><span className={`order-status order-status--${order.status || 'paid'}`}>{STATUS_LABELS[order.status || 'paid']}</span></td>{!compact && <td>{order.nextStatus && advance ? <button className="button button--small button--primary" type="button" onClick={() => advance(order)}>{ACTION_LABELS[order.nextStatus]}</button> : <span className="done-label">Готово</span>}</td>}</tr>)}
@@ -195,6 +130,6 @@ export function AdminApp() {
   return <main className={`admin-shell ${embedded ? 'is-embedded' : ''}`}>
     {!embedded && <header className="admin-topbar"><div><span className="brand-mark">MSI</span><div><strong>MSI Shop</strong><small>Панель Customer Support</small></div></div><button className="button" type="button" onClick={() => void load()}>Обновить</button></header>}
     <nav className="admin-tabs" aria-label="Разделы магазина">{TABS.map(({ id, icon: Icon }) => <button key={id} type="button" className={tab === id ? 'is-active' : ''} onClick={() => setTab(id)}><Icon /><span>{TAB_LABELS[id]}</span>{id === 'orders' && actionCount > 0 && <b>{actionCount}</b>}</button>)}</nav>
-    <div className="admin-content">{tab === 'overview' && <Overview data={data} navigate={setTab} />}{tab === 'products' && <ProductsTab products={data.products} refresh={load} />}{tab === 'orders' && <OrdersTab orders={data.orders} refresh={load} />}{tab === 'students' && <StudentsTab data={data} refresh={load} />}</div>
+    <div className="admin-content">{tab === 'overview' && <Overview data={data} navigate={setTab} />}{tab === 'catalog' && <CatalogTab data={data} refresh={load} />}{tab === 'orders' && <OrdersTab orders={data.orders} refresh={load} />}{tab === 'students' && <StudentsTab data={data} refresh={load} />}</div>
   </main>;
 }

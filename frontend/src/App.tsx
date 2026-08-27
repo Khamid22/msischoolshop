@@ -19,8 +19,8 @@ import CheckoutDrawer from './components/CheckoutDrawer';
 import OrderSuccess from './components/OrderSuccess';
 import BannerProductsModal from './components/BannerProductsModal';
 import FiltersSheet from './components/FiltersSheet';
-import { fetchProducts } from './api';
-import type { Product, FilterState, Banner as BannerType, ProductCollection, View } from './types';
+import { fetchCategories, fetchProducts } from './api';
+import type { CatalogCategory, Product, FilterState, Banner as BannerType, ProductCollection, View } from './types';
 import './styles/global.scss';
 
 const DEFAULT_FILTERS: FilterState = {
@@ -37,6 +37,7 @@ const DEFAULT_FILTERS: FilterState = {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<BannerType | null>(null);
@@ -45,9 +46,15 @@ export default function App() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
-    fetchProducts()
-      .then(setProducts)
-      .catch(() => setProducts([]))
+    Promise.all([fetchProducts(), fetchCategories()])
+      .then(([nextProducts, nextCategories]) => {
+        setProducts(nextProducts);
+        setCategories(nextCategories);
+      })
+      .catch(() => {
+        setProducts([]);
+        setCategories([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -86,6 +93,7 @@ export default function App() {
                     ) : view === 'home' ? (
                       <ShopPage
                         products={products}
+                        categories={categories}
                         loading={loading}
                         onOpenProduct={setSelectedProduct}
                         onBrowseCollection={openCollection}
@@ -94,6 +102,7 @@ export default function App() {
                     ) : view === 'catalog' ? (
                       <CatalogPage
                         products={products}
+                        categories={categories}
                         filters={filters}
                         onFiltersChange={setFilters}
                         loading={loading}

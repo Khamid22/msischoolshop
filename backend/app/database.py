@@ -59,7 +59,8 @@ def initialize_database() -> None:
             connection.exec_driver_sql(f'SET search_path TO "{DATABASE_SCHEMA}"')
             Base.metadata.create_all(bind=connection)
 
-    _ensure_product_fulfillment_columns()
+    _ensure_catalog_columns()
+    _seed_catalog_categories()
 
     if SEED_DEMO_DATA:
         from .seed import seed_database
@@ -68,7 +69,7 @@ def initialize_database() -> None:
             seed_database(database)
 
 
-def _ensure_product_fulfillment_columns() -> None:
+def _ensure_catalog_columns() -> None:
     """Apply the small additive schema evolution used by this standalone app."""
     columns = {column["name"] for column in inspect(engine).get_columns("products", schema=None if IS_SQLITE else DATABASE_SCHEMA)}
     statements: list[str] = []
@@ -80,6 +81,14 @@ def _ensure_product_fulfillment_columns() -> None:
         statements.append(
             "ALTER TABLE products ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE"
         )
+    if "images" not in columns:
+        statements.append("ALTER TABLE products ADD COLUMN images JSON")
+    if "category_id" not in columns:
+        statements.append("ALTER TABLE products ADD COLUMN category_id VARCHAR(100)")
+    if "variant_label" not in columns:
+        statements.append("ALTER TABLE products ADD COLUMN variant_label VARCHAR(100)")
+    if "variants" not in columns:
+        statements.append("ALTER TABLE products ADD COLUMN variants JSON")
 
     with engine.begin() as connection:
         if not IS_SQLITE:
@@ -97,3 +106,59 @@ def _ensure_product_fulfillment_columns() -> None:
             WHERE fulfillment_type IS NULL OR fulfillment_type = ''
             """
         )
+        connection.exec_driver_sql(
+            """
+            UPDATE products
+            SET images = CASE
+                WHEN image IS NOT NULL AND image <> '' THEN json_array(image)
+                ELSE json_array()
+            END
+            WHERE images IS NULL
+            """
+            if IS_SQLITE
+            else """
+            UPDATE products
+            SET images = CASE
+                WHEN image IS NOT NULL AND image <> '' THEN json_build_array(image)
+                ELSE '[]'::json
+            END
+            WHERE images IS NULL
+            """
+        )
+        connection.exec_driver_sql(
+            """
+            UPDATE products
+            SET category_id = CASE
+                WHEN course IS NOT NULL THEN 'study'
+                WHEN id IN ('tg-gift-25', 'tg-gift-50', 'tg-gift-150', 'tg-premium-3m', 'tg-premium-6m', 'tg-premium-12m') THEN 'rewards'
+                WHEN product_type = 'digital' THEN 'digital'
+                ELSE 'merch'
+            END
+            WHERE category_id IS NULL OR category_id = ''
+            """
+        )
+        connection.exec_driver_sql(
+            """
+            UPDATE products
+            SET carousel = TRUE
+            WHERE carousel IS NULL
+              AND id IN ('student-sticker-pack', 'student-keychain', 'student-phone-grip', 'student-notebook-set', 'msi-bottle', 'msi-tote', 'tshirt-1', 'msi-hoodie')
+            """
+        )
+
+
+def _seed_catalog_categories() -> None:
+    from sqlalchemy import func, select
+
+    from .models import CatalogCategory
+
+    with SessionLocal() as database:
+        if database.scalar(select(func.count()).select_from(CatalogCategory)):
+            return
+        database.add_all([
+            CatalogCategory(id="study", position=0, name_ru="Учёба", name_uz="O‘qish", name_en="Study", active=True),
+            CatalogCategory(id="merch", position=1, name_ru="Мерч", name_uz="Merch", name_en="Merch", active=True),
+            CatalogCategory(id="digital", position=2, name_ru="Цифровые", name_uz="Raqamli", name_en="Digital", active=True),
+            CatalogCategory(id="rewards", position=3, name_ru="Награды", name_uz="Mukofotlar", name_en="Rewards", active=True),
+        ])
+        database.commit()

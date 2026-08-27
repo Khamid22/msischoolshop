@@ -6,21 +6,32 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Banner, News, PickupSlot, Product
+from ..models import Banner, CatalogCategory, News, PickupSlot, Product
 from ..order_fulfillment import default_fulfillment_type, normalize_fulfillment_type
-from ..schemas import BannerCreate, BannerUpdate, NewsCreate, NewsUpdate, ProductCreate, ProductUpdate
+from ..schemas import (
+    BannerCreate,
+    BannerUpdate,
+    CatalogCategoryCreate,
+    CatalogCategoryUpdate,
+    NewsCreate,
+    NewsUpdate,
+    ProductCreate,
+    ProductUpdate,
+)
 from ..security import require_admin
-from ..serializers import banner_to_dict, news_to_dict, product_to_dict, slot_to_dict
+from ..serializers import banner_to_dict, category_to_dict, news_to_dict, product_to_dict, slot_to_dict
 
 
 router = APIRouter(prefix="/api", tags=["catalog"])
 
 
 PRODUCT_FIELDS = {
-    "image": "image", "price": "price", "nameKey": "name_key", "descKey": "desc_key",
+    "image": "image", "images": "images", "price": "price", "categoryId": "category_id",
+    "nameKey": "name_key", "descKey": "desc_key",
     "name": "name", "description": "description", "type": "product_type", "carousel": "carousel",
     "fulfillmentType": "fulfillment_type", "active": "active",
     "downloadUrl": "download_url", "licenseKey": "license_key", "weight": "weight", "stock": "stock",
+    "variantLabel": "variant_label", "variants": "variants",
     "discount": "discount", "rating": "rating", "ratingCount": "rating_count", "course": "course",
 }
 BANNER_FIELDS = {
@@ -28,6 +39,9 @@ BANNER_FIELDS = {
     "accent": "accent", "icon": "icon", "active": "active", "productIds": "product_ids",
 }
 NEWS_FIELDS = {"title": "title", "description": "description", "image": "image", "date": "date", "active": "active"}
+CATEGORY_FIELDS = {
+    "nameRu": "name_ru", "nameUz": "name_uz", "nameEn": "name_en", "active": "active",
+}
 
 
 def apply_fields(instance: object, data: dict, field_map: dict[str, str]) -> None:
@@ -53,9 +67,64 @@ def normalize_product_fulfillment(product: Product, changed_fields: set[str]) ->
     )
 
 
+def normalize_product_media(product: Product) -> None:
+    images = [item.strip() for item in (product.images or []) if item.strip()]
+    if product.image and product.image.strip() and product.image.strip() not in images:
+        images.insert(0, product.image.strip())
+    product.images = images[:6]
+    product.image = product.images[0] if product.images else ""
+
+
+def require_category(database: Session, category_id: str | None) -> None:
+    if category_id and database.get(CatalogCategory, category_id) is None:
+        raise HTTPException(status_code=422, detail="Catalog category does not exist")
+
+
 def next_position(database: Session, model: type) -> int:
     current = database.scalar(select(func.max(model.position)))
     return 0 if current is None else int(current) + 1
+
+
+@router.get("/categories")
+def list_categories(database: Session = Depends(get_db)) -> list[dict]:
+    categories = database.scalars(
+        select(CatalogCategory)
+        .where(CatalogCategory.active.is_(True))
+        .order_by(CatalogCategory.position, CatalogCategory.id)
+    ).all()
+    return [category_to_dict(category) for category in categories]
+
+
+@router.post("/categories", status_code=201, dependencies=[Depends(require_admin)])
+def create_category(data: CatalogCategoryCreate, database: Session = Depends(get_db)) -> dict:
+    category_id = data.id or f"category-{uuid4().hex[:8]}"
+    if database.get(CatalogCategory, category_id) is not None:
+        raise HTTPException(status_code=409, detail="Catalog category already exists")
+    category = CatalogCategory(
+        id=category_id,
+        position=next_position(database, CatalogCategory),
+        name_ru=data.nameRu,
+        name_uz=data.nameUz,
+        name_en=data.nameEn,
+        active=data.active,
+    )
+    database.add(category)
+    database.commit()
+    return category_to_dict(category)
+
+
+@router.patch("/categories/{category_id}", dependencies=[Depends(require_admin)])
+def update_category(
+    category_id: str,
+    data: CatalogCategoryUpdate,
+    database: Session = Depends(get_db),
+) -> dict:
+    category = database.get(CatalogCategory, category_id)
+    if category is None:
+        raise HTTPException(status_code=404, detail="Catalog category not found")
+    apply_fields(category, data.model_dump(exclude_unset=True), CATEGORY_FIELDS)
+    database.commit()
+    return category_to_dict(category)
 
 
 @router.get("/products")
@@ -78,8 +147,10 @@ def get_product(product_id: str, database: Session = Depends(get_db)) -> dict:
 def create_product(data: ProductCreate, database: Session = Depends(get_db)) -> dict:
     product = Product(id=f"product-{uuid4().hex[:12]}", position=next_position(database, Product), image="", price=0)
     fields = data.model_dump()
+    require_category(database, fields.get("categoryId"))
     apply_fields(product, fields, PRODUCT_FIELDS)
     normalize_product_fulfillment(product, set(fields))
+    normalize_product_media(product)
     database.add(product)
     database.commit()
     return product_to_dict(product)
@@ -91,8 +162,10 @@ def update_product(product_id: str, data: ProductUpdate, database: Session = Dep
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     fields = data.model_dump(exclude_unset=True)
+    require_category(database, fields.get("categoryId"))
     apply_fields(product, fields, PRODUCT_FIELDS)
     normalize_product_fulfillment(product, set(fields))
+    normalize_product_media(product)
     database.commit()
     return product_to_dict(product)
 

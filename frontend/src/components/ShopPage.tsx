@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Banner as BannerType, Product, ProductCollection } from '../types';
+import type { Banner as BannerType, CatalogCategory, Product, ProductCollection } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCoins } from '../utils/currency';
@@ -11,41 +11,24 @@ import './ShopPage.scss';
 
 interface Props {
   products: Product[];
+  categories: CatalogCategory[];
   loading: boolean;
   onOpenProduct: (product: Product) => void;
   onBrowseCollection: (collection: ProductCollection) => void;
   onBannerClick: (banner: BannerType) => void;
 }
 
-const HOME_CATEGORIES: Array<{ value: ProductCollection; key: string }> = [
-  { value: 'all', key: 'filterAll' },
-  { value: 'study', key: 'categoryStudy' },
-  { value: 'merch', key: 'categoryMerch' },
-  { value: 'digital', key: 'categoryDigital' },
-  { value: 'rewards', key: 'categoryRewards' },
-];
-
-const STUDENT_PICK_IDS = [
-  'student-sticker-pack',
-  'student-keychain',
-  'student-phone-grip',
-  'student-notebook-set',
-  'msi-bottle',
-  'msi-tote',
-  'tshirt-1',
-  'msi-hoodie',
-];
-
-export default function ShopPage({ products, loading, onOpenProduct, onBrowseCollection, onBannerClick }: Props) {
-  const { t } = useLang();
+export default function ShopPage({ products, categories, loading, onOpenProduct, onBrowseCollection, onBannerClick }: Props) {
+  const { lang, t } = useLang();
   const { user, openAuth } = useAuth();
-  const studentPicks = useMemo(() => {
-    const productsById = new Map(products.map((product) => [product.id, product]));
-    return STUDENT_PICK_IDS.flatMap((id) => {
-      const product = productsById.get(id);
-      return product ? [product] : [];
-    });
-  }, [products]);
+  const studentPicks = useMemo(() => products.filter((product) => product.carousel), [products]);
+  const homeCategories = [
+    { value: 'all', label: t('filterAll') },
+    ...categories.map((category) => ({
+      value: category.id,
+      label: lang === 'uz' ? category.nameUz : lang === 'en' ? category.nameEn : category.nameRu,
+    })),
+  ];
   return (
     <div className="shop-page">
       <section className="shop-balance" aria-label={t('yourBalance')}>
@@ -67,14 +50,14 @@ export default function ShopPage({ products, loading, onOpenProduct, onBrowseCol
       </section>
 
       <nav className="home-categories" aria-label={t('categories')}>
-        {HOME_CATEGORIES.map((category, index) => (
+        {homeCategories.map((category, index) => (
           <button
             className={index === 0 ? 'home-categories__item home-categories__item--active' : 'home-categories__item'}
             key={category.value}
             type="button"
             onClick={() => onBrowseCollection(category.value)}
           >
-            {t(category.key)}
+            {category.label}
           </button>
         ))}
       </nav>
@@ -82,7 +65,7 @@ export default function ShopPage({ products, loading, onOpenProduct, onBrowseCol
       <section className="mini-section" aria-labelledby="student-picks-heading">
         <div className="mini-section__head">
           <h2 id="student-picks-heading">{t('studentPicks')}</h2>
-          <button type="button" onClick={() => onBrowseCollection('merch')}>{t('viewAll')}</button>
+          <button type="button" onClick={() => onBrowseCollection(studentPicks[0]?.categoryId || 'all')}>{t('viewAll')}</button>
         </div>
         <div className="mini-products">
           {loading

@@ -12,7 +12,9 @@ class Product(Base):
     id: Mapped[str] = mapped_column(String(100), primary_key=True)
     position: Mapped[int] = mapped_column(Integer, default=0, index=True)
     image: Mapped[str] = mapped_column(Text, default="")
+    images: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     price: Mapped[int] = mapped_column(Integer)
+    category_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     name_key: Mapped[str] = mapped_column(String(200), default="")
     desc_key: Mapped[str] = mapped_column(String(200), default="")
     name: Mapped[str | None] = mapped_column(String(300), nullable=True)
@@ -25,10 +27,23 @@ class Product(Base):
     license_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     weight: Mapped[float | None] = mapped_column(Float, nullable=True)
     stock: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    variant_label: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    variants: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
     discount: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     course: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+
+
+class CatalogCategory(Base):
+    __tablename__ = "catalog_categories"
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    name_ru: Mapped[str] = mapped_column(String(100))
+    name_uz: Mapped[str] = mapped_column(String(100))
+    name_en: Mapped[str] = mapped_column(String(100))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class Banner(Base):

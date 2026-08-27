@@ -192,6 +192,112 @@ def test_legacy_digital_order_does_not_keep_physical_pickup_flow() -> None:
     assert status_for_fulfillment(fulfillment_type, legacy_order.status) == "activating"
 
 
+def test_catalog_categories_gallery_and_variant_purchase_are_synchronized() -> None:
+    with TestClient(app) as client:
+        admin_login = client.post(
+            "/api/admin/login",
+            json={"password": "test-admin-password"},
+        )
+        admin_headers = auth_header(admin_login.json()["token"])
+        student_login = client.post(
+            "/api/auth/login",
+            json={"studentId": "2023114", "password": "demo"},
+        )
+        student_headers = auth_header(student_login.json()["token"])
+
+        category = client.post(
+            "/api/categories",
+            headers=admin_headers,
+            json={
+                "id": "subscriptions-test",
+                "nameRu": "Подписки",
+                "nameUz": "Obunalar",
+                "nameEn": "Subscriptions",
+                "active": True,
+            },
+        )
+        assert category.status_code == 201
+        assert any(
+            item["id"] == "subscriptions-test"
+            for item in client.get("/api/categories").json()
+        )
+
+        product = client.post(
+            "/api/products",
+            headers=admin_headers,
+            json={
+                "image": "data:image/png;base64,ZmFrZQ==",
+                "images": [
+                    "data:image/png;base64,ZmFrZQ==",
+                    "https://example.test/second.png",
+                ],
+                "price": 100,
+                "categoryId": "subscriptions-test",
+                "name": "Variant test product",
+                "fulfillmentType": "digital_activation",
+                "variantLabel": "Срок",
+                "variants": [
+                    {"id": "one-month", "label": "1 месяц", "price": 100, "active": True},
+                    {"id": "three-months", "label": "3 месяца", "price": 240, "active": True},
+                ],
+            },
+        )
+        assert product.status_code == 201
+        product_data = product.json()
+        product_id = product_data["id"]
+        assert product_data["categoryId"] == "subscriptions-test"
+        assert len(product_data["images"]) == 2
+        assert product_data["variants"][1]["price"] == 240
+
+        missing_variant = client.post(
+            "/api/orders",
+            headers=student_headers,
+            json={
+                "productId": product_id,
+                "quantity": 1,
+                "customerName": "Aisha Karimova",
+                "requestId": "variant-test-missing",
+            },
+        )
+        assert missing_variant.status_code == 422
+
+        purchase_payload = {
+            "productId": product_id,
+            "variantId": "three-months",
+            "quantity": 1,
+            "customerName": "Aisha Karimova",
+            "requestId": "variant-test-purchase",
+        }
+        purchase = client.post(
+            "/api/orders",
+            headers=student_headers,
+            json=purchase_payload,
+        )
+        assert purchase.status_code == 201
+        assert purchase.json()["order"]["items"][0]["variant"]["id"] == "three-months"
+        assert purchase.json()["order"]["totalPrice"] == 216
+        duplicate = client.post(
+            "/api/orders",
+            headers=student_headers,
+            json=purchase_payload,
+        )
+        assert duplicate.status_code == 201
+        assert duplicate.json()["order"]["id"] == purchase.json()["order"]["id"]
+
+        bootstrap = client.get("/api/admin/bootstrap", headers=admin_headers).json()
+        assert any(item["id"] == "subscriptions-test" for item in bootstrap["categories"])
+        assert client.patch(
+            "/api/categories/subscriptions-test",
+            headers=admin_headers,
+            json={"active": False},
+        ).json()["active"] is False
+        assert all(item["id"] != "subscriptions-test" for item in client.get("/api/categories").json())
+
+        order_id = purchase.json()["order"]["id"]
+        assert client.delete(f"/api/orders/{order_id}", headers=admin_headers).status_code == 204
+        assert client.delete(f"/api/products/{product_id}", headers=admin_headers).status_code == 204
+
+
 def test_complete_api_workflow() -> None:
     try:
         with TestClient(app) as client:

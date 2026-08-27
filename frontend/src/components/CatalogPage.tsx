@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Product, FilterState } from '../types';
+import type { CatalogCategory, Product, FilterState } from '../types';
 import { useLang } from '../contexts/LangContext';
 import ProductGrid from './ProductGrid';
 import { SearchIcon, SlidersIcon } from './icons';
@@ -8,6 +8,7 @@ import './CatalogPage.scss';
 
 interface Props {
   products: Product[];
+  categories: CatalogCategory[];
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   loading: boolean;
@@ -16,17 +17,17 @@ interface Props {
   onOpenFilters: () => void;
 }
 
-export default function CatalogPage({ products, filters, onFiltersChange, loading, onOpenProduct, onOpenSearch, onOpenFilters }: Props) {
-  const { t } = useLang();
+export default function CatalogPage({ products, categories, filters, onFiltersChange, loading, onOpenProduct, onOpenSearch, onOpenFilters }: Props) {
+  const { lang, t } = useLang();
 
   const filteredCount = useMemo(() => filterProducts(products, filters, t).length, [products, filters, t]);
 
   const collectionTabs: { value: NonNullable<FilterState['collection']>; label: string }[] = [
     { value: 'all', label: t('filterAll') },
-    { value: 'study', label: t('categoryStudy') },
-    { value: 'merch', label: t('categoryMerch') },
-    { value: 'digital', label: t('categoryDigital') },
-    { value: 'rewards', label: t('categoryRewards') },
+    ...categories.map((category) => ({
+      value: category.id,
+      label: lang === 'uz' ? category.nameUz : lang === 'en' ? category.nameEn : category.nameRu,
+    })),
   ];
 
   const hasAdvancedFilters = filters.minPrice > 0 || filters.maxPrice > 0 || filters.inStock || filters.courseLinked;

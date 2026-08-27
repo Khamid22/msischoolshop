@@ -87,7 +87,7 @@ export default function CheckoutDrawer() {
                   <div className="checkout-section__head"><strong>{t('productDetails')}</strong></div>
                   <div className="checkout-product">
                     <img src={currentItem.product.image} alt="" />
-                    <span><strong>{t(currentItem.product.nameKey) || currentItem.product.name}</strong><small>{t(currentItem.product.type === 'digital' ? 'filterDigital' : 'filterPhysical')}</small></span>
+                    <span><strong>{t(currentItem.product.nameKey) || currentItem.product.name}</strong><small>{currentItem.variant?.label || t(currentItem.product.type === 'digital' ? 'filterDigital' : 'filterPhysical')}</small></span>
                     <b>{formatCoins(totalPrice)} <Coin /></b>
                   </div>
                 </section>

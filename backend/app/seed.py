@@ -54,17 +54,30 @@ SLOTS = [
     {"id": "slot-4", "label": "Friday after classes", "when": "Fri 13:00", "location": "Campus A · Lobby"},
 ]
 
+STUDY_PRODUCT_IDS = {"calc-2in1", "calc-notebook", "la2-bundle", "physics-bundle", "chem-bundle", "ielts-bundle"}
+REWARD_PRODUCT_IDS = {"tg-gift-25", "tg-gift-50", "tg-gift-150", "tg-premium-3m", "tg-premium-6m", "tg-premium-12m"}
+FEATURED_PRODUCT_IDS = {"student-sticker-pack", "student-keychain", "student-phone-grip", "student-notebook-set", "msi-bottle", "msi-tote", "tshirt-1", "msi-hoodie"}
+
+
+def _product_category(data: dict) -> str:
+    if data["id"] in STUDY_PRODUCT_IDS or data.get("course"):
+        return "study"
+    if data["id"] in REWARD_PRODUCT_IDS:
+        return "rewards"
+    return "digital" if data.get("type") == "digital" else "merch"
+
 
 def _product_model(data: dict, position: int) -> Product:
     return Product(
-        id=data["id"], position=position, image=data["image"], price=data["price"],
+        id=data["id"], position=position, image=data["image"], images=[data["image"]],
+        price=data["price"], category_id=_product_category(data),
         name_key=data.get("nameKey", ""), desc_key=data.get("descKey", ""),
         name=data.get("name"), description=data.get("description"), product_type=data.get("type"),
         fulfillment_type=data.get("fulfillmentType") or (
             "physical_pickup" if data.get("type") == "physical" else "digital_activation"
         ),
         active=data.get("active", True),
-        carousel=data.get("carousel"), download_url=data.get("downloadUrl"),
+        carousel=data.get("carousel", data["id"] in FEATURED_PRODUCT_IDS), download_url=data.get("downloadUrl"),
         license_key=data.get("licenseKey"), weight=data.get("weight"), stock=data.get("stock"),
         discount=data.get("discount"), rating=data.get("rating"), rating_count=data.get("ratingCount"),
         course=data.get("course"),

@@ -21,6 +21,7 @@ const REWARD_PRODUCT_IDS = new Set([
 
 export function matchesCollection(product: Product, collection: ProductCollection = 'all'): boolean {
   if (collection === 'all') return true;
+  if (product.categoryId) return product.categoryId === collection;
   if (collection === 'study') return STUDY_PRODUCT_IDS.has(product.id) || Boolean(product.course);
   if (collection === 'digital') return product.type === 'digital';
   if (collection === 'rewards') return REWARD_PRODUCT_IDS.has(product.id);
