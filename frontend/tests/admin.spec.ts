@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createHmac, randomUUID } from 'node:crypto';
 
 const image = { name: 'test.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="purple"/></svg>') };
 
@@ -135,4 +136,32 @@ test('mobile six sections, filter disclosure, dialog keyboard and theme', async 
   }
   await page.screenshot({ path: '/tmp/shop-redesign-mobile-final.png' });
   expect(errors).toEqual([]);
+});
+
+test('LMS SSO iframe opens the current admin instead of an old unversioned document', async ({ page }) => {
+  await page.evaluate(() => sessionStorage.clear());
+  const now = Math.floor(Date.now() / 1000);
+  const payload = Buffer.from(JSON.stringify({
+    aud: 'msi-shop-admin', iss: 'msi-lms', role: 'customer_support', sub: '41',
+    iat: now, exp: now + 45, nonce: randomUUID(),
+  })).toString('base64url');
+  const signature = createHmac('sha256', 'browser-test-sso-secret-at-least-32-characters').update(payload).digest('base64url');
+  const launch = `http://localhost:5179/admin-sso.html?embedded=1#assertion=${payload}.${signature}`;
+  // Reproduce a browser retaining the document behind the old stable redirect.
+  await page.route((url) => url.pathname === '/admin.html' && url.search === '?embedded=1',
+    (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Old cached admin</h1>' }));
+  let previousVersion = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await page.goto(`/tests/admin-frame.html?launch=${encodeURIComponent(launch)}`);
+    const frame = page.frameLocator('iframe');
+    await expect(frame.getByRole('heading', { name: 'Каталог товаров', exact: true })).toBeVisible();
+    await expect(frame.locator('.admin-nav button')).toHaveCount(6);
+    await expect(frame.locator('.products-table tbody tr').first()).toBeVisible();
+    const url = new URL(page.frames().find((item) => item.url().includes('/admin.html'))!.url());
+    expect(url.searchParams.get('embedded')).toBe('1');
+    expect(url.searchParams.get('v')).toBeTruthy();
+    expect(url.searchParams.get('v')).not.toBe(previousVersion);
+    expect(url.hash).toBe('');
+    previousVersion = url.searchParams.get('v')!;
+  }
 });

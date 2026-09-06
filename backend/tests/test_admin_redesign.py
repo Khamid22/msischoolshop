@@ -2,13 +2,15 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
-from app.main import app
+from app.main import app, prevent_stale_admin_pages
 from app.models import GrantLog, Notification, Order, User
 from app.sales_analytics import sales_analytics
 from app.security import create_token
@@ -92,3 +94,22 @@ def test_sales_periods_use_tashkent_dates_and_paid_totals(client):
     assert http.get('/api/admin/analytics').status_code == 401
     assert http.get('/api/admin/analytics?range=invalid', headers=admin_headers()).status_code == 422
     assert http.get('/api/admin/analytics?range=30', headers=admin_headers()).json()['orderCount'] == 0
+
+
+def test_admin_handoff_and_documents_do_not_reuse_stale_html(tmp_path):
+    for name in ['admin.html', 'admin-sso.html', 'admin-login.html', 'app-hash.js']:
+        (tmp_path / name).write_text('current release')
+    site = FastAPI()
+    site.middleware('http')(prevent_stale_admin_pages)
+    site.mount('/', StaticFiles(directory=tmp_path))
+    with TestClient(site) as client:
+        for path in ['/admin.html?embedded=1', '/admin-sso.html?embedded=1', '/admin-login.html']:
+            response = client.get(path)
+            assert response.status_code == 200
+            assert response.headers['cache-control'] == 'no-store, max-age=0'
+            (tmp_path / path.split('?')[0].lstrip('/')).write_text('next release with a new asset hash')
+            updated = client.get(path, headers={'If-None-Match': response.headers['etag']})
+            assert updated.status_code == 200
+            assert updated.text == 'next release with a new asset hash'
+            assert updated.headers['cache-control'] == 'no-store, max-age=0'
+        assert 'cache-control' not in client.get('/app-hash.js').headers

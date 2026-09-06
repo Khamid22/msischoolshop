@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>LMS shop frame test</title></head>
+<body>
+  <iframe title="MSI Shop" style="width:100%;height:850px" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+  <script>
+    document.querySelector('iframe').src = new URLSearchParams(location.search).get('launch');
+  </script>
+</body>
+</html>

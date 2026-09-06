@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import RequestResponseEndpoint
 
 from .config import CORS_ORIGINS, REPOSITORY_DIR
 from .database import initialize_database
@@ -29,6 +30,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def prevent_stale_admin_pages(request: Request, call_next: RequestResponseEndpoint):
+    response = await call_next(request)
+    if request.url.path in {"/admin.html", "/admin-sso.html", "/admin-login.html"}:
+        # These stable URLs select content-hashed assets after each deployment.
+        # Caching the HTML can strand an LMS iframe on the previous admin UI.
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
 
 app.include_router(catalog.router)
 app.include_router(auth.router)
