@@ -126,9 +126,9 @@ test('mobile six sections, filter disclosure, dialog keyboard and theme', async 
   expect(await page.evaluate(() => Boolean(document.activeElement?.closest('dialog')))).toBeTruthy();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
-  await page.getByRole('button', { name: 'Сменить тему' }).click();
+  await page.getByRole('button', { name: 'Ночной режим' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.getByRole('button', { name: 'Сменить тему' }).click();
+  await page.getByRole('button', { name: 'Ночной режим' }).click();
   for (const title of ['Аналитика продаж', 'История заказов', 'Пользователи и MSI Coin', 'Баннеры на главной', 'Новости', 'Каталог товаров']) {
     await page.locator(`.admin-nav button[title="${title}"]`).click();
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();

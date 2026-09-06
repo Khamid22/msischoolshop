@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchAdminBootstrap, logout } from '../api';
+import { fetchAdminBootstrap } from '../api';
 import { BagIcon, BellIcon, BoxIcon, GridIcon, MoonIcon, StarIcon, SunIcon, UserIcon } from '../components/icons';
 import type { AdminBootstrap } from '../types';
 import { AnalyticsTab } from './AnalyticsTab';
@@ -57,9 +57,8 @@ export function AdminApp() {
     <aside className="admin-sidebar">
       <div className="admin-brand"><strong>MSI</strong><span>Панель администратора</span></div>
       <nav className="admin-nav" aria-label="Разделы магазина">{TABS.map(({ id, title, short, icon: Icon }) => <button key={id} title={title} className={id === tab ? 'is-active' : ''} aria-current={id === tab ? 'page' : undefined} onClick={() => navigate(id)}><Icon /><span className="desktop-label">{title}</span><span className="mobile-label">{short}</span>{counts?.[id] != null ? <small>{counts[id]}</small> : null}</button>)}</nav>
-      <div className="sidebar-actions"><button className="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <MoonIcon /> : <SunIcon />}{theme === 'dark' ? 'Тёмная тема' : 'Светлая тема'}</button><div><a className="button" href="./" target={embedded ? '_blank' : undefined} rel="noreferrer">На сайт ↗</a><button className="button button--danger" onClick={() => { void logout().then(() => location.assign('./admin-login.html')); }}>⏻ Выйти</button></div></div>
     </aside>
-    <main className="admin-main"><header className="admin-header"><div><h1>{active.title}</h1><p>{active.subtitle}</p></div><button className="button" disabled={loading} onClick={() => void load().catch(() => {})} aria-label="Обновить магазин">↻ <span>{loading ? 'Обновляем…' : 'Обновить'}</span></button><button className="icon-button mobile-theme" aria-label="Сменить тему" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <MoonIcon /> : <SunIcon />}</button><details className="mobile-menu"><summary aria-label="Дополнительные действия">⋯</summary><div><a className="button" href="./" target={embedded ? "_blank" : undefined} rel="noreferrer">На сайт ↗</a><button className="button button--danger" onClick={() => { void logout().then(() => location.assign("./admin-login.html")); }}>⏻ Выйти</button></div></details></header>
+    <main className="admin-main"><header className="admin-header"><div><h1>{active.title}</h1><p>{active.subtitle}</p></div><button className="icon-button" aria-label="Ночной режим" aria-pressed={theme === 'dark'} title={theme === 'dark' ? 'Выключить ночной режим' : 'Включить ночной режим'} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <MoonIcon /> : <SunIcon />}</button></header>
       <div className="admin-content" aria-busy={loading}>
         {error ? <div className="inline-error" role="alert"><p>{error}</p><button className="button" onClick={() => void load().catch(() => {})}>Повторить</button>{!data ? <a className="button" href="./admin-login.html">Войти</a> : null}</div> : null}
         {!data && loading ? <div className="admin-state" role="status"><span className="spinner" /><p>Загружаем магазин…</p></div> : null}
