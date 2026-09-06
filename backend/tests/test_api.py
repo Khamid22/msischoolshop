@@ -4,7 +4,6 @@ import hmac
 import json
 import os
 import sys
-import tempfile
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -14,20 +13,11 @@ from urllib.parse import urlencode
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_ROOT))
 
-database_file = tempfile.NamedTemporaryFile(prefix="msishop-test-", suffix=".db", delete=False)
-database_file.close()
-os.environ["DATABASE_URL"] = f"sqlite:///{database_file.name}"
-os.environ["SEED_DEMO_DATA"] = "true"
-os.environ["ADMIN_PASSWORD"] = "test-admin-password"
-os.environ["SECRET_KEY"] = "test-secret-key"
-os.environ["SHOP_ADMIN_SSO_SECRET"] = "test-shop-admin-sso-secret-that-is-long-enough"
-os.environ["BOT_TOKEN"] = "test-bot-token"
-os.environ["DEMO_TELEGRAM_ID"] = "777000"
-
 from fastapi.testclient import TestClient  # noqa: E402
 from werkzeug.security import generate_password_hash  # noqa: E402
 
 from app.main import app  # noqa: E402
+from app.database import engine  # noqa: E402
 from app.order_fulfillment import (  # noqa: E402
     FULFILLMENT_FLOWS,
     fulfillment_type_from_order,
@@ -489,4 +479,4 @@ def test_complete_api_workflow() -> None:
             assert client.get("/api/orders", headers=admin_headers).json() == []
             assert client.post("/api/auth/logout", headers=student_headers).status_code == 204
     finally:
-        Path(database_file.name).unlink(missing_ok=True)
+        engine.dispose()

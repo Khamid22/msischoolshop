@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 
+import { AdminDialog } from './AdminDialog';
 import { createProduct, updateProduct } from '../api';
 import { PlusIcon, TrashIcon, XIcon } from '../components/icons';
 import type {
@@ -18,7 +19,10 @@ interface ProductDraft {
   categoryId: string;
   price: number;
   fulfillmentType: FulfillmentType;
-  stock: number;
+  stock: number | "";
+  downloadUrl: string;
+  licenseKey: string;
+  weight: number;
   discount: number;
   rating: number | '';
   active: boolean;
@@ -32,7 +36,7 @@ interface Props {
   categories: CatalogCategory[];
   product?: Product;
   close: () => void;
-  saved: () => void;
+  saved: () => Promise<void>;
 }
 
 function fulfillmentOf(product?: Product): FulfillmentType {
@@ -50,7 +54,10 @@ function initialDraft(product: Product | undefined, categories: CatalogCategory[
     categoryId: product?.categoryId || categories.find((item) => item.active)?.id || '',
     price: product?.price || 0,
     fulfillmentType: fulfillmentOf(product),
-    stock: product?.stock || 0,
+    stock: product?.stock ?? "",
+    downloadUrl: product?.downloadUrl || "",
+    licenseKey: product?.licenseKey || "",
+    weight: product?.weight || 0,
     discount: product?.discount || 0,
     rating: product?.rating ?? '',
     active: product?.active !== false,
@@ -86,14 +93,6 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
     () => categories.filter((category) => category.active || category.id === draft.categoryId),
     [categories, draft.categoryId],
   );
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [close]);
 
   const addUploadedImages = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.currentTarget.files || []);
@@ -200,15 +199,18 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       price: draft.price,
       type: isPhysical ? 'physical' : 'digital',
       fulfillmentType: draft.fulfillmentType,
-      stock: isPhysical && !draft.variants.length ? draft.stock : undefined,
+      stock: isPhysical && !draft.variants.length && draft.stock !== "" ? draft.stock : null,
+      downloadUrl: isPhysical ? "" : draft.downloadUrl.trim(),
+      licenseKey: isPhysical ? "" : draft.licenseKey.trim(),
+      weight: isPhysical ? draft.weight : 0,
       variantLabel: draft.variants.length ? draft.variantLabel.trim() : undefined,
       variants: draft.variants.map((variant) => ({
         ...variant,
         label: variant.label.trim(),
         stock: isPhysical ? variant.stock : undefined,
       })),
-      discount: draft.discount || undefined,
-      rating: draft.rating === '' ? undefined : Number(draft.rating),
+      discount: draft.discount,
+      rating: draft.rating === '' ? null : Number(draft.rating),
       active: draft.active,
       carousel: draft.carousel,
     };
@@ -216,7 +218,8 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
     try {
       if (product) await updateProduct(product.id, payload);
       else await createProduct(payload);
-      saved();
+      close();
+      await saved().catch(() => {});
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Не удалось сохранить товар.');
     } finally {
@@ -225,14 +228,13 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
   };
 
   return (
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
-      <section className="modal modal--product" role="dialog" aria-modal="true" aria-labelledby="product-editor-title">
+    <AdminDialog titleId="product-editor-title" close={close} busy={busy} className="modal--product">
         <header className="modal__header">
           <div>
             <h2 id="product-editor-title">{product ? 'Изменить товар' : 'Новый товар'}</h2>
             <p>Карточка, варианты и выдача синхронизируются с магазином.</p>
           </div>
-          <button className="icon-button" type="button" onClick={close} aria-label="Закрыть"><XIcon /></button>
+          <button className="icon-button" type="button" disabled={busy} onClick={close} aria-label="Закрыть"><XIcon /></button>
         </header>
         <form onSubmit={submit}>
           <div className="modal__body product-editor">
@@ -244,7 +246,8 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
               <label className="field field--wide"><span>Описание</span><textarea rows={3} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
               <label className="field"><span>Скидка, %</span><input type="number" min="0" max="100" value={draft.discount} onChange={(event) => setDraft({ ...draft, discount: Number(event.target.value) })} /></label>
               <label className="field"><span>Рейтинг</span><input type="number" min="0" max="5" step="0.1" value={draft.rating} onChange={(event) => setDraft({ ...draft, rating: event.target.value === '' ? '' : Number(event.target.value) })} placeholder="Не показывать" /></label>
-              {isPhysical && !draft.variants.length ? <label className="field"><span>Остаток</span><input type="number" min="0" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: Number(event.target.value) })} /></label> : null}
+              {isPhysical && !draft.variants.length ? <label className="field"><span>Остаток (пусто — без лимита)</span><input type="number" min="0" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: event.target.value === "" ? "" : Number(event.target.value) })} /></label> : null}
+              {isPhysical ? <label className="field"><span>Вес, г</span><input type="number" min="0" value={draft.weight} onChange={(event) => setDraft({ ...draft, weight: Number(event.target.value) })} /></label> : <><label className="field field--wide"><span>Ссылка на скачивание / активацию</span><input type="url" value={draft.downloadUrl} onChange={(event) => setDraft({ ...draft, downloadUrl: event.target.value })} placeholder="https://…" /></label><label className="field field--wide"><span>Ключ / лицензия</span><textarea value={draft.licenseKey} onChange={(event) => setDraft({ ...draft, licenseKey: event.target.value })} /></label></>}
               <div className="editor-switches field--wide">
                 <label className="check-field"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Показывать в магазине</span></label>
                 <label className="check-field"><input type="checkbox" checked={draft.carousel} onChange={(event) => setDraft({ ...draft, carousel: event.target.checked })} /><span>Добавить в подборку</span></label>
@@ -276,9 +279,8 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
             </aside>
             {error ? <p className="form-error product-editor__error" role="alert">{error}</p> : null}
           </div>
-          <footer className="modal__footer"><button className="button" type="button" onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy || preparingImages}>{busy ? 'Сохраняем…' : 'Сохранить товар'}</button></footer>
+          <footer className="modal__footer"><button className="button" type="button" disabled={busy} onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy || preparingImages}>{busy ? 'Сохраняем…' : 'Сохранить товар'}</button></footer>
         </form>
-      </section>
-    </div>
+    </AdminDialog>
   );
 }

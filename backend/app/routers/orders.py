@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from ..coin_ledger import change_coins, current_balance
 from ..database import get_db
 from ..models import Notification, Order, Product, User
 from ..order_fulfillment import (
@@ -68,7 +69,7 @@ def create_order(
         if existing_order is not None:
             if existing_order.user_id != user.id:
                 raise HTTPException(status_code=409, detail="Purchase request ID is already in use")
-            return {"order": order_to_dict(existing_order), "user": user_to_dict(user)}
+            return {"order": order_to_dict(existing_order), "user": {**user_to_dict(user), "balance": current_balance(database, user)}}
 
     product = database.scalar(
         select(Product).where(Product.id == data.productId).with_for_update()
@@ -90,9 +91,6 @@ def create_order(
     if user.discount and user.discount > 0:
         unit_price = js_round(unit_price * (1 - user.discount / 100))
     total_price = unit_price * data.quantity
-    if user.balance < total_price:
-        raise HTTPException(status_code=409, detail="Insufficient balance")
-
     now = datetime.now(timezone.utc).isoformat()
     fulfillment_type = fulfillment_type_from_product(product)
     is_physical = fulfillment_type == "physical_pickup"
@@ -102,7 +100,8 @@ def create_order(
         if is_physical and delivery_method == "pickup"
         else None
     )
-    user.balance -= total_price
+    order_id = data.requestId or str(uuid4())
+    change_coins(database, user, -total_price, source=f"shop:order:{order_id}", note=product.name or product.name_key)
     if variant and variant.get("stock") is not None:
         product.variants = [
             {**item, "stock": int(item["stock"]) - data.quantity}
@@ -113,7 +112,7 @@ def create_order(
     elif product.stock is not None:
         product.stock -= data.quantity
     order = Order(
-        id=data.requestId or str(uuid4()),
+        id=order_id,
         items=[{
             "product": product_to_dict(product),
             "quantity": data.quantity,
@@ -136,7 +135,7 @@ def create_order(
 
 @router.patch("/{order_id}/status", dependencies=[Depends(require_admin)])
 def update_order_status(order_id: str, data: OrderStatusUpdate, database: Session = Depends(get_db)) -> dict:
-    order = database.get(Order, order_id)
+    order = database.scalar(select(Order).where(Order.id == order_id).with_for_update())
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
     fulfillment_type = fulfillment_type_from_order(order)

@@ -158,6 +158,7 @@ class OrderStatusUpdate(BaseModel):
 class BalanceChange(BaseModel):
     amount: int
     note: str | None = None
+    requestId: str | None = Field(default=None, min_length=1, max_length=100)
 
 
 class BulkSync(BaseModel):
