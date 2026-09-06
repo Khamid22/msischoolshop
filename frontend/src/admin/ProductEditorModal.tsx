@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 
 import { createProduct, updateProduct } from '../api';
@@ -10,8 +10,7 @@ import type {
   ProductVariant,
 } from '../types';
 
-const MAX_IMAGES = 6;
-const MAX_IMAGE_BYTES = 2_000_000;
+import { MAX_PRODUCT_IMAGES, prepareProductImages, validateProductImageUrl } from './productImages.ts';
 
 interface ProductDraft {
   name: string;
@@ -70,24 +69,17 @@ function variantId(): string {
     || `variant-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`;
 }
 
-async function filesToImages(files: FileList): Promise<string[]> {
-  const selected = Array.from(files);
-  const oversized = selected.find((file) => file.size > MAX_IMAGE_BYTES);
-  if (oversized) throw new Error(`Файл «${oversized.name}» больше 2 МБ.`);
-  return Promise.all(selected.map((file) => new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error(`Не удалось прочитать «${file.name}».`));
-    reader.readAsDataURL(file);
-  })));
-}
-
 export function ProductEditorModal({ categories, product, close, saved }: Props) {
   const [draft, setDraft] = useState(() => initialDraft(product, categories));
   const [imageUrl, setImageUrl] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [mediaError, setMediaError] = useState('');
+  const [preparingImages, setPreparingImages] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const mediaInFlight = useRef(false);
+  const mediaDisabled = busy || preparingImages;
   const isPhysical = draft.fulfillmentType === 'physical_pickup';
   const preview = draft.images[selectedImage] || draft.images[0] || '';
   const activeCategories = useMemo(
@@ -104,32 +96,47 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
   }, [close]);
 
   const addUploadedImages = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files?.length) return;
-    setError('');
+    const files = Array.from(event.currentTarget.files || []);
+    event.currentTarget.value = '';
+    if (!files.length || mediaInFlight.current || busy) return;
+    mediaInFlight.current = true;
+    setPreparingImages(true);
+    setMediaError('');
     try {
-      const next = await filesToImages(event.target.files);
-      if (draft.images.length + next.length > MAX_IMAGES) {
-        throw new Error(`Можно добавить не больше ${MAX_IMAGES} изображений.`);
-      }
+      const next = await prepareProductImages(files, MAX_PRODUCT_IMAGES - draft.images.length);
       setDraft((current) => ({ ...current, images: [...current.images, ...next] }));
       setSelectedImage(draft.images.length);
+      setError('');
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'Не удалось добавить изображение.');
+      setMediaError(uploadError instanceof Error ? uploadError.message : 'Не удалось добавить изображение.');
     } finally {
-      event.target.value = '';
+      mediaInFlight.current = false;
+      setPreparingImages(false);
     }
   };
 
-  const addImageUrl = () => {
+  const addImageUrl = async () => {
     const value = imageUrl.trim();
-    if (!value) return;
-    if (draft.images.length >= MAX_IMAGES) {
-      setError(`Можно добавить не больше ${MAX_IMAGES} изображений.`);
+    if (!value || mediaInFlight.current || busy) return;
+    if (draft.images.length >= MAX_PRODUCT_IMAGES) {
+      setMediaError(`Можно добавить не больше ${MAX_PRODUCT_IMAGES} изображений.`);
       return;
     }
-    setDraft((current) => ({ ...current, images: [...current.images, value] }));
-    setSelectedImage(draft.images.length);
-    setImageUrl('');
+    mediaInFlight.current = true;
+    setPreparingImages(true);
+    setMediaError('');
+    try {
+      const url = await validateProductImageUrl(value);
+      setDraft((current) => ({ ...current, images: [...current.images, url] }));
+      setSelectedImage(draft.images.length);
+      setImageUrl('');
+      setError('');
+    } catch (urlError) {
+      setMediaError(urlError instanceof Error ? urlError.message : 'Не удалось добавить изображение.');
+    } finally {
+      mediaInFlight.current = false;
+      setPreparingImages(false);
+    }
   };
 
   const makePrimary = (index: number) => {
@@ -172,6 +179,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (mediaInFlight.current || busy) return;
     setError('');
     if (!draft.images.length) {
       setError('Добавьте хотя бы одно изображение товара.');
@@ -253,18 +261,22 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
               </section>
             </div>
 
-            <aside className="media-editor">
+            <aside className="media-editor" aria-label="Фото товара" aria-busy={preparingImages}>
+              <div className="media-editor__heading"><strong>Фото товара</strong><span>{draft.images.length}/{MAX_PRODUCT_IMAGES}</span></div>
               <div className="media-editor__preview">{preview ? <img src={preview} alt="Предпросмотр товара" /> : <span>Предпросмотр изображения</span>}</div>
               <div className="media-editor__upload">
-                <label className="button button--small"><PlusIcon /> Загрузить<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple onChange={(event) => void addUploadedImages(event)} /></label>
-                <small>До {MAX_IMAGES} файлов, каждый до 2 МБ</small>
+                <button className="button button--small" type="button" disabled={mediaDisabled || draft.images.length >= MAX_PRODUCT_IMAGES} onClick={() => fileInput.current?.click()}><PlusIcon /> Загрузить фото</button>
+                <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden disabled={mediaDisabled} onChange={(event) => void addUploadedImages(event)} aria-label="Загрузить фото товара" />
               </div>
-              <div className="media-editor__url"><input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Или вставьте ссылку" /><button className="button button--small" type="button" onClick={addImageUrl}>Добавить</button></div>
-              <div className="media-editor__thumbs">{draft.images.map((image, index) => <div className={index === 0 ? 'media-thumb is-primary' : 'media-thumb'} key={`${image.slice(0, 40)}-${index}`}><button type="button" onClick={() => { setSelectedImage(index); if (index > 0) makePrimary(index); }} aria-label="Сделать главным"><img src={image} alt="" /></button><button className="media-thumb__remove" type="button" onClick={() => removeImage(index)} aria-label="Удалить изображение"><XIcon /></button>{index === 0 ? <span>Главное</span> : null}</div>)}</div>
+              <small className="media-editor__hint">JPG, PNG, WebP, SVG · до 20 МБ. Большие фото уменьшаются автоматически.</small>
+              {preparingImages ? <p className="media-editor__status" role="status">Подготавливаем фото…</p> : null}
+              {mediaError ? <p className="form-error" role="alert">{mediaError}</p> : null}
+              <div className="media-editor__url"><input value={imageUrl} disabled={mediaDisabled} onChange={(event) => setImageUrl(event.target.value)} placeholder="Или прямая ссылка на фото" aria-label="Ссылка на фото" /><button className="button button--small" type="button" disabled={mediaDisabled || !imageUrl.trim()} onClick={() => void addImageUrl()}>Добавить</button></div>
+              {draft.images.length ? <div className="media-editor__thumbs">{draft.images.map((image, index) => <div className={index === 0 ? 'media-thumb is-primary' : 'media-thumb'} key={`${image.slice(0, 40)}-${index}`}><button type="button" disabled={mediaDisabled} onClick={() => { setSelectedImage(index); if (index > 0) makePrimary(index); }} aria-label={`Сделать изображение ${index + 1} главным`}><img src={image} alt="" /></button><button className="media-thumb__remove" type="button" disabled={mediaDisabled} onClick={() => removeImage(index)} aria-label={`Удалить изображение ${index + 1}`}><XIcon /></button>{index === 0 ? <span>Главное</span> : null}</div>)}</div> : null}
             </aside>
             {error ? <p className="form-error product-editor__error" role="alert">{error}</p> : null}
           </div>
-          <footer className="modal__footer"><button className="button" type="button" onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy}>{busy ? 'Сохраняем…' : 'Сохранить товар'}</button></footer>
+          <footer className="modal__footer"><button className="button" type="button" onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy || preparingImages}>{busy ? 'Сохраняем…' : 'Сохранить товар'}</button></footer>
         </form>
       </section>
     </div>
