@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from math import floor
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -8,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..coin_ledger import change_coins, current_balance
 from ..database import get_db
+from ..catalog_pricing import price_after_discount
 from ..models import Notification, Order, Product, User
 from ..order_fulfillment import (
     fulfillment_type_from_order,
@@ -24,14 +24,11 @@ from ..serializers import order_to_dict, product_to_dict, user_to_dict
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
 
-def js_round(value: float) -> int:
-    """Match Math.round for the non-negative shop prices used here."""
-    return floor(value + 0.5)
-
-
 def resolve_variant(product: Product, variant_id: str | None) -> dict | None:
     variants = [variant for variant in (product.variants or []) if variant.get("active", True)]
     if not variants:
+        if product.variants:
+            raise HTTPException(status_code=409, detail="Product variants are not available")
         if variant_id:
             raise HTTPException(status_code=409, detail="Product variant is not available")
         return None
@@ -84,12 +81,10 @@ def create_order(
         raise HTTPException(status_code=409, detail="Not enough stock")
 
     product_price = int(variant["price"]) if variant else product.price
-    if product.discount and product.discount > 0:
-        product_price = js_round(product_price * (1 - product.discount / 100))
+    product_price = price_after_discount(product_price, product.discount)
     original_price = product_price * data.quantity
     unit_price = product_price
-    if user.discount and user.discount > 0:
-        unit_price = js_round(unit_price * (1 - user.discount / 100))
+    unit_price = price_after_discount(unit_price, user.discount)
     total_price = unit_price * data.quantity
     now = datetime.now(timezone.utc).isoformat()
     fulfillment_type = fulfillment_type_from_product(product)

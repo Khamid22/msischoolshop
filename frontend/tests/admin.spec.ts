@@ -11,6 +11,71 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Добавить товар' })).toBeVisible();
 });
 
+test('simple named variants persist and appear with their prices in the storefront', async ({ page, request }) => {
+  const title = `Robux options ${Date.now()}`;
+  await page.getByRole('button', { name: 'Добавить товар' }).click();
+  const editor = page.getByRole('dialog');
+  await editor.getByLabel('Название', { exact: true }).fill(title);
+  await editor.getByRole('combobox', { name: 'Категория', exact: true }).selectOption('digital');
+  await editor.locator('input[type=file]').setInputFiles(image);
+  for (const [index, label, price] of [[0, '270 Robux', '540'], [1, '500 Robux', '880']] as const) {
+    await editor.getByRole('button', { name: 'Добавить вариант' }).click();
+    const row = editor.locator('.variant-row').nth(index);
+    await row.getByLabel('Название варианта').fill(label);
+    await row.getByLabel('Цена, коины').fill(price);
+    await expect(row.locator('input')).toHaveCount(2);
+  }
+  await expect(editor.getByLabel('Название выбора')).toHaveCount(0);
+  await expect(editor.getByLabel('Цена, коины')).toHaveCount(2);
+  await page.screenshot({ path: '/private/tmp/msi-shop-variants-admin.png' });
+  await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+  await expect(editor).toBeHidden();
+  await page.getByLabel('Поиск по названию').fill(title);
+  const catalogRow = page.getByRole('row').filter({ hasText: title });
+  await expect(catalogRow).toContainText('Вариантов: 2');
+  await expect(catalogRow).toContainText('540');
+  await catalogRow.getByRole('button', { name: 'Редактировать' }).click();
+  await editor.locator('.variant-row').first().getByLabel('Название варианта').fill('300 Robux');
+  await editor.locator('.variant-row').first().getByLabel('Цена, коины').fill('560');
+  await editor.getByRole('button', { name: 'Добавить вариант' }).click();
+  await editor.locator('.variant-row').last().getByLabel('Название варианта').fill('Temporary');
+  await editor.getByRole('button', { name: 'Удалить вариант Temporary' }).click();
+  await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+  await expect(editor).toBeHidden();
+  await page.reload();
+  await page.getByLabel('Поиск по названию').fill(title);
+  await expect(catalogRow).toContainText('560');
+  await catalogRow.getByRole('button', { name: 'Редактировать' }).click();
+  await expect(editor.getByLabel('Название варианта').first()).toHaveValue('300 Robux');
+  await expect(editor.getByLabel('Цена, коины').first()).toHaveValue('560');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await editor.locator('.variant-editor').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/private/tmp/msi-shop-variants-admin-mobile.png' });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Каталог', exact: true }).click();
+  await page.getByRole('button', { name: title, exact: true }).click();
+  const detail = page.getByRole('dialog');
+  await expect(detail.getByRole('button', { name: /300 Robux/ })).toContainText('560');
+  const large = detail.getByRole('button', { name: /500 Robux/ });
+  await large.click();
+  await expect(large).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.detail__purchase-price')).toContainText('880');
+  await page.screenshot({ path: '/private/tmp/msi-shop-variants-store.png' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const session = await (await request.post('/api/auth/login', { data: { studentId: '2023114', password: 'demo' } })).json();
+  await page.evaluate((value) => {
+    localStorage.setItem('msi_user_token', value.token);
+    localStorage.setItem('msi_current_user', JSON.stringify(value.user));
+  }, session);
+  await page.reload();
+  await page.getByRole('button', { name: 'Каталог', exact: true }).click();
+  await page.getByRole('button', { name: title, exact: true }).click();
+  await page.getByRole('button', { name: /500 Robux/ }).click();
+  await page.getByRole('button', { name: 'Купить', exact: true }).click();
+  await expect(page.locator('.checkout-drawer')).toContainText('500 Robux');
+  await expect(page.locator('.checkout-drawer')).toContainText('792');
+});
+
 test('product create, filters, edit zero discount, persistence and deletion', async ({ page }) => {
   const title = `Browser product ${Date.now()}`;
   await page.getByRole('button', { name: 'Добавить товар' }).click();

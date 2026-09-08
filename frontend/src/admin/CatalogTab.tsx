@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { deleteBanner, deleteNews, deleteProduct, updateBanner, updateCategory, updateNews } from '../api';
 import { PlusIcon, SearchIcon, TrashIcon } from '../components/icons';
 import type { AdminBootstrap, Banner, CatalogCategory, News, Product } from '../types';
-import { formatCoins, getProductPrice } from '../utils/currency';
+import { formatCoins, getBasePrice, getProductPrice } from '../utils/currency';
 import { CategoryModal, ContentModal } from './ContentEditors';
 import { ProductEditorModal } from './ProductEditorModal';
 import { productTitle } from './presentation';
@@ -28,7 +28,8 @@ export function CatalogTab({ data, refresh, section: initialSection }: Props) {
     const price = getProductPrice(product);
     return `${productTitle(product)} ${categories.get(product.categoryId || '') || ''}`.toLowerCase().includes(search.toLowerCase())
       && (type === 'all' || product.type === type) && (!min || price >= Number(min)) && (!max || price <= Number(max))
-      && (special === 'all' || (special === 'discount' && (product.discount || 0) > 0) || (special === 'carousel' && product.carousel));
+      && (special === 'hidden' ? product.active === false : product.active !== false)
+      && (special === 'all' || special === 'hidden' || (special === 'discount' && (product.discount || 0) > 0) || (special === 'carousel' && product.carousel));
   });
   async function mutate(id: string, action: () => Promise<unknown>) {
     if (busyId) return;
@@ -51,11 +52,11 @@ export function CatalogTab({ data, refresh, section: initialSection }: Props) {
     {error ? <p className="inline-error" role="alert">{error}</p> : null}
     {section === 'products' ? <>
       <div className={`panel catalog-filters ${showFilters ? "filters-open" : ""}`}><label className="filter-field filter-field--search"><span>Поиск по названию</span><div className="search-field"><SearchIcon /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Например: Hoodie, Premium…" /></div></label><button type="button" className="button mobile-filter-toggle" aria-expanded={showFilters} onClick={() => setShowFilters(!showFilters)}>Фильтры {showFilters ? "−" : "+"}</button><label className="filter-field"><span>Тип</span><select value={type} onChange={(event) => setType(event.target.value)}><option value="all">Все типы</option><option value="digital">Digital</option><option value="physical">Physical</option></select></label><label className="filter-field"><span>Мин. цена</span><input type="number" min="0" value={min} onChange={(event) => setMin(event.target.value)} placeholder="0" /></label><label className="filter-field"><span>Макс. цена</span><input type="number" min="0" value={max} onChange={(event) => setMax(event.target.value)} placeholder="Любая" /></label></div>
-      <div className="filter-chips" aria-label="Подборки">{[['all', 'Все товары'], ['discount', 'Со скидкой'], ['carousel', 'В карусели']].map(([value, label]) => <button type="button" key={value} className={special === value ? 'is-active' : ''} aria-pressed={special === value} onClick={() => setSpecial(value)}>{label}</button>)}</div>
+      <div className="filter-chips" aria-label="Подборки">{[['all', 'Все товары'], ['discount', 'Со скидкой'], ['carousel', 'В карусели'], ['hidden', 'Скрытые']].map(([value, label]) => <button type="button" key={value} className={special === value ? 'is-active' : ''} aria-pressed={special === value} onClick={() => setSpecial(value)}>{label}</button>)}</div>
       <section className="panel"><div className="table-scroll"><table className="responsive-table products-table"><thead><tr><th>Товар</th><th>Тип</th><th className="numeric">Цена</th><th>Скидка</th><th>В карусели</th><th>Действия</th></tr></thead><tbody>{filtered.map((product) => <tr key={product.id}>
-        <td className="product-name"><div className="product-cell">{product.image ? <img src={product.image} alt="" /> : <span className="product-placeholder" />}<div><strong>{productTitle(product)}</strong><small>{product.type === 'physical' ? product.variants?.length ? `${product.variants.length} вариантов` : `На складе: ${product.stock ?? '∞'} шт.` : 'Цифровой товар'}{product.active === false ? ' · Скрыт' : ''}</small></div></div></td>
+        <td className="product-name"><div className="product-cell">{product.image ? <img src={product.image} alt="" /> : <span className="product-placeholder" />}<div><strong>{productTitle(product)}</strong><small>{product.variants?.length ? `Вариантов: ${product.variants.length}` : product.type === 'physical' ? `На складе: ${product.stock ?? '∞'} шт.` : 'Цифровой товар'}{product.active === false ? ' · Скрыт' : ''}</small></div></div></td>
         <td data-label="Тип"><span className={`type-badge type-badge--${product.type}`}>{product.type === 'physical' ? 'Physical' : 'Digital'}</span></td>
-        <td data-label="Цена" className="numeric">{(product.discount || 0) > 0 ? <del className="muted">Ⓒ {formatCoins(product.price)} </del> : null}<strong>Ⓒ {formatCoins(getProductPrice(product))}</strong></td>
+        <td data-label="Цена" className="numeric">{(product.discount || 0) > 0 ? <del className="muted">Ⓒ {formatCoins(getBasePrice(product))} </del> : null}<strong>{(product.variants?.length || 0) > 1 ? "от " : ""}Ⓒ {formatCoins(getProductPrice(product))}</strong></td>
         <td data-label="Скидка">{product.discount ? `−${product.discount}%` : '—'}</td><td data-label="В карусели">{product.carousel ? <span className="coin-value">✓</span> : '—'}</td>
         <td className="actions-cell"><div className="row-actions"><button className="button button--small" type="button" onClick={() => setEditingProduct(product)}>Редактировать</button><button className="icon-button icon-button--danger" aria-label={`Удалить ${productTitle(product)}`} disabled={Boolean(busyId)} onClick={() => remove(product.id, productTitle(product), () => deleteProduct(product.id))}><TrashIcon /></button></div></td>
       </tr>)}</tbody></table></div>{!filtered.length ? <div className="empty-row">Товары не найдены</div> : null}<footer className="table-footer">Показано {filtered.length} из {data.products.length} товаров</footer></section>

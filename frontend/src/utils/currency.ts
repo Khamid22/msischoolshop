@@ -14,8 +14,13 @@ export function coinsToSum(coins: number): string {
   return Math.round(value).toLocaleString('ru-RU') + ' сум';
 }
 
+export function getBasePrice(product: Product): number {
+  const prices = product.variants?.filter((variant) => variant.active !== false).map((variant) => variant.price) || [];
+  return prices.length ? Math.min(...prices) : product.price;
+}
+
 export function getProductPrice(product: Product, variantPrice?: number): number {
-  const basePrice = variantPrice ?? product.price;
+  const basePrice = variantPrice ?? getBasePrice(product);
   if (product.discount && product.discount > 0) {
     return Math.round(basePrice * (1 - product.discount / 100));
   }

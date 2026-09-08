@@ -2,6 +2,8 @@ import type { Translations } from '../types';
 
 export const translations: Translations = {
   ru: {
+    chooseOption: 'Выберите вариант',
+    priceFrom: 'от {price}',
     shopTitle: 'MSI Shop',
     miniApp: 'Telegram Mini App',
     studentAccess: 'Доступ студента',
@@ -292,6 +294,8 @@ export const translations: Translations = {
     finalPrice: 'Ваша цена',
   },
   uz: {
+    chooseOption: 'Variantni tanlang',
+    priceFrom: '{price} dan',
     shopTitle: "MSI Shop",
     miniApp: 'Telegram Mini App',
     studentAccess: 'Talaba kirishi',
@@ -582,6 +586,8 @@ export const translations: Translations = {
     finalPrice: 'Sizning narxingiz',
   },
   en: {
+    chooseOption: 'Choose an option',
+    priceFrom: 'from {price}',
     shopTitle: 'MSI Shop',
     miniApp: 'Telegram Mini App',
     studentAccess: 'Student access',

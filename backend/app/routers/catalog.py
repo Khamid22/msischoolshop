@@ -75,6 +75,12 @@ def normalize_product_media(product: Product) -> None:
     product.image = product.images[0] if product.images else ""
 
 
+def normalize_product_variant_price(product: Product) -> None:
+    prices = [int(option["price"]) for option in (product.variants or []) if option.get("active", True)]
+    if prices:
+        product.price = min(prices)
+
+
 def require_category(database: Session, category_id: str | None) -> None:
     if category_id and database.get(CatalogCategory, category_id) is None:
         raise HTTPException(status_code=422, detail="Catalog category does not exist")
@@ -151,6 +157,7 @@ def create_product(data: ProductCreate, database: Session = Depends(get_db)) -> 
     apply_fields(product, fields, PRODUCT_FIELDS)
     normalize_product_fulfillment(product, set(fields))
     normalize_product_media(product)
+    normalize_product_variant_price(product)
     database.add(product)
     database.commit()
     return product_to_dict(product)
@@ -166,6 +173,7 @@ def update_product(product_id: str, data: ProductUpdate, database: Session = Dep
     apply_fields(product, fields, PRODUCT_FIELDS)
     normalize_product_fulfillment(product, set(fields))
     normalize_product_media(product)
+    normalize_product_variant_price(product)
     database.commit()
     return product_to_dict(product)
 

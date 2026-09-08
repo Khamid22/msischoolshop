@@ -42,6 +42,7 @@ from .catalog import (
     PRODUCT_FIELDS,
     apply_fields,
     normalize_product_fulfillment,
+    normalize_product_variant_price,
 )
 
 
@@ -136,6 +137,7 @@ def sync_products(database: Session, items: list[dict]) -> None:
         fields = data.model_dump()
         apply_fields(product, fields, PRODUCT_FIELDS)
         normalize_product_fulfillment(product, set(fields))
+        normalize_product_variant_price(product)
         database.add(product)
 
 

@@ -23,7 +23,7 @@ export default function ProductDetail({ product, onClose }: Props) {
 
   useEffect(() => {
     if (!product) return;
-    setVariant(product.variants?.find((item) => item.active !== false) || null);
+    setVariant(product.variants?.find((item) => item.active !== false && (item.stock === undefined || item.stock > 0)) || null);
     setActiveImage(product.images?.[0] || product.image);
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -45,9 +45,11 @@ export default function ProductDetail({ product, onClose }: Props) {
   const isPhysical = product.fulfillmentType
     ? product.fulfillmentType === 'physical_pickup'
     : product.type === 'physical';
-  const isUnavailable = Boolean(variant && variant.stock !== undefined && variant.stock <= 0);
+  const isUnavailable = Boolean(product.variants?.length && !variant)
+    || Boolean(variant && variant.stock !== undefined && variant.stock <= 0);
 
   const handleAdd = () => {
+    if (isUnavailable) return;
     if (!user) {
       openAuth();
       return;
@@ -102,10 +104,10 @@ export default function ProductDetail({ product, onClose }: Props) {
 
           {variants.length > 0 ? (
             <section className="detail__section">
-              <span className="detail__section-title">{product.variantLabel || t('packSize')}</span>
-              <div className="detail__variants">
+              <span className="detail__section-title" id="product-options-title">{product.variantLabel || t('chooseOption')}</span>
+              <div className="detail__variants" role="group" aria-labelledby="product-options-title">
                 {variants.map((option) => (
-                  <button key={option.id} className={variant?.id === option.id ? 'detail__variant detail__variant--active' : 'detail__variant'} type="button" disabled={option.stock !== undefined && option.stock <= 0} onClick={() => setVariant(option)}>{option.label}</button>
+                  <button key={option.id} className={variant?.id === option.id ? 'detail__variant detail__variant--active' : 'detail__variant'} type="button" aria-pressed={variant?.id === option.id} disabled={option.stock !== undefined && option.stock <= 0} onClick={() => setVariant(option)}><span>{option.label}</span><strong>{formatCoins(getUnitPrice(product, user, option.price))} <Coin /></strong></button>
                 ))}
               </div>
             </section>
