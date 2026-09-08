@@ -55,13 +55,14 @@ def test_merge_preserves_prices_history_and_idempotent_checkout_then_restores():
         with SessionLocal() as database, database.begin():
             changes = prepare_catalog_merge(database, groups, lock=True)
             before = {change["id"]: change["before"] for change in changes}
-            assert len(changes) == 5
+            assert len(changes) == 7
             assert all(product_state(database.get(Product, key)) == value for key, value in before.items())
             apply_catalog_changes(database, changes)
         catalog = {item["id"]: item for item in client.get("/api/products").json()}
         assert old_id not in catalog
         assert [option["price"] for option in catalog[groups[0].primary_id]["variants"]] == [540, 880]
         assert [option["price"] for option in catalog[groups[1].primary_id]["variants"]] == [1026, 1944, 3726]
+        assert [option["price"] for option in catalog[groups[2].primary_id]["variants"]] == [352, 810]
         assert catalog[groups[0].primary_id]["price"] == 540
         assert catalog[groups[0].primary_id]["discount"] == 0
         assert next(order for order in client.get("/api/orders", headers=student).json() if order["id"] == old_order["id"]) == old_order

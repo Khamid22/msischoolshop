@@ -15,5 +15,13 @@
       {"product_id": "product-ebfb303873b8", "expected_name": "Telegram Stars 500", "expected_price": 2160, "expected_discount": 10, "label": "500 Stars"},
       {"product_id": "product-944a53f07c6f", "expected_name": "Telegram Stars 1000", "expected_price": 4140, "expected_discount": 10, "label": "1000 Stars"}
     ]
+  },
+  {
+    "name": "Brawl Stars",
+    "primary_id": "product-2b40f75e1580",
+    "options": [
+      {"product_id": "product-2b40f75e1580", "expected_name": "Brawl Stars - 30 Gems", "expected_price": 400, "expected_discount": 12, "label": "30 Gems"},
+      {"product_id": "product-bc4ae573623c", "expected_name": "Brawl Stars - 80 Gems", "expected_price": 900, "expected_discount": 10, "label": "80 Gems"}
+    ]
   }
 ]
