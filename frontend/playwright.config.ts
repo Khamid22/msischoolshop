@@ -5,7 +5,7 @@ import { join } from 'node:path';
 
 const database = join(mkdtempSync(join(tmpdir(), 'shop-browser-')), 'test.db');
 export default defineConfig({
-  testDir: './tests', testMatch: 'admin.spec.ts', workers: 1,
+  testDir: './tests', testMatch: ['admin.spec.ts', 'student-picks.spec.ts'], workers: 1,
   use: { baseURL: 'http://127.0.0.1:5179', viewport: { width: 1440, height: 900 }, trace: 'retain-on-failure' },
   webServer: [
     { command: '../.venv/bin/uvicorn app.main:app --app-dir ../backend --host 127.0.0.1 --port 8771', url: 'http://127.0.0.1:8771/api/health', reuseExistingServer: !process.env.CI,

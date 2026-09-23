@@ -70,3 +70,9 @@ VITE_CUSTOMER_SUPPORT_URL=https://msischool.up.railway.app/customer-support/shop
 ```
 
 Railway sets `DATABASE_URL` from the existing `msi-database` service, uses `DATABASE_SCHEMA=msi_shop`, and disables demo seeding. Keep `SEED_DEMO_DATA=false` in production so fake catalog and student records are not inserted.
+
+## Student Picks
+
+The homepage loads `/api/student-picks`, which ranks active products by all-time purchased quantity, including paid orders awaiting fulfillment and completed orders. Ties use catalogue position and product ID. Existing purchases count immediately; historical product IDs preserved as variant IDs by catalogue consolidation map to the current product. Ambiguous variant IDs are ignored, and current product IDs take priority. Hidden/deleted products without an active replacement and orders outside paid fulfillment stages do not appear.
+
+The manual carousel checkbox/filter has been removed. Its stored field remains for API compatibility and does not affect ranking. No migration or order rewriting is needed. Guests can see the same product selection without buyer/order details. The homepage refreshes the selection each time it is opened and supports loading, empty and retry states. Run `npm --prefix frontend run test:browser` for the admin and Student Picks browser flows. `backend/tests/test_student_picks.py` covers ranking, historical variants, paid statuses, idempotent purchases and privacy; it also supports `MSI_SHOP_TEST_DATABASE_URL` targeting an empty disposable loopback `msi_*_test` PostgreSQL database.

@@ -49,5 +49,5 @@ Verification is backend pytest plus frontend lint and build.
 ## Domain quirks
 - Prices are in **MSI Coin**; `src/utils/currency.ts` defines `COIN_TO_SUM = 5000 / 30` (≈167 сум per coin). Use `formatCoins`/`coinsToSum`, don't hardcode the rate.
 - React `StrictMode` is on — effects double-fire in dev.
-- Product "type" is `'digital' | 'physical'`; physical items support `stock`, digital support `downloadUrl`/`licenseKey`, some have a `course` field. The `carousel?: boolean` flag is editable in the admin panel but not yet read by any storefront component.
+- Product "type" is `'digital' | 'physical'`; physical items support `stock`, digital support `downloadUrl`/`licenseKey`, some have a `course` field. Student Picks uses `/api/student-picks`, ranked by all-time purchased quantity across paid fulfillment stages. Only active products with purchases appear; legacy product IDs preserved in merged variants count toward the active product. The retained `carousel` storage/API field no longer controls storefront selection and has no admin control.
 - Orders start as `paid`; the API supports `packed` -> `ready` -> `collected` status updates.

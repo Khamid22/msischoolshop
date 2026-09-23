@@ -26,7 +26,6 @@ interface ProductDraft {
   discount: number;
   rating: number | '';
   active: boolean;
-  carousel: boolean;
   variants: ProductVariant[];
   images: string[];
 }
@@ -60,7 +59,6 @@ function initialDraft(product: Product | undefined, categories: CatalogCategory[
     discount: product?.discount || 0,
     rating: product?.rating ?? '',
     active: product?.active !== false,
-    carousel: Boolean(product?.carousel),
     variants: (product?.variants || []).map((variant) => ({
       ...variant,
       active: variant.active !== false,
@@ -209,7 +207,6 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       discount: draft.discount,
       rating: draft.rating === '' ? null : Number(draft.rating),
       active: draft.active,
-      carousel: draft.carousel,
     };
     setBusy(true);
     try {
@@ -247,7 +244,6 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
               {isPhysical ? <label className="field"><span>Вес, г</span><input type="number" min="0" value={draft.weight} onChange={(event) => setDraft({ ...draft, weight: Number(event.target.value) })} /></label> : <><label className="field field--wide"><span>Ссылка на скачивание / активацию</span><input type="url" value={draft.downloadUrl} onChange={(event) => setDraft({ ...draft, downloadUrl: event.target.value })} placeholder="https://…" /></label><label className="field field--wide"><span>Ключ / лицензия</span><textarea value={draft.licenseKey} onChange={(event) => setDraft({ ...draft, licenseKey: event.target.value })} /></label></>}
               <div className="editor-switches field--wide">
                 <label className="check-field"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Показывать в магазине</span></label>
-                <label className="check-field"><input type="checkbox" checked={draft.carousel} onChange={(event) => setDraft({ ...draft, carousel: event.target.checked })} /><span>Добавить в подборку</span></label>
               </div>
               <section className="variant-editor field--wide">
                 <div className="variant-editor__heading"><div><strong>Варианты товара</strong><small>Укажите название и цену. В магазине покупатель выберет нужный вариант.</small></div><button className="button button--small" type="button" disabled={draft.variants.length >= 30} onClick={addVariant}><PlusIcon /> Добавить вариант</button></div>

@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "start": "vite preview --host 0.0.0.0 --port ${PORT:-4173}",
-    "test:admin": "playwright test"
+    "test:admin": "playwright test admin.spec.ts",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "react": "^19.2.7",

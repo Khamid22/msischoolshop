@@ -104,9 +104,7 @@ export default function App() {
                       />
                     ) : view === 'home' ? (
                       <ShopPage
-                        products={products}
                         categories={categories}
-                        loading={loading}
                         onOpenProduct={setSelectedProduct}
                         onBrowseCollection={openCollection}
                         onBannerClick={setSelectedBanner}

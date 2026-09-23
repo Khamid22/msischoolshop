@@ -97,6 +97,10 @@ export function fetchProducts(): Promise<Product[]> {
   return request('/products');
 }
 
+export function fetchStudentPicks(signal?: AbortSignal): Promise<Product[]> {
+  return request('/student-picks', { signal });
+}
+
 export function fetchCategories(): Promise<CatalogCategory[]> {
   return request('/categories');
 }

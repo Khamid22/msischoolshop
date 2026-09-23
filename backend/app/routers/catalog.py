@@ -20,6 +20,7 @@ from ..schemas import (
 )
 from ..security import require_admin
 from ..serializers import banner_to_dict, category_to_dict, news_to_dict, product_to_dict, slot_to_dict
+from ..student_picks import list_student_picks
 
 
 router = APIRouter(prefix="/api", tags=["catalog"])
@@ -139,6 +140,11 @@ def list_products(database: Session = Depends(get_db)) -> list[dict]:
         select(Product).where(Product.active.is_(True)).order_by(Product.position, Product.id)
     ).all()
     return [product_to_dict(product) for product in products]
+
+
+@router.get("/student-picks")
+def student_picks(database: Session = Depends(get_db)) -> list[dict]:
+    return [product_to_dict(product) for product in list_student_picks(database)]
 
 
 @router.get("/products/{product_id}")
