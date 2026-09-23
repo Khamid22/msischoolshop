@@ -12,6 +12,13 @@ class ProductVariantInput(BaseModel):
     stock: int | None = Field(default=None, ge=0)
     active: bool = True
 
+    @field_validator("id", "label")
+    @classmethod
+    def validate_variant_text(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Variant name and ID cannot be blank")
+        return value.strip()
+
 
 class ProductCreate(BaseModel):
     image: str = ""
@@ -168,6 +175,7 @@ class OrderDeliveryDetailsInput(BaseModel):
 class BalanceChange(BaseModel):
     amount: int
     note: str | None = None
+    requestId: str | None = Field(default=None, min_length=1, max_length=100)
 
 
 class BulkSync(BaseModel):

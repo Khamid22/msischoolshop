@@ -1,5 +1,6 @@
 import type {
   AdminBootstrap,
+  SalesAnalytics,
   AppNotification,
   Banner,
   CatalogCategory,
@@ -79,8 +80,8 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string |
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
     try {
-      const body = await response.json() as { detail?: string; message?: string; error?: string };
-      message = body.detail || body.message || body.error || message;
+      const body = await response.json() as { detail?: string | Array<{ msg: string }>; message?: string; error?: string };
+      message = Array.isArray(body.detail) ? body.detail.map((item) => item.msg).join('; ') : body.detail || body.message || body.error || message;
     } catch { /* use the status message */ }
     throw new ApiError(response.status, message);
   }
@@ -246,7 +247,8 @@ export async function isAuthenticated(): Promise<boolean> {
   try {
     await request('/admin/me', {}, token);
     return true;
-  } catch {
+  } catch (error) {
+    if (!(error instanceof ApiError) || (error.status !== 401 && error.status !== 403)) throw error;
     sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     return false;
   }
@@ -264,10 +266,15 @@ export function changeAdminUserBalance(
   id: string,
   amount: number,
   note: string,
+  requestId?: string,
 ): Promise<{ user: User; amount: number }> {
   return request(
     `/admin/users/${encodeURIComponent(id)}/balance`,
-    json('POST', { amount, note }),
+    json('POST', { amount, note, requestId }),
     getAdminToken(),
   );
+}
+
+export function fetchAdminAnalytics(range: '7' | '30' | 'all'): Promise<SalesAnalytics> {
+  return request(`/admin/analytics?range=${range}`, {}, getAdminToken());
 }

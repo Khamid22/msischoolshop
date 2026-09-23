@@ -66,11 +66,11 @@ export interface Product {
   downloadUrl?: string;
   licenseKey?: string;
   weight?: number;
-  stock?: number;
+  stock?: number | null;
   variantLabel?: string;
   variants?: ProductVariant[];
   discount?: number;
-  rating?: number;
+  rating?: number | null;
   ratingCount?: number;
   course?: { id: string; title: string; url: string };
 }
@@ -193,4 +193,13 @@ export interface AdminBootstrap {
   users: User[];
   notifications: AppNotification[];
   grants: GrantLog[];
+}
+
+export interface SalesAnalytics {
+  totalCoins: number;
+  orderCount: number;
+  averageOrder: number;
+  unitsSold: number;
+  products: Array<{ label: string; amount: number }>;
+  periods: Array<{ label: string; amount: number }>;
 }

@@ -25,9 +25,9 @@ Open `http://localhost:5173`. API documentation is at `http://127.0.0.1:8000/doc
 
 The development admin password is `123456789`. Copy `backend/.env.example` to `backend/.env` and replace the password and secret. Set `BOT_TOKEN` and link a student's `telegramId` to test verified Telegram sign-in. The seeded local demo user is `aisha@msi.uz` / `demo`.
 
-The PostgreSQL connection makes shop products, users, and orders persistent, but it does not automatically link a Telegram account to an LMS student. Authoritative MSI Coin transactions still require the integration described in [`docs/LMS_INTEGRATION.md`](docs/LMS_INTEGRATION.md).
+The PostgreSQL connection makes shop products, users, and orders persistent, but it does not automatically link a Telegram account to an LMS student. For linked LMS students, `backend/app/coin_ledger.py` reads and updates the canonical `msi_v2.coin_events` ledger within the shop transaction; SQLite uses the local development balance.
 
-Production students can sign in from the Profile page with their LMS Student ID and password. The Shop verifies the canonical `msi_v2` account read-only and stores only a minimal shop profile with a random local password; it never copies the LMS password or password hash. MSI Coin purchases are still not written to the LMS ledger yet.
+Production students can sign in from the Profile page with their LMS Student ID and password. The Shop verifies the canonical `msi_v2` account read-only and stores only a minimal shop profile with a random local password; it never copies the LMS password or password hash.
 
 Each profile refresh reads the student's active group, current MSI Coin total, positive coins earned this month, and active subject count from the LMS. These values are no longer demo defaults.
 
@@ -35,7 +35,7 @@ Each profile refresh reads the student's active group, current MSI Coin total, p
 
 - `frontend/src/` contains the React storefront and its API client.
 - `frontend/public/` contains product images and admin styles.
-- `frontend/admin.html` and `frontend/admin-login.html` are the local compatibility admin interface. Customer Support will replace them in production.
+- `frontend/src/admin/` is the current six-section admin: sales analytics, catalogue, orders, users/MSI Coin, banners and news. `admin.html` mounts it; `admin-login.html` and `admin-sso.html` handle direct login and the LMS Customer Support handoff. Both entry paths use the same responsive dark/light interface. The old horizontal-tab UI and legacy CSS have been removed.
 - `backend/app/` contains the FastAPI API, database models, authentication, and optional local seed data.
 - `backend/tests/` tests the complete API workflow.
 - `backend/msishop.db` is generated locally on first startup and is ignored by Git.
@@ -53,6 +53,8 @@ The feature does not validate that the Roblox account exists, send Robux automat
 cd backend && PYTHONPATH=. .venv/bin/pytest -q
 cd ../frontend && npm run build && npm run lint
 ```
+
+`npm --prefix frontend run test:admin` checks catalogue editing, images/options, order handling, analytics, mobile navigation, themes and the LMS SSO iframe. Its backend uses the repository-root `.venv` and a disposable SQLite database. For canonical-ledger PostgreSQL tests, set `SHOP_TEST_POSTGRES_URL` to a disposable loopback database named `msi_shop_redesign_test` and run `backend/tests/test_coin_ledger_postgres.py` separately.
 
 To run the delivery-details PostgreSQL locking tests, set `MSI_SHOP_TEST_DATABASE_URL` to a fresh, disposable loopback database named `msi_*_test` (SQLAlchemy `postgresql+psycopg` URL) and run `backend/tests/test_order_delivery_details.py`. The fixture creates and removes its tables; never point it at application data.
 

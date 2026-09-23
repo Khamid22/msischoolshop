@@ -79,7 +79,7 @@
         if (!response.ok) throw new Error('Invalid credentials');
         var result = await response.json();
         sessionStorage.setItem(AUTH_KEY, result.token);
-        window.location.href = './admin.html';
+        window.location.href = './admin.html?v=' + Date.now().toString(36);
       } catch (requestError) {
         error.style.display = 'block';
         input.value = '';

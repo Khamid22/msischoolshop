@@ -14,7 +14,8 @@ Verification is backend pytest plus frontend lint and build.
 
 ## Architecture
 - **Multi-entry build** (vite.config.ts): `index.html` = React storefront, plus `admin.html` and `admin-login.html` as inputs.
-- `admin.html` / `admin-login.html` are **plain HTML + inline vanilla JS at the frontend project root** (NOT React) — not covered by `tsc -b` or oxlint, so edits there are never typechecked/linted. Styles come from `/admin/*.css` in `public/`.
+- `admin.html` mounts the current React admin through `src/admin/main.tsx`. Its six sections live in `src/admin/` and use `src/admin/admin.scss`, with dark/light themes and responsive sidebar navigation. `admin-login.html` and `admin-sso.html` remain static authentication entry points.
+- There is one admin interface. Do not restore the removed horizontal-tab overview or the unused legacy `/admin/admin.css`. Before deploying, fetch remote feature branches and check that the release includes the current admin, catalogue variants, image preparation and canonical coin-ledger integration; a service's configured source branch may lag a previously uploaded release.
 - React app entry: `src/main.tsx` -> `src/App.tsx`. State via contexts in `src/contexts/` (Auth, Cart, Favorites, Lang, Notifications, Theme) wrapping an inline page router (view state in App, no react-router).
 - FastAPI entry: `backend/app/main.py`. Routers cover catalog, auth/users, orders, and admin operations. SQLAlchemy models live in `backend/app/models.py`.
 
@@ -24,8 +25,7 @@ Verification is backend pytest plus frontend lint and build.
 - Local checkout and balance deduction happen in one backend transaction in `backend/app/routers/orders.py`. `requestId` makes repeated purchase requests idempotent.
 - For LMS-backed users, `/api/auth/me` refreshes the active group, total coin balance, positive coins earned in the current month, and active subject count from canonical `msi_v2` tables. Do not replace these with frontend constants.
 - Production must use the LMS PostgreSQL student coin ledger and the contract in `docs/LMS_INTEGRATION.md`; never treat the local SQLite balance as authoritative LMS data.
-- The vanilla admin hydrates a browser cache from `/api/admin/bootstrap` and synchronizes edits to authenticated bulk endpoints. The cache is not the source of truth.
-- The vanilla admin is a local compatibility tool. Production product and purchase management belongs to the LMS Customer Support workspace.
+- The React admin loads `/api/admin/bootstrap` and uses authenticated resource actions. LMS Customer Support opens this same interface through `admin-sso.html`; keep the embedded and direct-entry routes on the same implementation.
 - Theme, language, favorites, search history, and the current session cache remain in localStorage because they are client preferences/session data.
 
 ## Auth (do not conflate the three)

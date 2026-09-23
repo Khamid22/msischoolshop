@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 
+import { AdminDialog } from './AdminDialog';
 import { createProduct, updateProduct } from '../api';
 import { PlusIcon, TrashIcon, XIcon } from '../components/icons';
 import type {
@@ -10,8 +11,7 @@ import type {
   ProductVariant,
 } from '../types';
 
-const MAX_IMAGES = 6;
-const MAX_IMAGE_BYTES = 2_000_000;
+import { MAX_PRODUCT_IMAGES, prepareProductImages, validateProductImageUrl } from './productImages.ts';
 
 interface ProductDraft {
   name: string;
@@ -19,12 +19,14 @@ interface ProductDraft {
   categoryId: string;
   price: number;
   fulfillmentType: FulfillmentType;
-  stock: number;
+  stock: number | "";
+  downloadUrl: string;
+  licenseKey: string;
+  weight: number;
   discount: number;
   rating: number | '';
   active: boolean;
   carousel: boolean;
-  variantLabel: string;
   variants: ProductVariant[];
   images: string[];
 }
@@ -33,7 +35,7 @@ interface Props {
   categories: CatalogCategory[];
   product?: Product;
   close: () => void;
-  saved: () => void;
+  saved: () => Promise<void>;
 }
 
 function fulfillmentOf(product?: Product): FulfillmentType {
@@ -51,12 +53,14 @@ function initialDraft(product: Product | undefined, categories: CatalogCategory[
     categoryId: product?.categoryId || categories.find((item) => item.active)?.id || '',
     price: product?.price || 0,
     fulfillmentType: fulfillmentOf(product),
-    stock: product?.stock || 0,
+    stock: product?.stock ?? "",
+    downloadUrl: product?.downloadUrl || "",
+    licenseKey: product?.licenseKey || "",
+    weight: product?.weight || 0,
     discount: product?.discount || 0,
     rating: product?.rating ?? '',
     active: product?.active !== false,
     carousel: Boolean(product?.carousel),
-    variantLabel: product?.variantLabel || '',
     variants: (product?.variants || []).map((variant) => ({
       ...variant,
       active: variant.active !== false,
@@ -70,24 +74,17 @@ function variantId(): string {
     || `variant-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`;
 }
 
-async function filesToImages(files: FileList): Promise<string[]> {
-  const selected = Array.from(files);
-  const oversized = selected.find((file) => file.size > MAX_IMAGE_BYTES);
-  if (oversized) throw new Error(`Файл «${oversized.name}» больше 2 МБ.`);
-  return Promise.all(selected.map((file) => new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error(`Не удалось прочитать «${file.name}».`));
-    reader.readAsDataURL(file);
-  })));
-}
-
 export function ProductEditorModal({ categories, product, close, saved }: Props) {
   const [draft, setDraft] = useState(() => initialDraft(product, categories));
   const [imageUrl, setImageUrl] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [mediaError, setMediaError] = useState('');
+  const [preparingImages, setPreparingImages] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const mediaInFlight = useRef(false);
+  const mediaDisabled = busy || preparingImages;
   const isPhysical = draft.fulfillmentType === 'physical_pickup';
   const preview = draft.images[selectedImage] || draft.images[0] || '';
   const activeCategories = useMemo(
@@ -95,41 +92,48 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
     [categories, draft.categoryId],
   );
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [close]);
-
   const addUploadedImages = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files?.length) return;
-    setError('');
+    const files = Array.from(event.currentTarget.files || []);
+    event.currentTarget.value = '';
+    if (!files.length || mediaInFlight.current || busy) return;
+    mediaInFlight.current = true;
+    setPreparingImages(true);
+    setMediaError('');
     try {
-      const next = await filesToImages(event.target.files);
-      if (draft.images.length + next.length > MAX_IMAGES) {
-        throw new Error(`Можно добавить не больше ${MAX_IMAGES} изображений.`);
-      }
+      const next = await prepareProductImages(files, MAX_PRODUCT_IMAGES - draft.images.length);
       setDraft((current) => ({ ...current, images: [...current.images, ...next] }));
       setSelectedImage(draft.images.length);
+      setError('');
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'Не удалось добавить изображение.');
+      setMediaError(uploadError instanceof Error ? uploadError.message : 'Не удалось добавить изображение.');
     } finally {
-      event.target.value = '';
+      mediaInFlight.current = false;
+      setPreparingImages(false);
     }
   };
 
-  const addImageUrl = () => {
+  const addImageUrl = async () => {
     const value = imageUrl.trim();
-    if (!value) return;
-    if (draft.images.length >= MAX_IMAGES) {
-      setError(`Можно добавить не больше ${MAX_IMAGES} изображений.`);
+    if (!value || mediaInFlight.current || busy) return;
+    if (draft.images.length >= MAX_PRODUCT_IMAGES) {
+      setMediaError(`Можно добавить не больше ${MAX_PRODUCT_IMAGES} изображений.`);
       return;
     }
-    setDraft((current) => ({ ...current, images: [...current.images, value] }));
-    setSelectedImage(draft.images.length);
-    setImageUrl('');
+    mediaInFlight.current = true;
+    setPreparingImages(true);
+    setMediaError('');
+    try {
+      const url = await validateProductImageUrl(value);
+      setDraft((current) => ({ ...current, images: [...current.images, url] }));
+      setSelectedImage(draft.images.length);
+      setImageUrl('');
+      setError('');
+    } catch (urlError) {
+      setMediaError(urlError instanceof Error ? urlError.message : 'Не удалось добавить изображение.');
+    } finally {
+      mediaInFlight.current = false;
+      setPreparingImages(false);
+    }
   };
 
   const makePrimary = (index: number) => {
@@ -153,7 +157,6 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
   const addVariant = () => {
     setDraft((current) => ({
       ...current,
-      variantLabel: current.variantLabel || (isPhysical ? 'Размер' : 'Вариант'),
       variants: [
         ...current.variants,
         { id: variantId(), label: '', price: current.price, stock: isPhysical ? 0 : undefined, active: true },
@@ -172,6 +175,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (mediaInFlight.current || busy) return;
     setError('');
     if (!draft.images.length) {
       setError('Добавьте хотя бы одно изображение товара.');
@@ -189,18 +193,21 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       image: draft.images[0],
       images: draft.images,
       categoryId: draft.categoryId || undefined,
-      price: draft.price,
+      price: draft.variants.length ? Math.min(...draft.variants.map((variant) => variant.price)) : draft.price,
       type: isPhysical ? 'physical' : 'digital',
       fulfillmentType: draft.fulfillmentType,
-      stock: isPhysical && !draft.variants.length ? draft.stock : undefined,
-      variantLabel: draft.variants.length ? draft.variantLabel.trim() : undefined,
+      stock: isPhysical && !draft.variants.length && draft.stock !== "" ? draft.stock : null,
+      downloadUrl: isPhysical ? "" : draft.downloadUrl.trim(),
+      licenseKey: isPhysical ? "" : draft.licenseKey.trim(),
+      weight: isPhysical ? draft.weight : 0,
+      variantLabel: product?.variantLabel || undefined,
       variants: draft.variants.map((variant) => ({
         ...variant,
         label: variant.label.trim(),
         stock: isPhysical ? variant.stock : undefined,
       })),
-      discount: draft.discount || undefined,
-      rating: draft.rating === '' ? undefined : Number(draft.rating),
+      discount: draft.discount,
+      rating: draft.rating === '' ? null : Number(draft.rating),
       active: draft.active,
       carousel: draft.carousel,
     };
@@ -208,7 +215,8 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
     try {
       if (product) await updateProduct(product.id, payload);
       else await createProduct(payload);
-      saved();
+      close();
+      await saved().catch(() => {});
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Не удалось сохранить товар.');
     } finally {
@@ -217,56 +225,58 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
   };
 
   return (
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
-      <section className="modal modal--product" role="dialog" aria-modal="true" aria-labelledby="product-editor-title">
+    <AdminDialog titleId="product-editor-title" close={close} busy={busy} className="modal--product">
         <header className="modal__header">
           <div>
             <h2 id="product-editor-title">{product ? 'Изменить товар' : 'Новый товар'}</h2>
             <p>Карточка, варианты и выдача синхронизируются с магазином.</p>
           </div>
-          <button className="icon-button" type="button" onClick={close} aria-label="Закрыть"><XIcon /></button>
+          <button className="icon-button" type="button" disabled={busy} onClick={close} aria-label="Закрыть"><XIcon /></button>
         </header>
         <form onSubmit={submit}>
           <div className="modal__body product-editor">
             <div className="product-editor__form">
               <label className="field"><span>Название</span><input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} required /></label>
               <label className="field"><span>Категория</span><select value={draft.categoryId} onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })} required><option value="">Выберите категорию</option>{activeCategories.map((category) => <option key={category.id} value={category.id}>{category.nameRu}</option>)}</select></label>
-              <label className="field"><span>Цена, коины</span><input type="number" min="0" value={draft.price} onChange={(event) => setDraft({ ...draft, price: Number(event.target.value) })} required /></label>
+              {!draft.variants.length ? <label className="field"><span>Цена, коины</span><input type="number" min="0" value={draft.price} onChange={(event) => setDraft({ ...draft, price: Number(event.target.value) })} required /></label> : null}
               <label className="field"><span>После покупки</span><select value={draft.fulfillmentType} onChange={(event) => setDraft({ ...draft, fulfillmentType: event.target.value as FulfillmentType })}><option value="digital_activation">Подключить цифровой товар</option><option value="digital_delivery">Отправить цифровой товар</option><option value="physical_pickup">Подготовить и выдать</option></select></label>
               <label className="field field--wide"><span>Описание</span><textarea rows={3} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
               <label className="field"><span>Скидка, %</span><input type="number" min="0" max="100" value={draft.discount} onChange={(event) => setDraft({ ...draft, discount: Number(event.target.value) })} /></label>
               <label className="field"><span>Рейтинг</span><input type="number" min="0" max="5" step="0.1" value={draft.rating} onChange={(event) => setDraft({ ...draft, rating: event.target.value === '' ? '' : Number(event.target.value) })} placeholder="Не показывать" /></label>
-              {isPhysical && !draft.variants.length ? <label className="field"><span>Остаток</span><input type="number" min="0" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: Number(event.target.value) })} /></label> : null}
+              {isPhysical && !draft.variants.length ? <label className="field"><span>Остаток (пусто — без лимита)</span><input type="number" min="0" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: event.target.value === "" ? "" : Number(event.target.value) })} /></label> : null}
+              {isPhysical ? <label className="field"><span>Вес, г</span><input type="number" min="0" value={draft.weight} onChange={(event) => setDraft({ ...draft, weight: Number(event.target.value) })} /></label> : <><label className="field field--wide"><span>Ссылка на скачивание / активацию</span><input type="url" value={draft.downloadUrl} onChange={(event) => setDraft({ ...draft, downloadUrl: event.target.value })} placeholder="https://…" /></label><label className="field field--wide"><span>Ключ / лицензия</span><textarea value={draft.licenseKey} onChange={(event) => setDraft({ ...draft, licenseKey: event.target.value })} /></label></>}
               <div className="editor-switches field--wide">
                 <label className="check-field"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Показывать в магазине</span></label>
                 <label className="check-field"><input type="checkbox" checked={draft.carousel} onChange={(event) => setDraft({ ...draft, carousel: event.target.checked })} /><span>Добавить в подборку</span></label>
               </div>
               <section className="variant-editor field--wide">
-                <div className="variant-editor__heading"><div><strong>Варианты</strong><small>Размер, срок подписки или комплектация</small></div><button className="button button--small" type="button" onClick={addVariant}><PlusIcon /> Добавить</button></div>
-                {draft.variants.length ? <label className="field"><span>Название выбора</span><input value={draft.variantLabel} onChange={(event) => setDraft({ ...draft, variantLabel: event.target.value })} placeholder="Например: Срок подписки" required /></label> : null}
+                <div className="variant-editor__heading"><div><strong>Варианты товара</strong><small>Укажите название и цену. В магазине покупатель выберет нужный вариант.</small></div><button className="button button--small" type="button" disabled={draft.variants.length >= 30} onClick={addVariant}><PlusIcon /> Добавить вариант</button></div>
                 {draft.variants.map((variant, index) => <div className="variant-row" key={variant.id}>
-                  <input value={variant.label} onChange={(event) => updateVariant(index, { label: event.target.value })} placeholder="Например: 6 месяцев" aria-label="Название варианта" />
-                  <input type="number" min="0" value={variant.price} onChange={(event) => updateVariant(index, { price: Number(event.target.value) })} placeholder="Цена" aria-label="Цена варианта" />
-                  {isPhysical ? <input type="number" min="0" value={variant.stock ?? 0} onChange={(event) => updateVariant(index, { stock: Number(event.target.value) })} placeholder="Остаток" aria-label="Остаток варианта" /> : null}
+                  <label className="field"><span>Название варианта</span><input value={variant.label} onChange={(event) => updateVariant(index, { label: event.target.value })} placeholder="Например: 500 Robux" maxLength={100} required /></label>
+                  <label className="field"><span>Цена, коины</span><input type="number" min="0" step="1" value={variant.price} onChange={(event) => updateVariant(index, { price: Number(event.target.value) })} required /></label>
                   <button className="icon-button icon-button--danger" type="button" onClick={() => setDraft((current) => ({ ...current, variants: current.variants.filter((_, variantIndex) => variantIndex !== index) }))} aria-label={`Удалить вариант ${variant.label}`}><TrashIcon /></button>
                 </div>)}
+                {isPhysical && draft.variants.length > 0 ? <details><summary>Остатки вариантов</summary>{draft.variants.map((variant, index) => <label className="field" key={variant.id}><span>{variant.label || `Вариант ${index + 1}`}</span><input type="number" min="0" value={variant.stock ?? 0} onChange={(event) => updateVariant(index, { stock: Number(event.target.value) })} aria-label={`Остаток ${variant.label}`} /></label>)}</details> : null}
               </section>
             </div>
 
-            <aside className="media-editor">
+            <aside className="media-editor" aria-label="Фото товара" aria-busy={preparingImages}>
+              <div className="media-editor__heading"><strong>Фото товара</strong><span>{draft.images.length}/{MAX_PRODUCT_IMAGES}</span></div>
               <div className="media-editor__preview">{preview ? <img src={preview} alt="Предпросмотр товара" /> : <span>Предпросмотр изображения</span>}</div>
               <div className="media-editor__upload">
-                <label className="button button--small"><PlusIcon /> Загрузить<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple onChange={(event) => void addUploadedImages(event)} /></label>
-                <small>До {MAX_IMAGES} файлов, каждый до 2 МБ</small>
+                <button className="button button--small" type="button" disabled={mediaDisabled || draft.images.length >= MAX_PRODUCT_IMAGES} onClick={() => fileInput.current?.click()}><PlusIcon /> Загрузить фото</button>
+                <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden disabled={mediaDisabled} onChange={(event) => void addUploadedImages(event)} aria-label="Загрузить фото товара" />
               </div>
-              <div className="media-editor__url"><input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Или вставьте ссылку" /><button className="button button--small" type="button" onClick={addImageUrl}>Добавить</button></div>
-              <div className="media-editor__thumbs">{draft.images.map((image, index) => <div className={index === 0 ? 'media-thumb is-primary' : 'media-thumb'} key={`${image.slice(0, 40)}-${index}`}><button type="button" onClick={() => { setSelectedImage(index); if (index > 0) makePrimary(index); }} aria-label="Сделать главным"><img src={image} alt="" /></button><button className="media-thumb__remove" type="button" onClick={() => removeImage(index)} aria-label="Удалить изображение"><XIcon /></button>{index === 0 ? <span>Главное</span> : null}</div>)}</div>
+              <small className="media-editor__hint">JPG, PNG, WebP, SVG · до 20 МБ. Большие фото уменьшаются автоматически.</small>
+              {preparingImages ? <p className="media-editor__status" role="status">Подготавливаем фото…</p> : null}
+              {mediaError ? <p className="form-error" role="alert">{mediaError}</p> : null}
+              <div className="media-editor__url"><input value={imageUrl} disabled={mediaDisabled} onChange={(event) => setImageUrl(event.target.value)} placeholder="Или прямая ссылка на фото" aria-label="Ссылка на фото" /><button className="button button--small" type="button" disabled={mediaDisabled || !imageUrl.trim()} onClick={() => void addImageUrl()}>Добавить</button></div>
+              {draft.images.length ? <div className="media-editor__thumbs">{draft.images.map((image, index) => <div className={index === 0 ? 'media-thumb is-primary' : 'media-thumb'} key={`${image.slice(0, 40)}-${index}`}><button type="button" disabled={mediaDisabled} onClick={() => { setSelectedImage(index); if (index > 0) makePrimary(index); }} aria-label={`Сделать изображение ${index + 1} главным`}><img src={image} alt="" /></button><button className="media-thumb__remove" type="button" disabled={mediaDisabled} onClick={() => removeImage(index)} aria-label={`Удалить изображение ${index + 1}`}><XIcon /></button>{index === 0 ? <span>Главное</span> : null}</div>)}</div> : null}
             </aside>
             {error ? <p className="form-error product-editor__error" role="alert">{error}</p> : null}
           </div>
-          <footer className="modal__footer"><button className="button" type="button" onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy}>{busy ? 'Сохраняем…' : 'Сохранить товар'}</button></footer>
+          <footer className="modal__footer"><button className="button" type="button" disabled={busy} onClick={close}>Отмена</button><button className="button button--primary" type="submit" disabled={busy || preparingImages}>{busy ? 'Сохраняем…' : 'Сохранить товар'}</button></footer>
         </form>
-      </section>
-    </div>
+    </AdminDialog>
   );
 }

@@ -46,3 +46,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Browser verification output
+frontend/test-results/
+frontend/playwright-report/

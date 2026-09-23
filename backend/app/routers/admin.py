@@ -6,6 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from ..balance_changes import change_balance as apply_balance_change
+from ..coin_ledger import user_balances
+from ..sales_analytics import SalesAnalytics, SalesRange, sales_analytics
 from ..config import ADMIN_PASSWORD
 from ..database import get_db
 from ..models import Banner, CatalogCategory, GrantLog, News, Notification, Order, Product, User
@@ -40,6 +43,7 @@ from .catalog import (
     PRODUCT_FIELDS,
     apply_fields,
     normalize_product_fulfillment,
+    normalize_product_variant_price,
 )
 
 
@@ -67,7 +71,8 @@ def me(_: dict = Depends(require_admin)) -> dict:
 @router.get("/users", dependencies=[Depends(require_admin)])
 def list_users(database: Session = Depends(get_db)) -> list[dict]:
     users = database.scalars(select(User).order_by(User.name, User.id)).all()
-    return [user_to_dict(user) for user in users]
+    balances = user_balances(database, list(users))
+    return [{**user_to_dict(user), "balance": balances.get(user.id, user.balance)} for user in users]
 
 
 @router.get("/grants", dependencies=[Depends(require_admin)])
@@ -76,36 +81,16 @@ def list_grants(database: Session = Depends(get_db)) -> list[dict]:
     return [grant_to_dict(grant) for grant in grants]
 
 
-@router.post("/users/{user_id}/balance", dependencies=[Depends(require_admin)])
-def change_balance(user_id: str, data: BalanceChange, database: Session = Depends(get_db)) -> dict:
-    user = database.get(User, user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    if data.amount == 0:
-        raise HTTPException(status_code=422, detail="Amount must not be zero")
+@router.post("/users/{user_id}/balance")
+def change_balance(
+    user_id: str, data: BalanceChange, claims: dict = Depends(require_admin), database: Session = Depends(get_db),
+) -> dict:
+    return apply_balance_change(database, user_id, data, str(claims["sub"]))
 
-    actual_amount = data.amount
-    if actual_amount < 0:
-        actual_amount = -min(abs(actual_amount), user.balance)
-        if actual_amount == 0:
-            raise HTTPException(status_code=409, detail="User balance is already zero")
-    user.balance += actual_amount
-    now = datetime.now(timezone.utc).isoformat()
-    notification_type = "topup" if actual_amount > 0 else "spend"
-    database.add_all([
-        Notification(
-            id=f"notif-{uuid4().hex}", user_id=user.id, notification_type=notification_type,
-            amount=abs(actual_amount), note=data.note or ("Balance top-up" if actual_amount > 0 else "Balance deduction"),
-            created_at=now, read=False,
-        ),
-        GrantLog(
-            id=f"grant-{uuid4().hex}", admin="Administrator", user_name=user.name,
-            user_email=user.email, amount=actual_amount,
-            operation_type="grant" if actual_amount > 0 else "withdraw", created_at=now,
-        ),
-    ])
-    database.commit()
-    return {"user": user_to_dict(user), "amount": actual_amount}
+
+@router.get("/analytics", dependencies=[Depends(require_admin)], response_model=SalesAnalytics)
+def analytics(range: SalesRange = "all", database: Session = Depends(get_db)) -> SalesAnalytics:
+    return sales_analytics(list(database.scalars(select(Order)).all()), range)
 
 
 @router.post("/users/reset-balances", dependencies=[Depends(require_admin)])
@@ -139,7 +124,7 @@ def bootstrap(database: Session = Depends(get_db)) -> dict:
         "banners": [banner_to_dict(item) for item in database.scalars(select(Banner).order_by(Banner.position)).all()],
         "news": [news_to_dict(item) for item in database.scalars(select(News).order_by(News.position)).all()],
         "orders": [order_to_dict(item) for item in database.scalars(select(Order).order_by(Order.created_at.desc())).all()],
-        "users": [user_to_dict(item) for item in database.scalars(select(User).order_by(User.name)).all()],
+        "users": list_users(database),
         "notifications": [notification_to_dict(item) for item in database.scalars(select(Notification).order_by(Notification.created_at)).all()],
         "grants": [grant_to_dict(item) for item in database.scalars(select(GrantLog).order_by(GrantLog.created_at)).all()],
     }
@@ -153,6 +138,7 @@ def sync_products(database: Session, items: list[dict]) -> None:
         fields = data.model_dump()
         apply_fields(product, fields, PRODUCT_FIELDS)
         normalize_product_fulfillment(product, set(fields))
+        normalize_product_variant_price(product)
         database.add(product)
 
 

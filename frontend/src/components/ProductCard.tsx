@@ -1,7 +1,7 @@
 import type { Product } from '../types';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import { formatCoins, getProductPrice, getUnitPrice } from '../utils/currency';
+import { formatCoins, getBasePrice, getProductPrice, getUnitPrice } from '../utils/currency';
 import FavoriteButton from './FavoriteButton';
 import Coin from './Coin';
 import './ProductCard.scss';
@@ -21,7 +21,8 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
   const finalPrice = getUnitPrice(product, user);
   const hasProductDiscount = Boolean(product.discount && product.discount > 0);
   const hasStudentDiscount = finalPrice < productPrice;
-  const comparePrice = hasProductDiscount ? product.price : hasStudentDiscount ? productPrice : null;
+  const comparePrice = hasProductDiscount ? getBasePrice(product) : hasStudentDiscount ? productPrice : null;
+  const hasOptions = (product.variants?.filter((variant) => variant.active !== false).length || 0) > 1;
 
   return (
     <article
@@ -63,7 +64,7 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
             {comparePrice !== null ? (
               <span className="product-card__price-old">{formatCoins(comparePrice)}</span>
             ) : null}
-            <span className="product-card__price">{formatCoins(finalPrice)} <Coin /></span>
+            <span className="product-card__price">{hasOptions ? t('priceFrom').replace('{price}', formatCoins(finalPrice)) : formatCoins(finalPrice)} <Coin /></span>
           </div>
         </div>
       </div>

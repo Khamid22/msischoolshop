@@ -50,7 +50,10 @@
       var result = await response.json();
       sessionStorage.setItem(AUTH_KEY, result.token);
       sessionStorage.setItem(SSO_KEY, '1');
-      window.location.replace(embedded ? './admin.html?embedded=1' : './admin.html');
+      var adminUrl = new URL('./admin.html', window.location.href);
+      if (embedded) adminUrl.searchParams.set('embedded', '1');
+      adminUrl.searchParams.set('v', Date.now().toString(36));
+      window.location.replace(adminUrl.toString());
     }
 
     exchangeAssertion().catch(function() {
