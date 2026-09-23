@@ -19,6 +19,7 @@ interface CartContextType {
     pickupSlot?: string;
   }) => Promise<boolean>;
   closeSuccess: () => void;
+  updateLastOrder: (order: Order) => void;
   totalPrice: number;
   originalPrice: number;
   savings: number;
@@ -90,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return (
     <CartContext.Provider value={{
       currentItem, isCheckoutOpen, lastOrder, buyNow, closeCheckout, submitOrder,
-      closeSuccess, totalPrice, originalPrice, savings,
+      closeSuccess, updateLastOrder: setLastOrder, totalPrice, originalPrice, savings,
     }}>
       {children}
     </CartContext.Provider>

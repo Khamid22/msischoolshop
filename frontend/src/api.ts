@@ -167,8 +167,16 @@ export function deleteNews(id: string): Promise<void> {
   return request(`/news/${encodeURIComponent(id)}`, json('DELETE'), getAdminToken());
 }
 
-export function fetchOrders(): Promise<Order[]> {
-  return request('/orders', {}, getUserToken());
+export function fetchOrders(signal?: AbortSignal): Promise<Order[]> {
+  return request('/orders', { signal }, getUserToken());
+}
+
+export function submitOrderDeliveryDetails(
+  orderId: string, itemIndex: number, playerId: string, signal?: AbortSignal,
+): Promise<Order> {
+  return request(`/orders/${encodeURIComponent(orderId)}/delivery-details`, {
+    ...json('PUT', { itemIndex, playerId }), signal,
+  }, getUserToken());
 }
 
 export function createOrder(data: CreateOrderInput): Promise<CreateOrderResult> {
@@ -208,8 +216,8 @@ export async function logoutUser(): Promise<void> {
   }
 }
 
-export function fetchNotifications(): Promise<AppNotification[]> {
-  return request('/auth/notifications', {}, getUserToken());
+export function fetchNotifications(signal?: AbortSignal): Promise<AppNotification[]> {
+  return request('/auth/notifications', { signal }, getUserToken());
 }
 
 export function markNotificationsRead(): Promise<void> {

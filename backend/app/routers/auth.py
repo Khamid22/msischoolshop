@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash
 
 from ..database import IS_SQLITE, get_db
 from ..models import Notification, User
+from ..order_delivery_details import pending_information_notifications
 from ..schemas import StudentLogin, TelegramLogin, UserUpdate
 from ..security import create_token, hash_password, require_user, validate_telegram_init_data, verify_password
 from ..serializers import notification_to_dict, user_to_dict
@@ -242,7 +243,7 @@ def notifications(claims: dict = Depends(require_user), database: Session = Depe
     items = database.scalars(
         select(Notification).where(Notification.user_id == user.id).order_by(Notification.created_at.desc())
     ).all()
-    return [notification_to_dict(item) for item in items]
+    return pending_information_notifications(database, user.id) + [notification_to_dict(item) for item in items]
 
 
 @router.post("/notifications/read-all", status_code=204)

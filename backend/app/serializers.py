@@ -1,4 +1,5 @@
 from .models import Banner, CatalogCategory, GrantLog, News, Notification, Order, PickupSlot, Product, User
+from .order_delivery_details import delivery_requirements, information_required, product_delivery_requirement
 from .order_fulfillment import (
     flow_for_fulfillment,
     fulfillment_type_from_order,
@@ -26,6 +27,7 @@ def product_to_dict(product: Product) -> dict:
         "description": product.description,
         "type": product.product_type,
         "fulfillmentType": fulfillment_type_from_product(product),
+        "deliveryRequirement": product_delivery_requirement(product),
         "active": product.active,
         "carousel": product.carousel,
         "downloadUrl": product.download_url,
@@ -118,7 +120,9 @@ def order_to_dict(order: Order) -> dict:
         "status": status,
         "fulfillmentType": fulfillment_type,
         "statusFlow": list(flow_for_fulfillment(fulfillment_type)),
-        "nextStatus": next_status(fulfillment_type, status),
+        "nextStatus": None if information_required(order) else next_status(fulfillment_type, status),
+        "informationRequired": information_required(order),
+        "deliveryRequirements": delivery_requirements(order),
         "pickupCode": order.pickup_code if is_physical else None,
         "pickupSlot": order.pickup_slot if is_physical else None,
     })

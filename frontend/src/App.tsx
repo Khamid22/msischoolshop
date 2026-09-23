@@ -34,6 +34,11 @@ const DEFAULT_FILTERS: FilterState = {
   sort: 'popular',
 };
 
+function viewFromUrl(): View {
+  const value = new URLSearchParams(window.location.search).get('view');
+  return value && ['home', 'catalog', 'orders', 'profile', 'news'].includes(value) ? value as View : 'home';
+}
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
@@ -41,7 +46,8 @@ export default function App() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<BannerType | null>(null);
-  const [view, setView] = useState<View>('home');
+  const [view, setView] = useState<View>(viewFromUrl);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('order'));
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -58,9 +64,15 @@ export default function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  const changeView = useCallback((next: View) => {
+  const changeView = useCallback((next: View, orderId?: string) => {
     setView(next);
+    setSelectedOrderId(orderId || null);
     setSearchOpen(false);
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', next);
+    if (orderId) url.searchParams.set('order', orderId);
+    else url.searchParams.delete('order');
+    window.history.replaceState({}, '', url);
   }, []);
 
   const openCollection = useCallback((collection: ProductCollection) => {
@@ -111,7 +123,7 @@ export default function App() {
                         onOpenFilters={() => setFiltersOpen(true)}
                       />
                     ) : view === 'orders' ? (
-                      <OrdersPage />
+                      <OrdersPage selectedOrderId={selectedOrderId} onNavigate={changeView} onSelect={(id) => changeView('orders', id)} />
                     ) : view === 'profile' ? (
                       <ProfilePage onNavigate={(v) => changeView(v)} />
                     ) : (
@@ -127,7 +139,7 @@ export default function App() {
                 />
                 <FavoritesDrawer />
                 <CheckoutDrawer />
-                <OrderSuccess />
+                <OrderSuccess onViewOrder={(id) => changeView('orders', id)} />
                 <BannerProductsModal
                   banner={selectedBanner}
                   allProducts={products}

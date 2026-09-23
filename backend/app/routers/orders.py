@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Notification, Order, Product, User
+from ..order_delivery_details import information_required, save_player_id
 from ..order_fulfillment import (
     fulfillment_type_from_order,
     fulfillment_type_from_product,
@@ -15,7 +16,7 @@ from ..order_fulfillment import (
     next_status,
     status_for_fulfillment,
 )
-from ..schemas import OrderCreate, OrderStatusUpdate
+from ..schemas import OrderCreate, OrderDeliveryDetailsInput, OrderStatusUpdate
 from ..security import current_claims, require_admin, require_user
 from ..serializers import order_to_dict, product_to_dict, user_to_dict
 
@@ -134,13 +135,28 @@ def create_order(
     return {"order": order_to_dict(order), "user": user_to_dict(user)}
 
 
+@router.put("/{order_id}/delivery-details")
+def update_delivery_details(
+    order_id: str,
+    data: OrderDeliveryDetailsInput,
+    claims: dict = Depends(require_user),
+    database: Session = Depends(get_db),
+) -> dict:
+    return order_to_dict(save_player_id(
+        database, order_id=order_id, user_id=claims["sub"],
+        item_index=data.itemIndex, player_id=data.playerId,
+    ))
+
+
 @router.patch("/{order_id}/status", dependencies=[Depends(require_admin)])
 def update_order_status(order_id: str, data: OrderStatusUpdate, database: Session = Depends(get_db)) -> dict:
-    order = database.get(Order, order_id)
+    order = database.scalar(select(Order).where(Order.id == order_id).with_for_update())
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
     fulfillment_type = fulfillment_type_from_order(order)
     current_status = status_for_fulfillment(fulfillment_type, order.status)
+    if data.status != current_status and information_required(order):
+        raise HTTPException(status_code=409, detail="The student must submit their Roblox Player ID before delivery")
     if not is_allowed_transition(fulfillment_type, current_status, data.status):
         expected = next_status(fulfillment_type, current_status)
         raise HTTPException(

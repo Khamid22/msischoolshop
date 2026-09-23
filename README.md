@@ -43,10 +43,18 @@ Each profile refresh reads the student's active group, current MSI Coin total, p
 
 ## Verify
 
+Robux purchases (both variants of `product-4e53e3f6ed90`) request a numeric Roblox Player ID after checkout and in **My purchases**. Existing paid orders show the same form without another purchase or balance change. An in-app reminder remains until the buyer submits the ID. Staff see the ID in the orders table; delivery cannot advance until all required items have details. Buyers can correct an ID until delivery starts.
+
+Details and timestamped edits are stored in the existing order-items JSON; no migration or existing-order rewrite is required. Order links use `/?view=orders&order=<order-id>` and require the buyer to sign in. Bulk order replacement is rejected when Robux orders exist, protecting submissions from stale admin caches. New Robux products with different catalogue IDs need an explicit delivery requirement in `backend/app/order_delivery_details.py`.
+
+The feature does not validate that the Roblox account exists, send Robux automatically, or change the existing MSI Coin integration. Telegram reminders are not automatically sent by this feature; the persistent reminder is inside the Shop.
+
 ```bash
 cd backend && PYTHONPATH=. .venv/bin/pytest -q
 cd ../frontend && npm run build && npm run lint
 ```
+
+To run the delivery-details PostgreSQL locking tests, set `MSI_SHOP_TEST_DATABASE_URL` to a fresh, disposable loopback database named `msi_*_test` (SQLAlchemy `postgresql+psycopg` URL) and run `backend/tests/test_order_delivery_details.py`. The fixture creates and removes its tables; never point it at application data.
 
 For a single production process, build `frontend/` first and then start FastAPI; the backend serves the generated `frontend/dist/` alongside `/api`.
 

@@ -14,23 +14,23 @@ const NotificationsContext = createContext<NotificationsContextType | undefined>
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-
-  const load = useCallback(async () => {
-    if (!user) {
-      setNotifications([]);
-      return;
-    }
-    try {
-      setNotifications(await fetchNotifications());
-    } catch {
-      setNotifications([]);
-    }
-  }, [user]);
+  const userId = user?.id;
+  const [result, setResult] = useState<{ userId: string; items: AppNotification[] } | null>(null);
+  const [revision, setRevision] = useState(0);
+  const load = useCallback(() => setRevision((value) => value + 1), []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (!userId) return;
+    const controller = new AbortController();
+    void fetchNotifications(controller.signal)
+      .then((items) => {
+        if (!controller.signal.aborted) setResult({ userId, items });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setResult({ userId, items: [] });
+      });
+    return () => controller.abort();
+  }, [userId, revision]);
 
   useEffect(() => {
     const handler = () => void load();
@@ -44,9 +44,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const markAll = useCallback(() => {
     if (!user) return;
-    void markNotificationsRead().then(load);
+    void markNotificationsRead().then(load).catch(() => {});
   }, [load, user]);
 
+  const notifications = result?.userId === userId ? result?.items ?? [] : [];
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   return (

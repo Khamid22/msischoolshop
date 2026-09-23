@@ -155,6 +155,16 @@ class OrderStatusUpdate(BaseModel):
     status: OrderStatus
 
 
+class OrderDeliveryDetailsInput(BaseModel):
+    itemIndex: int = Field(ge=0, le=99)
+    playerId: str = Field(min_length=1, max_length=20, pattern=r"^[1-9][0-9]{0,19}$")
+
+    @field_validator("playerId", mode="before")
+    @classmethod
+    def trim_player_id(cls, value: Any) -> Any:
+        return value.strip() if isinstance(value, str) else value
+
+
 class BalanceChange(BaseModel):
     amount: int
     note: str | None = None

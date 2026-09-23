@@ -3,14 +3,15 @@ import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCoins } from '../utils/currency';
 import Coin from './Coin';
+import OrderDeliveryDetails from './OrderDeliveryDetails';
 import './OrderSuccess.scss';
 
-export default function OrderSuccess() {
-  const { lastOrder, closeSuccess } = useCart();
+export default function OrderSuccess({ onViewOrder }: { onViewOrder: (orderId: string) => void }) {
+  const { lastOrder, closeSuccess, updateLastOrder } = useCart();
   const { user } = useAuth();
   const { t } = useLang();
 
-  if (!lastOrder) return null;
+  if (!lastOrder || lastOrder.userId !== user?.id) return null;
   const isPhysical = lastOrder.fulfillmentType
     ? lastOrder.fulfillmentType === 'physical_pickup'
     : lastOrder.items[0]?.product.type === 'physical';
@@ -18,12 +19,14 @@ export default function OrderSuccess() {
   return (
     <>
       <div className="success-overlay" onClick={closeSuccess} />
-      <div className="success-modal">
+      <div className="success-modal" role="dialog" aria-modal="true" aria-labelledby="purchase-success-title">
         <div className="success-modal__icon">✓</div>
-        <h2 className="success-modal__title">{t('orderSuccessTitle')}</h2>
+        <h2 className="success-modal__title" id="purchase-success-title">{t('orderSuccessTitle')}</h2>
         <p className="success-modal__subtitle">
           {t(isPhysical ? 'orderSuccessPhysicalSubtitle' : 'orderSuccessDigitalSubtitle')}
         </p>
+
+        <OrderDeliveryDetails order={lastOrder} onSaved={updateLastOrder} />
 
         {lastOrder.pickupCode && (
           <div className="success-modal__code">
@@ -44,6 +47,9 @@ export default function OrderSuccess() {
         </p>
         <button className="btn btn-primary btn-block success-modal__btn" onClick={closeSuccess}>
           {t('close')}
+        </button>
+        <button className="btn btn-secondary" onClick={() => { onViewOrder(lastOrder.id); closeSuccess(); }}>
+          {t('viewOrder')}
         </button>
       </div>
     </>

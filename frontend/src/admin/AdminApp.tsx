@@ -31,7 +31,11 @@ const TABS: Array<{ id: AdminTab; icon: typeof GridIcon }> = [
 
 const formatCoins = (value: number) => new Intl.NumberFormat('ru-RU').format(value);
 const productTitle = (product?: Product) => product?.name || product?.nameKey || 'Товар';
-const orderTitle = (order: Order) => order.items.map((item) => productTitle(item.product)).join(', ') || 'Покупка';
+const orderTitle = (order: Order) => order.items.map((item) => item.variant?.label || productTitle(item.product)).join(', ') || 'Покупка';
+const orderPending = (order: Order) => Boolean(order.nextStatus || order.informationRequired);
+const orderStatusLabel = (order: Order) => order.informationRequired ? 'Нужен Player ID'
+  : order.status === 'paid' && order.deliveryRequirements?.length ? 'Ожидает выдачи'
+    : STATUS_LABELS[order.status || 'paid'];
 function formatDate(value?: string): string {
   if (!value) return '—';
   const date = new Date(value);
@@ -68,7 +72,7 @@ function StatCard({ tone, label, value, caption }: { tone: string; label: string
 function Overview({ data, navigate }: { data: AdminBootstrap; navigate: (tab: AdminTab) => void }) {
   const metrics = useMemo(() => ({
     active: data.products.filter((item) => item.active !== false).length,
-    pending: data.orders.filter((item) => item.nextStatus).length,
+    pending: data.orders.filter(orderPending).length,
     spent: data.orders.reduce((sum, item) => sum + item.totalPrice, 0),
     balances: data.users.reduce((sum, item) => sum + item.balance, 0),
   }), [data]);
@@ -84,10 +88,25 @@ function Overview({ data, navigate }: { data: AdminBootstrap; navigate: (tab: Ad
   </div>;
 }
 
-function OrdersTable({ orders, compact, advance }: { orders: Order[]; compact?: boolean; advance?: (order: Order) => void }) {
-  return <div className="table-scroll"><table><thead><tr><th>Покупка</th><th>Ученик</th><th>Стоимость</th><th>Процесс</th><th>Статус</th>{!compact && <th>Действие</th>}</tr></thead><tbody>
-    {orders.map((order) => <tr key={order.id}><td><strong>{orderTitle(order)}</strong><small className="cell-subline">{order.id.slice(0, 10)} · {formatDate(order.createdAt)}</small></td><td>{order.customerName || order.customerEmail || '—'}</td><td><strong>{formatCoins(order.totalPrice)}</strong> <small>коинов</small></td><td><span className={`type-badge type-badge--${order.fulfillmentType || 'physical_pickup'}`}>{FULFILLMENT_LABELS[order.fulfillmentType || 'physical_pickup']}</span></td><td><span className={`order-status order-status--${order.status || 'paid'}`}>{STATUS_LABELS[order.status || 'paid']}</span></td>{!compact && <td>{order.nextStatus && advance ? <button className="button button--small button--primary" type="button" onClick={() => advance(order)}>{ACTION_LABELS[order.nextStatus]}</button> : <span className="done-label">Готово</span>}</td>}</tr>)}
-    {!orders.length && <tr><td colSpan={compact ? 5 : 6}><div className="empty-row">Покупок пока нет</div></td></tr>}
+function OrdersTable({ orders, compact, advance, busyId }: { orders: Order[]; compact?: boolean; advance?: (order: Order) => void; busyId?: string }) {
+  return <div className="table-scroll"><table><thead><tr><th>Покупка</th><th>Ученик</th><th>Стоимость</th><th>Процесс</th><th>Статус</th><th>Данные для выдачи</th>{!compact && <th>Действие</th>}</tr></thead><tbody>
+    {orders.map((order) => <tr key={order.id}>
+      <td><strong>{orderTitle(order)}</strong><small className="cell-subline">{order.id.slice(0, 10)} · {formatDate(order.createdAt)}</small></td>
+      <td>{order.customerName || order.customerEmail || '—'}</td>
+      <td><strong>{formatCoins(order.totalPrice)}</strong> <small>коинов</small></td>
+      <td><span className={`type-badge type-badge--${order.fulfillmentType || 'physical_pickup'}`}>{FULFILLMENT_LABELS[order.fulfillmentType || 'physical_pickup']}</span></td>
+      <td><span className={`order-status order-status--${order.status || 'paid'}`}>{orderStatusLabel(order)}</span></td>
+      <td>{order.deliveryRequirements?.length ? order.deliveryRequirements.map((requirement) => (
+        <div key={requirement.itemIndex}>
+          <strong>Roblox Player ID: {requirement.playerId || 'Не указан'}</strong>
+          <small className="cell-subline">{requirement.submittedAt ? `Ученик отправил ${formatDate(requirement.submittedAt)}` : 'Ожидаем данные от ученика'}</small>
+        </div>
+      )) : '—'}</td>
+      {!compact && <td>{order.informationRequired ? <span>Ожидаем Player ID</span> : order.nextStatus && advance
+        ? <button className="button button--small button--primary" type="button" disabled={Boolean(busyId)} onClick={() => advance(order)}>{busyId === order.id ? 'Сохраняем…' : ACTION_LABELS[order.nextStatus]}</button>
+        : <span className="done-label">Готово</span>}</td>}
+    </tr>)}
+    {!orders.length && <tr><td colSpan={compact ? 6 : 7}><div className="empty-row">Покупок пока нет</div></td></tr>}
   </tbody></table></div>;
 }
 
@@ -95,11 +114,19 @@ function OrdersTab({ orders, refresh }: { orders: Order[]; refresh: () => Promis
   const [search, setSearch] = useState('');
   const [state, setState] = useState<'all' | 'action' | 'done'>('all');
   const [busyId, setBusyId] = useState('');
-  const filtered = orders.filter((order) => `${orderTitle(order)} ${order.customerName} ${order.id}`.toLowerCase().includes(search.toLowerCase()) && (state === 'all' || (state === 'action' ? Boolean(order.nextStatus) : !order.nextStatus)));
-  const advance = async (order: Order) => { if (!order.nextStatus || busyId) return; setBusyId(order.id); try { await updateAdminOrderStatus(order.id, order.nextStatus); await refresh(); } finally { setBusyId(''); } };
+  const [error, setError] = useState('');
+  const filtered = orders.filter((order) => `${orderTitle(order)} ${order.customerName} ${order.id}`.toLowerCase().includes(search.toLowerCase()) && (state === 'all' || (state === 'action' ? orderPending(order) : !orderPending(order))));
+  const advance = async (order: Order) => {
+    if (!order.nextStatus || busyId) return;
+    setBusyId(order.id); setError('');
+    try { await updateAdminOrderStatus(order.id, order.nextStatus); await refresh(); }
+    catch { setError('Не удалось изменить статус. Проверьте данные для выдачи и обновите список.'); }
+    finally { setBusyId(''); }
+  };
   return <div className="page-stack"><header className="section-heading"><div><h1>Покупки</h1><p>Физические товары выдаём, цифровые — подключаем или отправляем.</p></div></header><section className="panel">
     <div className="table-toolbar"><label className="search-field"><SearchIcon /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Ученик, товар или номер" /></label><div className="segmented"><button className={state === 'all' ? 'is-active' : ''} onClick={() => setState('all')} type="button">Все</button><button className={state === 'action' ? 'is-active' : ''} onClick={() => setState('action')} type="button">Нужно действие</button><button className={state === 'done' ? 'is-active' : ''} onClick={() => setState('done')} type="button">Завершено</button></div></div>
-    <OrdersTable orders={filtered} advance={(order) => void advance(order)} />
+    {error && <p role="alert" className="form-error">{error}</p>}
+    <OrdersTable orders={filtered} advance={(order) => void advance(order)} busyId={busyId} />
   </section></div>;
 }
 
@@ -126,7 +153,7 @@ export function AdminApp() {
   useEffect(() => { void load(); }, [load]);
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} retry={() => void load()} />;
-  const actionCount = data.orders.filter((order) => order.nextStatus).length;
+  const actionCount = data.orders.filter(orderPending).length;
   return <main className={`admin-shell ${embedded ? 'is-embedded' : ''}`}>
     {!embedded && <header className="admin-topbar"><div><span className="brand-mark">MSI</span><div><strong>MSI Shop</strong><small>Панель Customer Support</small></div></div><button className="button" type="button" onClick={() => void load()}>Обновить</button></header>}
     <nav className="admin-tabs" aria-label="Разделы магазина">{TABS.map(({ id, icon: Icon }) => <button key={id} type="button" className={tab === id ? 'is-active' : ''} onClick={() => setTab(id)}><Icon /><span>{TAB_LABELS[id]}</span>{id === 'orders' && actionCount > 0 && <b>{actionCount}</b>}</button>)}</nav>

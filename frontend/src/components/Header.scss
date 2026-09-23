@@ -127,3 +127,9 @@
 @media (max-width: 340px) {
   .topbar__avatar { display: none; }
 }
+.topbar__notif-action {
+  width: 100%; color: inherit; font: inherit; text-align: left;
+  background: var(--accent-soft); border: 0; cursor: pointer;
+  strong { font-size: 13px; }
+  .topbar__notif-date { display: block; margin-top: 4px; }
+}

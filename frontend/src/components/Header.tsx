@@ -11,7 +11,7 @@ import './Header.scss';
 
 interface Props {
   view: View;
-  onViewChange: (view: View) => void;
+  onViewChange: (view: View, orderId?: string) => void;
 }
 
 function formatNotifDate(iso: string, lang: Language): string {
@@ -107,6 +107,15 @@ export default function Header({ view, onViewChange }: Props) {
                       <div className="topbar__notif-empty">{t('noNotifications')}</div>
                     ) : (
                       notifications.slice(0, 30).map((notification) => {
+                        if (notification.type === 'information_required') return (
+                          <button key={notification.id} type="button" className="topbar__notif-item topbar__notif-action"
+                            onClick={() => { setNotifOpen(false); onViewChange('orders', notification.orderId); }}>
+                            <span className="topbar__notif-ico">!</span>
+                            <span className="topbar__notif-body"><strong>{t('deliveryDetailsRequired')}</strong>
+                              <span className="topbar__notif-date">{t('robloxNotification')} · #{notification.orderId?.slice(0, 8).toUpperCase()}</span>
+                            </span>
+                          </button>
+                        );
                         const positive = notification.type === 'topup' || notification.type === 'welcome';
                         const label = `${positive ? '+' : '−'}${formatCoins(notification.amount)}`;
                         const text = notification.note || t(

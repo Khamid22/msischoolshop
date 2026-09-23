@@ -14,7 +14,7 @@ export type OrderStatus =
 
 export type FulfillmentType = 'physical_pickup' | 'digital_activation' | 'digital_delivery';
 
-export type NotificationType = 'welcome' | 'spend' | 'topup';
+export type NotificationType = 'welcome' | 'spend' | 'topup' | 'information_required';
 
 export interface AppNotification {
   id: string;
@@ -24,6 +24,7 @@ export interface AppNotification {
   note?: string;
   createdAt: string;
   read: boolean;
+  orderId?: string;
 }
 
 export type Theme = 'light' | 'dark';
@@ -59,6 +60,7 @@ export interface Product {
   description?: string;
   type?: 'digital' | 'physical';
   fulfillmentType?: FulfillmentType;
+  deliveryRequirement?: 'roblox_player_id';
   active?: boolean;
   carousel?: boolean;
   downloadUrl?: string;
@@ -119,6 +121,14 @@ export interface User {
   activeCourses?: number;
 }
 
+export interface OrderDeliveryRequirement {
+  itemIndex: number;
+  kind: 'roblox_player_id';
+  playerId: string | null;
+  submittedAt: string | null;
+  editable: boolean;
+}
+
 export interface Order {
   id: string;
   items: CartItem[];
@@ -137,6 +147,8 @@ export interface Order {
   pickupCode?: string;
   pickupSlot?: string;
   originalPrice?: number;
+  informationRequired?: boolean;
+  deliveryRequirements?: OrderDeliveryRequirement[];
 }
 
 export type DeliveryMethod = 'courier' | 'pickup' | 'post' | 'digital';

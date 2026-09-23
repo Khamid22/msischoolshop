@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..config import ADMIN_PASSWORD
 from ..database import get_db
 from ..models import Banner, CatalogCategory, GrantLog, News, Notification, Order, Product, User
+from ..order_delivery_details import delivery_requirements
 from ..schemas import (
     AdminLogin,
     AdminSsoLogin,
@@ -176,6 +177,11 @@ def sync_news(database: Session, items: list[dict]) -> None:
 
 
 def sync_orders(database: Session, items: list[dict]) -> None:
+    # A stale compatibility-admin cache must not erase buyer submissions or
+    # bypass the order's delivery transition checks.
+    existing = database.scalars(select(Order).with_for_update()).all()
+    if any(delivery_requirements(order) for order in existing):
+        raise HTTPException(status_code=409, detail="Orders with delivery details cannot be bulk-replaced. Use individual order actions.")
     database.execute(delete(Order))
     for raw in items:
         database.add(Order(

@@ -12,6 +12,8 @@
   transform: translate(-50%, -50%);
   z-index: 81;
   width: min(400px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
