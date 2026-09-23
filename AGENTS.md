@@ -22,6 +22,7 @@ Verification is backend pytest plus frontend lint and build.
 ## Data layer: local adapter and LMS target
 - `src/api.ts` calls `/api`; Vite proxies that prefix to `http://127.0.0.1:8000` in development.
 - Local data lives in SQLite. Railway data lives in PostgreSQL under `msi_shop`; `SEED_DEMO_DATA=false` keeps production free of demo products and users. Seed data is in `backend/app/seed.py` for development only.
+- New schema changes use explicit Alembic revisions under `backend/migrations/`; run `alembic -c backend/alembic.ini current` and `upgrade head` with an explicit `DATABASE_URL` before deployment. Do not add new startup DDL. Existing legacy bootstrap remains in place.
 - Local checkout and balance deduction happen in one backend transaction in `backend/app/routers/orders.py`. `requestId` makes repeated purchase requests idempotent.
 - For LMS-backed users, `/api/auth/me` refreshes the active group, total coin balance, positive coins earned in the current month, and active subject count from canonical `msi_v2` tables. Do not replace these with frontend constants.
 - Production must use the LMS PostgreSQL student coin ledger and the contract in `docs/LMS_INTEGRATION.md`; never treat the local SQLite balance as authoritative LMS data.
@@ -51,3 +52,5 @@ Verification is backend pytest plus frontend lint and build.
 - React `StrictMode` is on — effects double-fire in dev.
 - Product "type" is `'digital' | 'physical'`; physical items support `stock`, digital support `downloadUrl`/`licenseKey`, some have a `course` field. Student Picks uses `/api/student-picks`, ranked by all-time purchased quantity across paid fulfillment stages. Only active products with purchases appear; legacy product IDs preserved in merged variants count toward the active product. The retained `carousel` storage/API field no longer controls storefront selection and has no admin control.
 - Orders start as `paid`; the API supports `packed` -> `ready` -> `collected` status updates.
+
+- Digital delivery forms belong to the product and are frozen in order snapshots. Full instructions/links and answers are private to staff and the purchaser; public catalogue responses contain only the presence flag. Preserve owner checks, the order lock, required-answer fulfillment gate and existing answers/audit when changing this flow. No calendar-date fields.

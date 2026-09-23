@@ -9,7 +9,7 @@ from ..coin_ledger import change_coins, current_balance
 from ..database import get_db
 from ..catalog_pricing import price_after_discount
 from ..models import Notification, Order, Product, User
-from ..order_delivery_details import information_required, save_player_id
+from ..order_delivery_details import information_required, save_delivery_details
 from ..order_fulfillment import (
     fulfillment_type_from_order,
     fulfillment_type_from_product,
@@ -110,7 +110,7 @@ def create_order(
     order = Order(
         id=order_id,
         items=[{
-            "product": product_to_dict(product),
+            "product": product_to_dict(product, include_delivery_form=True),
             "quantity": data.quantity,
             **({"variant": variant} if variant else {}),
         }],
@@ -136,9 +136,9 @@ def update_delivery_details(
     claims: dict = Depends(require_user),
     database: Session = Depends(get_db),
 ) -> dict:
-    return order_to_dict(save_player_id(
+    return order_to_dict(save_delivery_details(
         database, order_id=order_id, user_id=claims["sub"],
-        item_index=data.itemIndex, player_id=data.playerId,
+        item_index=data.itemIndex, answers=data.answers if data.answers is not None else {"playerId": data.playerId},
     ))
 
 
@@ -150,7 +150,7 @@ def update_order_status(order_id: str, data: OrderStatusUpdate, database: Sessio
     fulfillment_type = fulfillment_type_from_order(order)
     current_status = status_for_fulfillment(fulfillment_type, order.status)
     if data.status != current_status and information_required(order):
-        raise HTTPException(status_code=409, detail="The student must submit their Roblox Player ID before delivery")
+        raise HTTPException(status_code=409, detail="The student must complete the required delivery details before delivery")
     if not is_allowed_transition(fulfillment_type, current_status, data.status):
         expected = next_status(fulfillment_type, current_status)
         raise HTTPException(

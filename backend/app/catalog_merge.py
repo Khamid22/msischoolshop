@@ -62,7 +62,7 @@ def prepare_catalog_merge(database: Session, groups: list[MergeGroup], *, lock: 
                 raise ValueError(f"Product changed since the plan was prepared: {product.id}")
             if product.product_type != "digital" or product.stock is not None:
                 raise ValueError("This merge supports unlimited digital products only")
-            for field in ("category_id", "fulfillment_type", "download_url", "license_key", "course"):
+            for field in ("category_id", "fulfillment_type", "download_url", "license_key", "course", "delivery_form"):
                 if getattr(product, field) != getattr(primary, field):
                     raise ValueError(f"Products have different {field}; merge would lose product details")
             before = product_state(product)

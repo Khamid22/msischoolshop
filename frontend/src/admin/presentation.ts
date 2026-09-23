@@ -1,4 +1,4 @@
-import type { Order, OrderStatus, Product } from '../types';
+import type { OrderDeliveryRequirement, Order, OrderStatus, Product } from '../types';
 export { formatCoins } from '../utils/currency';
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -12,7 +12,7 @@ export const ACTION_LABELS: Record<OrderStatus, string> = {
 export const productTitle = (product?: Product) => product?.name || product?.nameKey || 'Товар';
 export const orderTitle = (order: Order) => order.items.map((item) => `${item.variant?.label || productTitle(item.product)} × ${item.quantity}`).join(', ') || 'Покупка';
 export const orderNeedsAction = (order: Order) => Boolean(order.nextStatus || order.informationRequired);
-export const orderStatusLabel = (order: Order) => order.informationRequired ? 'Нужен Player ID'
+export const orderStatusLabel = (order: Order) => order.informationRequired ? 'Нужны данные'
   : order.status === 'paid' && order.deliveryRequirements?.length ? 'Ожидает выдачи'
     : STATUS_LABELS[order.status || 'paid'];
 
@@ -36,4 +36,12 @@ export function downloadCsv(name: string, rows: Array<Array<string | number>>) {
   const anchor = document.createElement('a');
   anchor.href = url; anchor.download = name; anchor.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function deliveryAnswerLines(requirement: OrderDeliveryRequirement): string[] {
+  return requirement.form.fields.map((field) => {
+    const value = requirement.answers[field.id];
+    const answer = field.type === 'checkbox' ? value === true ? 'Да' : 'Не подтверждено' : String(value || 'Не указано');
+    return `${field.label}: ${answer}`;
+  });
 }

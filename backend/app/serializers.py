@@ -1,3 +1,4 @@
+from .delivery_forms import product_delivery_form
 from .models import Banner, CatalogCategory, GrantLog, News, Notification, Order, PickupSlot, Product, User
 from .order_delivery_details import delivery_requirements, information_required, product_delivery_requirement
 from .order_fulfillment import (
@@ -13,7 +14,8 @@ def without_none(data: dict) -> dict:
     return {key: value for key, value in data.items() if value is not None}
 
 
-def product_to_dict(product: Product) -> dict:
+def product_to_dict(product: Product, *, include_delivery_form: bool = False) -> dict:
+    delivery_form = product_delivery_form(product)
     images = product.images or ([product.image] if product.image else [])
     return without_none({
         "id": product.id,
@@ -28,6 +30,8 @@ def product_to_dict(product: Product) -> dict:
         "type": product.product_type,
         "fulfillmentType": fulfillment_type_from_product(product),
         "deliveryRequirement": product_delivery_requirement(product),
+        "hasDeliveryForm": bool(delivery_form and any(delivery_form.values())),
+        **({"deliveryForm": delivery_form or {"instructions": "", "links": [], "fields": []}} if include_delivery_form else {}),
         "active": product.active,
         "carousel": product.carousel,
         "downloadUrl": product.download_url,

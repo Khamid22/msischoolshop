@@ -6,35 +6,39 @@ import { useLang } from '../contexts/LangContext';
 import type { Order, OrderDeliveryRequirement } from '../types';
 import './OrderDeliveryDetails.scss';
 
-function PlayerIdForm({ order, requirement, onSaved }: {
+function initialAnswers(requirement: OrderDeliveryRequirement) {
+  return Object.fromEntries(requirement.form.fields.map((field) => [field.id,
+    requirement.answers[field.id] ?? (field.type === 'checkbox' ? false : ''),
+  ]));
+}
+
+function DeliveryDetailsForm({ order, requirement, onSaved }: {
   order: Order;
   requirement: OrderDeliveryRequirement;
   onSaved: (order: Order) => void;
 }) {
   const { t } = useLang();
-  const inputId = useId();
-  const [playerId, setPlayerId] = useState(requirement.playerId || '');
+  const formId = useId();
+  const [answers, setAnswers] = useState<Record<string, string | boolean>>(() => initialAnswers(requirement));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
+  const unchanged = requirement.form.fields.every((field) =>
+    answers[field.id] === (requirement.answers[field.id] ?? (field.type === 'checkbox' ? false : '')));
 
-  const save = async (event: FormEvent) => {
+  async function save(event: FormEvent) {
     event.preventDefault();
     if (pending) return;
-    const value = playerId.trim();
-    if (!/^[1-9][0-9]{0,19}$/.test(value)) {
-      setError(t('robloxPlayerIdInvalid'));
-      return;
-    }
     const controller = new AbortController();
     request.current = controller;
     setPending(true);
     setError('');
     try {
-      const updated = await submitOrderDeliveryDetails(order.id, requirement.itemIndex, value, controller.signal);
+      const updated = await submitOrderDeliveryDetails(order.id, requirement.itemIndex, answers, controller.signal);
       if (controller.signal.aborted) return;
-      setPlayerId(value);
+      const saved = updated.deliveryRequirements?.find((item) => item.itemIndex === requirement.itemIndex);
+      if (saved) setAnswers(initialAnswers(saved));
       onSaved(updated);
       window.dispatchEvent(new Event('msi:notifications'));
     } catch (failure) {
@@ -43,35 +47,58 @@ function PlayerIdForm({ order, requirement, onSaved }: {
         ? 'deliveryDetailsAuthExpired'
         : failure instanceof ApiError && failure.status === 409
           ? 'deliveryDetailsLocked'
-          : 'deliveryDetailsError';
+          : failure instanceof ApiError && failure.status === 422 ? 'deliveryDetailsInvalid' : 'deliveryDetailsError';
       setError(t(key));
     } finally {
       if (!controller.signal.aborted) setPending(false);
     }
-  };
+  }
 
+  function change(fieldId: string, value: string | boolean) {
+    setAnswers((current) => ({ ...current, [fieldId]: value }));
+    setError('');
+  }
   const item = order.items[requirement.itemIndex];
+  const needsDetails = requirement.editable && requirement.missingRequiredFields.length > 0;
   return (
-    <section className="order-delivery-details" aria-labelledby={`${inputId}-title`}>
+    <section className="order-delivery-details" aria-labelledby={`${formId}-title`}>
       <div>
-        <h3 id={`${inputId}-title`}>{t(requirement.playerId ? 'deliveryDetailsSaved' : 'deliveryDetailsRequired')}</h3>
-        <p>{item?.variant?.label || item?.product.name || 'Robux'} · {t('quantity')}: {item?.quantity || 1}</p>
+        <h3 id={`${formId}-title`}>{t(needsDetails ? 'deliveryDetailsRequired' : 'deliveryInstructions')}</h3>
+        <p>{item?.variant?.label || item?.product.name || t(item?.product.nameKey || '')} · {t('quantity')}: {item?.quantity || 1}</p>
       </div>
-      {requirement.playerId && <p role="status">{t(requirement.editable ? 'deliveryDetailsAwaitingDelivery' : 'deliveryDetailsLocked')}</p>}
-      {requirement.editable ? (
+      {requirement.form.instructions ? <p className="order-delivery-details__instructions">{requirement.form.instructions}</p> : null}
+      {requirement.form.links.map((link, index) => <a key={`${link.url}:${index}`} className="btn btn-secondary"
+        href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>)}
+      {requirement.submittedAt ? <p role="status">{t(requirement.editable ? 'deliveryDetailsSaved' : 'deliveryDetailsLocked')}</p> : null}
+      {requirement.editable && requirement.form.fields.length > 0 ? (
         <form onSubmit={(event) => void save(event)}>
-          <label htmlFor={inputId}>{t('robloxPlayerId')}</label>
-          <input id={inputId} type="text" inputMode="numeric" autoComplete="off" maxLength={20}
-            value={playerId} onChange={(event) => { setPlayerId(event.target.value); setError(''); }}
-            disabled={pending} required pattern="[1-9][0-9]{0,19}" aria-describedby={`${inputId}-help`}
-            aria-invalid={Boolean(error)} />
-          <p id={`${inputId}-help`}>{t('robloxPlayerIdHelp')}</p>
-          <button type="submit" className="btn btn-primary" disabled={pending || playerId.trim() === requirement.playerId}>
-            {t(pending ? 'deliveryDetailsSaving' : requirement.playerId ? 'deliveryDetailsUpdate' : 'deliveryDetailsSubmit')}
+          {requirement.form.fields.map((field) => {
+            const id = `${formId}-${field.id}`;
+            return <div className="order-delivery-details__field" key={field.id}>
+              {field.type === 'checkbox' ? <label className="order-delivery-details__checkbox">
+                <input type="checkbox" checked={answers[field.id] === true} disabled={pending} required={field.required}
+                  aria-describedby={field.help ? `${id}-help` : undefined} onChange={(event) => change(field.id, event.target.checked)} />
+                <span>{field.label}{field.required ? ' *' : ''}</span>
+              </label> : <>
+                <label htmlFor={id}>{field.label}{field.required ? ' *' : ''}</label>
+                <input id={id} type={field.type === 'email' ? 'email' : 'text'} autoComplete="off"
+                  inputMode={field.type === 'player_id' ? 'numeric' : undefined} maxLength={field.type === 'player_id' ? 20 : 1000}
+                  pattern={field.type === 'player_id' ? '[1-9][0-9]{0,19}' : undefined} required={field.required}
+                  value={String(answers[field.id] ?? '')} disabled={pending} onChange={(event) => change(field.id, event.target.value)}
+                  aria-describedby={field.help ? `${id}-help` : undefined} />
+              </>}
+              {field.help ? <p id={`${id}-help`}>{field.help}</p> : null}
+            </div>;
+          })}
+          <button type="submit" className="btn btn-primary" disabled={pending || (Boolean(requirement.submittedAt) && unchanged)}>
+            {t(pending ? 'deliveryDetailsSaving' : requirement.submittedAt ? 'deliveryDetailsUpdate' : 'deliveryDetailsSubmit')}
           </button>
-          {error && <p role="alert" className="order-delivery-details__error">{error}</p>}
+          {error ? <p role="alert" className="order-delivery-details__error">{error}</p> : null}
         </form>
-      ) : <p><strong>{t('robloxPlayerId')}: {requirement.playerId || '—'}</strong></p>}
+      ) : requirement.form.fields.map((field) => <p key={field.id}><strong>{field.label}:</strong> {
+        field.type === 'checkbox' ? t(requirement.answers[field.id] === true ? 'deliveryConfirmed' : 'deliveryNotConfirmed')
+          : String(requirement.answers[field.id] || '—')
+      }</p>)}
     </section>
   );
 }
@@ -80,7 +107,7 @@ export default function OrderDeliveryDetails({ order, onSaved }: { order: Order;
   const { user } = useAuth();
   if (!user || order.userId !== user.id) return null;
   return <>{order.deliveryRequirements?.map((requirement) => (
-    <PlayerIdForm key={`${user.id}:${order.id}:${requirement.itemIndex}`} order={order}
+    <DeliveryDetailsForm key={`${user.id}:${order.id}:${requirement.itemIndex}`} order={order}
       requirement={requirement} onSaved={onSaved} />
   ))}</>;
 }

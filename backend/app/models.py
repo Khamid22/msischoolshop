@@ -33,6 +33,7 @@ class Product(Base):
     rating: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     course: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    delivery_form: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
 class CatalogCategory(Base):

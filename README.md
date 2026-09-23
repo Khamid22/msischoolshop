@@ -43,20 +43,33 @@ Each profile refresh reads the student's active group, current MSI Coin total, p
 
 ## Verify
 
-Robux purchases (both variants of `product-4e53e3f6ed90`) request a numeric Roblox Player ID after checkout and in **My purchases**. Existing paid orders show the same form without another purchase or balance change. An in-app reminder remains until the buyer submits the ID. Staff see the ID in the orders table; delivery cannot advance until all required items have details. Buyers can correct an ID until delivery starts.
+Digital products can request after-purchase actions in the catalogue editor: instructions, up to five links, and up to ten text, numeric Player ID, email or confirmation fields. Each field may be required or optional; calendar dates are not supported. The buyer sees the form immediately after checkout and in **My orders**. Staff see all answers and the submission time in the orders table and CSV export. Required answers must be complete before fulfillment starts. Failed submissions keep the draft; retrying a saved submission does not charge coins or add another audit entry.
 
-Details and timestamped edits are stored in the existing order-items JSON; no migration or existing-order rewrite is required. Order links use `/?view=orders&order=<order-id>` and require the buyer to sign in. Bulk order replacement is rejected when Robux orders exist, protecting submissions from stale admin caches. New Robux products with different catalogue IDs need an explicit delivery requirement in `backend/app/order_delivery_details.py`.
+Robux (both variants of `product-4e53e3f6ed90`) defaults to the supplied Roblox profile link, a required Player ID and a required “friend request sent” confirmation. The catalogue editor can change this configuration. Older Robux orders receive the instructions through the legacy snapshot adapter, without rewriting orders or reopening completed fulfillment. Other products are configured in the editor without code changes.
 
-The feature does not validate that the Roblox account exists, send Robux automatically, or change the existing MSI Coin integration. Telegram reminders are not automatically sent by this feature; the persistent reminder is inside the Shop.
+Each new order snapshots its product's instructions and fields. Later product edits or deletion do not change that purchase's requirements. Public catalogue responses expose only a `hasDeliveryForm` indicator; full instructions and links are returned only to authorized staff and the order owner. Answers and timestamped edits remain in order-items JSON. In-app reminders persist until required details are supplied. Order links use `/?view=orders&order=<order-id>` and require the buyer to sign in. Bulk replacement cannot overwrite orders containing these forms.
+
+Students send the friend request in Roblox through the profile link and confirm it themselves. Staff handle Roblox friendship and delivery; the Shop does not verify the external friendship or send Robux automatically. The persistent reminder is inside the Shop.
+
+Existing databases require the additive `20260924_delivery_forms` migration before deploying this version. It adds nullable `products.delivery_form` and records its version within the Shop schema; it does not rewrite products, orders, balances or LMS tables. Supply the approved target connection explicitly as `DATABASE_URL`; the migration runner has no default connection and does not load `.env` files. Check the current revision first:
 
 ```bash
-cd backend && PYTHONPATH=. .venv/bin/pytest -q
-cd ../frontend && npm run build && npm run lint
+.venv/bin/alembic -c backend/alembic.ini current
+.venv/bin/alembic -c backend/alembic.ini upgrade head
+```
+
+For PostgreSQL, set `DATABASE_SCHEMA=msi_shop`. An existing local SQLite database uses its explicit SQLite URL. Fresh local SQLite startup still uses the established bootstrap. Downgrading the migration drops stored product configurations and requires separate approval on live data; rolling back only the application code can retain this additive column.
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
+npm --prefix frontend run build
+npm --prefix frontend run lint
+npm --prefix frontend run test:browser
 ```
 
 `npm --prefix frontend run test:admin` checks catalogue editing, images/options, order handling, analytics, mobile navigation, themes and the LMS SSO iframe. Its backend uses the repository-root `.venv` and a disposable SQLite database. For canonical-ledger PostgreSQL tests, set `SHOP_TEST_POSTGRES_URL` to a disposable loopback database named `msi_shop_redesign_test` and run `backend/tests/test_coin_ledger_postgres.py` separately.
 
-To run the delivery-details PostgreSQL locking tests, set `MSI_SHOP_TEST_DATABASE_URL` to a fresh, disposable loopback database named `msi_*_test` (SQLAlchemy `postgresql+psycopg` URL) and run `backend/tests/test_order_delivery_details.py`. The fixture creates and removes its tables; never point it at application data.
+To run the delivery-details PostgreSQL locking tests, set `MSI_SHOP_TEST_DATABASE_URL` to a fresh, disposable loopback database named `msi_*_test` (SQLAlchemy `postgresql+psycopg` URL) and run `backend/tests/test_order_delivery_details.py`, `backend/tests/test_delivery_forms.py` and `backend/tests/test_delivery_form_migration.py`. The fixture creates and removes its tables; never point it at application data.
 
 For a single production process, build `frontend/` first and then start FastAPI; the backend serves the generated `frontend/dist/` alongside `/api`.
 

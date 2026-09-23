@@ -177,10 +177,10 @@ export function fetchOrders(signal?: AbortSignal): Promise<Order[]> {
 }
 
 export function submitOrderDeliveryDetails(
-  orderId: string, itemIndex: number, playerId: string, signal?: AbortSignal,
+  orderId: string, itemIndex: number, answers: Record<string, string | boolean>, signal?: AbortSignal,
 ): Promise<Order> {
   return request(`/orders/${encodeURIComponent(orderId)}/delivery-details`, {
-    ...json('PUT', { itemIndex, playerId }), signal,
+    ...json('PUT', { itemIndex, answers }), signal,
   }, getUserToken());
 }
 

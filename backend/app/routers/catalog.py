@@ -34,6 +34,7 @@ PRODUCT_FIELDS = {
     "downloadUrl": "download_url", "licenseKey": "license_key", "weight": "weight", "stock": "stock",
     "variantLabel": "variant_label", "variants": "variants",
     "discount": "discount", "rating": "rating", "ratingCount": "rating_count", "course": "course",
+    "deliveryForm": "delivery_form",
 }
 BANNER_FIELDS = {
     "title": "title", "subtitle": "subtitle", "description": "description", "image": "image",
@@ -66,6 +67,10 @@ def normalize_product_fulfillment(product: Product, changed_fields: set[str]) ->
     product.product_type = (
         "physical" if product.fulfillment_type == "physical_pickup" else "digital"
     )
+    if product.product_type == "physical":
+        if product.delivery_form and any(product.delivery_form.values()):
+            raise HTTPException(status_code=422, detail="Delivery forms are for digital products")
+        product.delivery_form = None
 
 
 def normalize_product_media(product: Product) -> None:
@@ -166,7 +171,7 @@ def create_product(data: ProductCreate, database: Session = Depends(get_db)) -> 
     normalize_product_variant_price(product)
     database.add(product)
     database.commit()
-    return product_to_dict(product)
+    return product_to_dict(product, include_delivery_form=True)
 
 
 @router.patch("/products/{product_id}", dependencies=[Depends(require_admin)])
@@ -181,7 +186,7 @@ def update_product(product_id: str, data: ProductUpdate, database: Session = Dep
     normalize_product_media(product)
     normalize_product_variant_price(product)
     database.commit()
-    return product_to_dict(product)
+    return product_to_dict(product, include_delivery_form=True)
 
 
 @router.delete("/products/{product_id}", status_code=204, dependencies=[Depends(require_admin)])

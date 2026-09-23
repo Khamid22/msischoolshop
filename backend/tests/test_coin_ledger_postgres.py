@@ -126,7 +126,7 @@ def test_robux_player_id_preserves_canonical_coin_debit_and_purchase_retry(postg
     assert order.json()['order']['informationRequired'] is True
     for _ in range(2):
         saved = client.put('/api/orders/robux-ledger-order/delivery-details', headers=headers('user'),
-                           json={'itemIndex': 0, 'playerId': '123456789'})
+                           json={'itemIndex': 0, 'answers': {'playerId': '123456789', 'friendRequestSent': True}})
         assert saved.status_code == 200
         retry = client.post('/api/orders', headers=headers('user'), json=purchase)
         assert retry.json()['user']['balance'] == 320

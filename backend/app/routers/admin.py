@@ -119,7 +119,7 @@ def reset_balances(database: Session = Depends(get_db)) -> dict:
 @router.get("/bootstrap", dependencies=[Depends(require_admin)])
 def bootstrap(database: Session = Depends(get_db)) -> dict:
     return {
-        "products": [product_to_dict(item) for item in database.scalars(select(Product).order_by(Product.position)).all()],
+        "products": [product_to_dict(item, include_delivery_form=True) for item in database.scalars(select(Product).order_by(Product.position)).all()],
         "categories": [category_to_dict(item) for item in database.scalars(select(CatalogCategory).order_by(CatalogCategory.position)).all()],
         "banners": [banner_to_dict(item) for item in database.scalars(select(Banner).order_by(Banner.position)).all()],
         "news": [news_to_dict(item) for item in database.scalars(select(News).order_by(News.position)).all()],

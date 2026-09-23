@@ -121,7 +121,7 @@ export default function CheckoutDrawer() {
                     <strong>{t('digitalFulfillment')}</strong>
                     <small>{t('digitalFulfillmentHelp')}</small>
                   </div>
-                  <div className="checkout-digital-note">{t(currentItem?.product.deliveryRequirement === 'roblox_player_id' ? 'robloxAfterPurchase' : 'digitalFulfillmentNote')}</div>
+                  <div className="checkout-digital-note">{t(currentItem?.product.hasDeliveryForm ? 'deliveryAfterPurchase' : 'digitalFulfillmentNote')}</div>
                 </section>
               )}
 

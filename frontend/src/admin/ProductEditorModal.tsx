@@ -2,10 +2,12 @@ import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 
 import { AdminDialog } from './AdminDialog';
+import { ProductDeliveryEditor } from './ProductDeliveryEditor';
 import { createProduct, updateProduct } from '../api';
 import { PlusIcon, TrashIcon, XIcon } from '../components/icons';
 import type {
   CatalogCategory,
+  DeliveryForm,
   FulfillmentType,
   Product,
   ProductVariant,
@@ -28,6 +30,7 @@ interface ProductDraft {
   active: boolean;
   variants: ProductVariant[];
   images: string[];
+  deliveryForm: DeliveryForm | null;
 }
 
 interface Props {
@@ -64,6 +67,8 @@ function initialDraft(product: Product | undefined, categories: CatalogCategory[
       active: variant.active !== false,
     })),
     images,
+    deliveryForm: product?.deliveryForm && Object.values(product.deliveryForm).some((value) => value.length)
+      ? structuredClone(product.deliveryForm) : null,
   };
 }
 
@@ -207,6 +212,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       discount: draft.discount,
       rating: draft.rating === '' ? null : Number(draft.rating),
       active: draft.active,
+      deliveryForm: isPhysical ? null : draft.deliveryForm || { instructions: '', links: [], fields: [] },
     };
     setBusy(true);
     try {
@@ -245,6 +251,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
               <div className="editor-switches field--wide">
                 <label className="check-field"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Показывать в магазине</span></label>
               </div>
+              {!isPhysical ? <ProductDeliveryEditor value={draft.deliveryForm} onChange={(deliveryForm) => setDraft({ ...draft, deliveryForm })} disabled={busy} /> : null}
               <section className="variant-editor field--wide">
                 <div className="variant-editor__heading"><div><strong>Варианты товара</strong><small>Укажите название и цену. В магазине покупатель выберет нужный вариант.</small></div><button className="button button--small" type="button" disabled={draft.variants.length >= 30} onClick={addVariant}><PlusIcon /> Добавить вариант</button></div>
                 {draft.variants.map((variant, index) => <div className="variant-row" key={variant.id}>

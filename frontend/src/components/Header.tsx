@@ -112,7 +112,7 @@ export default function Header({ view, onViewChange }: Props) {
                             onClick={() => { setNotifOpen(false); onViewChange('orders', notification.orderId); }}>
                             <span className="topbar__notif-ico">!</span>
                             <span className="topbar__notif-body"><strong>{t('deliveryDetailsRequired')}</strong>
-                              <span className="topbar__notif-date">{t('robloxNotification')} · #{notification.orderId?.slice(0, 8).toUpperCase()}</span>
+                              <span className="topbar__notif-date">{t('deliveryNotification')} · #{notification.orderId?.slice(0, 8).toUpperCase()}</span>
                             </span>
                           </button>
                         );

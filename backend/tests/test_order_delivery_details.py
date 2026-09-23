@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 from app.models import Order, Product, User
-from app.order_delivery_details import ROBUX_PRODUCT_ID, save_player_id
+from app.order_delivery_details import ROBUX_PRODUCT_ID, save_delivery_details
 from app.security import create_token, hash_password
 
 
@@ -75,7 +75,7 @@ def purchase(client, *, variant="robux-500", request_id="robux-purchase", produc
 
 def submit(client, order_id="robux-purchase", *, player_id="123456789", buyer="buyer-a", item_index=0):
     return client.put(f"/api/orders/{order_id}/delivery-details", headers=headers(buyer),
-                      json={"itemIndex": item_index, "playerId": player_id})
+                      json={"itemIndex": item_index, "answers": {"playerId": player_id, "friendRequestSent": True}})
 
 
 @pytest.mark.parametrize("variant,price", [("robux-270", 540), ("robux-500", 880)])
@@ -248,7 +248,7 @@ def test_postgres_staff_delivery_and_student_edits_share_order_lock(shop, send_f
             order.status = "sent"
             blocker.commit()
         else:
-            save_player_id(blocker, order_id=order.id, user_id="buyer-a", item_index=0, player_id="111")
+            save_delivery_details(blocker, order_id=order.id, user_id="buyer-a", item_index=0, answers={"playerId": "111", "friendRequestSent": True})
         response = pending.result(timeout=5)
         assert response.status_code == (409 if send_first else 200)
     finally:

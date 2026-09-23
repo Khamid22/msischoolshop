@@ -48,6 +48,20 @@ export interface ProductVariant {
   active: boolean;
 }
 
+export interface DeliveryField {
+  id: string;
+  label: string;
+  type: 'text' | 'player_id' | 'email' | 'checkbox';
+  required: boolean;
+  help: string;
+}
+
+export interface DeliveryForm {
+  instructions: string;
+  links: Array<{ label: string; url: string }>;
+  fields: DeliveryField[];
+}
+
 export interface Product {
   id: string;
   image: string;
@@ -61,6 +75,8 @@ export interface Product {
   type?: 'digital' | 'physical';
   fulfillmentType?: FulfillmentType;
   deliveryRequirement?: 'roblox_player_id';
+  hasDeliveryForm?: boolean;
+  deliveryForm?: DeliveryForm | null;
   active?: boolean;
   carousel?: boolean;
   downloadUrl?: string;
@@ -123,7 +139,10 @@ export interface User {
 
 export interface OrderDeliveryRequirement {
   itemIndex: number;
-  kind: 'roblox_player_id';
+  kind: 'roblox_player_id' | 'custom';
+  form: DeliveryForm;
+  answers: Record<string, string | boolean>;
+  missingRequiredFields: string[];
   playerId: string | null;
   submittedAt: string | null;
   editable: boolean;

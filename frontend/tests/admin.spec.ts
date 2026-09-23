@@ -82,7 +82,7 @@ test('product create, filters, edit zero discount, persistence and deletion', as
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Название', { exact: true }).fill(title);
   await dialog.getByLabel('Цена, коины').fill('100');
-  await dialog.getByLabel('После покупки').selectOption('physical_pickup');
+  await dialog.getByRole('combobox', { name: 'После покупки', exact: true }).selectOption('physical_pickup');
   await dialog.getByLabel('Остаток', { exact: false }).fill('4');
   await dialog.getByLabel('Скидка, %').fill('25');
   await dialog.locator('input[type=file]').setInputFiles(image);
@@ -242,6 +242,8 @@ test('current admin keeps Robux orders actionable until the student supplies a P
       fulfillmentType: 'digital_delivery', informationRequired: !playerId,
       nextStatus: playerId ? 'sent' : undefined,
       deliveryRequirements: [{ itemIndex: 0, kind: 'roblox_player_id', playerId, editable: true,
+        form: { instructions: '', links: [], fields: [{ id: 'playerId', label: 'Roblox Player ID', type: 'player_id', required: true, help: '' }] },
+        answers: playerId ? { playerId } : {}, missingRequiredFields: playerId ? [] : ['playerId'],
         submittedAt: playerId ? '2026-09-23T12:00:00Z' : null }],
       items: [{ product: { id: 'product-4e53e3f6ed90', name: 'Robux', type: 'digital', price: 540 },
         variant: { id: 'robux-500', label: '500 Robux', price: 880 }, quantity: 1 }],
@@ -254,8 +256,8 @@ test('current admin keeps Robux orders actionable until the student supplies a P
   await page.getByRole('combobox', { name: 'Статус', exact: true }).selectOption('action');
   const row = page.getByRole('row').filter({ hasText: 'Robux test buyer' });
   await expect(row).toContainText('500 Robux');
-  await expect(row).toContainText('Нужен Player ID');
-  await expect(row).toContainText('Ожидаем Player ID');
+  await expect(row).toContainText('Нужны данные');
+  await expect(row).toContainText('Ожидаем данные');
   await expect(row.getByRole('button', { name: 'Отправить', exact: true })).toHaveCount(0);
   await expect(row).not.toContainText('Завершён');
   playerId = '123456789';

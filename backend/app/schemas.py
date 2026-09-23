@@ -1,7 +1,8 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, StrictBool, StrictStr, field_validator, model_validator
 
+from .delivery_forms import DeliveryForm
 from .order_fulfillment import FulfillmentType, OrderStatus
 
 
@@ -43,6 +44,7 @@ class ProductCreate(BaseModel):
     rating: float | None = Field(default=None, ge=0, le=5)
     ratingCount: int | None = Field(default=None, ge=0)
     course: dict[str, Any] | None = None
+    deliveryForm: DeliveryForm | None = None
 
     @field_validator("image", "images")
     @classmethod
@@ -164,7 +166,14 @@ class OrderStatusUpdate(BaseModel):
 
 class OrderDeliveryDetailsInput(BaseModel):
     itemIndex: int = Field(ge=0, le=99)
-    playerId: str = Field(min_length=1, max_length=20, pattern=r"^[1-9][0-9]{0,19}$")
+    playerId: str | None = Field(default=None, min_length=1, max_length=20, pattern=r"^[1-9][0-9]{0,19}$")
+    answers: dict[str, StrictStr | StrictBool] | None = Field(default=None, max_length=10)
+
+    @model_validator(mode="after")
+    def one_answer_format(self) -> "OrderDeliveryDetailsInput":
+        if (self.answers is None) == (self.playerId is None):
+            raise ValueError("Provide answers or playerId")
+        return self
 
     @field_validator("playerId", mode="before")
     @classmethod
