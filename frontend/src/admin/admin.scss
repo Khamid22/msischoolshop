@@ -76,6 +76,8 @@ tbody tr:hover { background:color-mix(in srgb,var(--admin-accent) 7%,transparent
 .product-cell small { margin-top:5px; color:var(--admin-muted); font-size:11px; max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .row-actions { display:flex; align-items:center; justify-content:flex-end; gap:7px; }
 .actions-cell { text-align:right; }
+.order-actions { display:flex; align-items:center; justify-content:flex-end; gap:.5rem; }
+.order-actions .button--danger { border-color:var(--admin-danger); }
 .table-footer { border-top:1px solid var(--admin-border); padding:12px 14px; color:var(--admin-muted); font-size:11px; }
 .empty-row { min-height:150px; display:grid; place-items:center; color:var(--admin-muted); text-align:center; padding:20px; }
 .type-badge,.order-status { display:inline-flex; align-items:center; border-radius:999px; padding:4px 8px; font-size:10px; white-space:nowrap; }
@@ -83,6 +85,7 @@ tbody tr:hover { background:color-mix(in srgb,var(--admin-accent) 7%,transparent
 .type-badge--digital,.order-status { background:var(--admin-selected); color:var(--admin-accent-text); }
 .order-status--collected,.order-status--connected,.order-status--received,.done-label { color:#64bfab; }
 .order-status--paid { color:#e0b777; background:color-mix(in srgb,#e0b777 12%,transparent); }
+.order-status--cancelled { color:var(--admin-danger); }
 .coin-value,.pickup-code { color:var(--admin-accent-text); font-variant-numeric:tabular-nums; }
 .status-toggle { padding:5px 9px; min-height:32px; border-radius:999px; border:1px solid var(--admin-border); background:var(--admin-selected); color:var(--admin-accent-text); }
 .stats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }

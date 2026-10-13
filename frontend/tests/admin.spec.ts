@@ -11,6 +11,86 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Добавить товар' })).toBeVisible();
 });
 
+for (const width of [390, 1280, 1440]) {
+  test(`cancel order refunds the buyer and preserves history at ${width}px`, async ({ page, request }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const admin = { Authorization: `Bearer ${await page.evaluate(() => sessionStorage.getItem('msi_admin_token'))}` };
+    const buyer = await (await request.post('/api/auth/login', { data: { studentId: '2023114', password: 'demo' } })).json();
+    const buyerHeaders = { Authorization: `Bearer ${buyer.token}` };
+    const name = `Cancel test ${randomUUID().slice(0, 8)}`;
+    const product = await (await request.post('/api/products', { headers: admin, data: {
+      name, price: 10, type: 'digital', fulfillmentType: 'digital_delivery', stock: 2, image: '/images/mug.svg',
+      deliveryForm: { instructions: 'Укажите имя игрока', links: [], fields: [
+        { id: 'player', label: 'Roblox Player ID', type: 'text', required: true, help: '' },
+      ] },
+    } })).json();
+    const paid = await request.post('/api/orders', { headers: buyerHeaders, data: {
+      productId: product.id, quantity: 1, customerName: 'Тестовый ученик', requestId: randomUUID(),
+    } });
+    expect(paid.status()).toBe(201);
+    const purchase = await paid.json();
+    await page.goto('/admin.html?tab=orders');
+    await page.getByLabel('Поиск заказов').fill(name);
+    const row = page.getByRole('row').filter({ hasText: name });
+    await expect(row.getByRole('button', { name: 'Отменить', exact: true })).toBeVisible();
+    await expect(row.getByRole('button', { name: 'Отправить', exact: true })).toHaveCount(0);
+    expect((await request.put(`/api/orders/${purchase.order.id}/delivery-details`, { headers: buyerHeaders,
+      data: { itemIndex: 0, answers: { player: 'test_player_123' } } })).ok()).toBeTruthy();
+    await page.reload();
+    await page.getByLabel('Поиск заказов').fill(name);
+    const send = row.getByRole('button', { name: 'Отправить', exact: true });
+    const cancel = row.getByRole('button', { name: 'Отменить', exact: true });
+    await expect(send).toBeVisible();
+    await expect(cancel).toBeVisible();
+    const sendBox = (await send.boundingBox())!;
+    const cancelBox = (await cancel.boundingBox())!;
+    expect(Math.abs(sendBox.y - cancelBox.y)).toBeLessThan(2);
+    expect(Math.abs(sendBox.height - cancelBox.height)).toBeLessThan(2);
+    if (width === 390) expect(sendBox.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `/private/tmp/msi-shop-cancel-verification/orders-${width}.png` });
+
+    const cancelUrl = `**/api/orders/${purchase.order.id}/cancel`;
+    await page.route(cancelUrl, (route) => route.fulfill({ status: 503, json: { detail: 'Не удалось отменить заказ. Повторите попытку.' } }));
+    await cancel.click();
+    await expect(page.getByRole('alert')).toContainText('Не удалось отменить заказ');
+    await expect(send).toBeEnabled();
+    await expect(cancel).toBeEnabled();
+    expect((await (await request.get('/api/auth/me', { headers: buyerHeaders })).json()).balance).toBe(purchase.user.balance);
+    await page.screenshot({ path: `/private/tmp/msi-shop-cancel-verification/error-${width}.png` });
+    await page.unroute(cancelUrl);
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    await page.route(cancelUrl, async (route) => { await gate; await route.continue(); });
+    await cancel.click();
+    await expect(cancel).toBeDisabled();
+    await expect(row.getByRole('button', { name: 'Сохраняем…' })).toBeDisabled();
+    release();
+    await expect(row).toContainText('Монеты возвращены');
+    await expect(row).toContainText('Отменён');
+    await expect(row.getByRole('button')).toHaveCount(0);
+    const balance = (await (await request.get('/api/auth/me', { headers: buyerHeaders })).json()).balance;
+    expect(balance).toBe(buyer.user.balance);
+    await page.reload();
+    await page.getByLabel('Поиск заказов').fill(name);
+    await page.getByRole('combobox', { name: 'Статус', exact: true }).selectOption('cancelled');
+    await expect(row).toContainText('Монеты возвращены');
+
+    await page.evaluate((auth) => {
+      localStorage.setItem('msi_user_token', auth.token);
+      localStorage.setItem('msi_current_user', JSON.stringify(auth.user));
+    }, buyer);
+    await page.goto(`/?view=orders&order=${purchase.order.id}`);
+    await expect(page.getByText('Заказ отменён. Монеты возвращены на ваш баланс.', { exact: true })).toBeVisible();
+    await expect(page.locator('.order-timeline')).toHaveCount(0);
+    await expect(page.getByLabel('Roblox Player ID')).toHaveCount(0);
+    await page.screenshot({ path: `/private/tmp/msi-shop-cancel-verification/student-${width}.png` });
+    expect(errors).toEqual([]);
+  });
+}
+
 test('simple named variants persist and appear with their prices in the storefront', async ({ page, request }) => {
   const title = `Robux options ${Date.now()}`;
   await page.getByRole('button', { name: 'Добавить товар' }).click();

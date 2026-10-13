@@ -77,6 +77,7 @@ def refresh_lms_student_profile(user: User, lms_student_id: int, database: Sessi
                     sum(event.amount) AS total_coins,
                     sum(event.amount) FILTER (
                         WHERE event.amount > 0
+                          AND event.source NOT LIKE 'shop:refund:%'
                           AND event.occurred_at >= date_trunc('month', now())
                           AND event.occurred_at < date_trunc('month', now()) + interval '1 month'
                     ) AS earned_this_month

@@ -2,6 +2,7 @@ from .delivery_forms import product_delivery_form
 from .models import Banner, CatalogCategory, GrantLog, News, Notification, Order, PickupSlot, Product, User
 from .order_delivery_details import delivery_requirements, information_required, product_delivery_requirement
 from .order_fulfillment import (
+    can_cancel_order,
     flow_for_fulfillment,
     fulfillment_type_from_order,
     fulfillment_type_from_product,
@@ -122,6 +123,7 @@ def order_to_dict(order: Order) -> dict:
         "userId": order.user_id,
         "customerEmail": order.customer_email,
         "status": status,
+        "canCancel": can_cancel_order(order),
         "fulfillmentType": fulfillment_type,
         "statusFlow": list(flow_for_fulfillment(fulfillment_type)),
         "nextStatus": None if information_required(order) else next_status(fulfillment_type, status),

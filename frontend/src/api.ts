@@ -266,6 +266,10 @@ export function updateAdminOrderStatus(id: string, status: OrderStatus): Promise
   return request(`/orders/${encodeURIComponent(id)}/status`, json('PATCH', { status }), getAdminToken());
 }
 
+export function cancelAdminOrder(id: string): Promise<Order> {
+  return request(`/orders/${encodeURIComponent(id)}/cancel`, json('POST', {}), getAdminToken());
+}
+
 export function changeAdminUserBalance(
   id: string,
   amount: number,

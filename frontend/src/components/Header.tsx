@@ -116,14 +116,14 @@ export default function Header({ view, onViewChange }: Props) {
                             </span>
                           </button>
                         );
-                        const positive = notification.type === 'topup' || notification.type === 'welcome';
+                        const positive = notification.type === 'topup' || notification.type === 'welcome' || notification.type === 'refund';
                         const label = `${positive ? '+' : '−'}${formatCoins(notification.amount)}`;
                         const text = notification.note || t(
                           notification.type === 'welcome'
                             ? 'notifWelcome'
                             : notification.type === 'topup'
                               ? 'notifTopup'
-                              : 'notifSpend',
+                              : notification.type === 'refund' ? 'notifRefund' : 'notifSpend',
                         );
                         return (
                           <div

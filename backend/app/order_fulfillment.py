@@ -19,6 +19,7 @@ OrderStatus = Literal[
     "connected",
     "sent",
     "received",
+    "cancelled",
 ]
 
 FULFILLMENT_FLOWS: dict[FulfillmentType, tuple[OrderStatus, ...]] = {
@@ -93,7 +94,7 @@ def status_for_fulfillment(
 ) -> OrderStatus:
     """Translate legacy pickup statuses when the product is explicitly digital."""
     flow = flow_for_fulfillment(fulfillment_type)
-    if current_status in flow:
+    if current_status == "cancelled" or current_status in flow:
         return current_status  # type: ignore[return-value]
     if fulfillment_type == "digital_activation":
         return "connected" if current_status == "collected" else "activating"
@@ -131,10 +132,19 @@ def is_allowed_transition(
     )
 
 
+def can_cancel_order(order: Any) -> bool:
+    if order.status not in {"paid", "packed", "ready", "activating"}:
+        return False
+    fulfillment_type = fulfillment_type_from_order(order)
+    status = status_for_fulfillment(fulfillment_type, order.status)
+    return status in {"paid", "packed", "ready", "activating"} and bool(order.user_id)
+
+
 __all__ = [
     "FULFILLMENT_FLOWS",
     "FulfillmentType",
     "OrderStatus",
+    "can_cancel_order",
     "default_fulfillment_type",
     "flow_for_fulfillment",
     "fulfillment_type_from_items",

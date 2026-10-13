@@ -37,6 +37,8 @@ def sales_analytics(orders: list[Order], range: SalesRange, now: datetime | None
     products: dict[str, int] = defaultdict(int)
     total = count = units = 0
     for order in orders:
+        if order.status == "cancelled":
+            continue
         try:
             date = datetime.fromisoformat(order.created_at.replace("Z", "+00:00"))
             date = date.replace(tzinfo=SHOP_TIMEZONE) if date.tzinfo is None else date

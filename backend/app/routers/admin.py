@@ -166,6 +166,8 @@ def sync_orders(database: Session, items: list[dict]) -> None:
     # A stale compatibility-admin cache must not erase buyer submissions or
     # bypass the order's delivery transition checks.
     existing = database.scalars(select(Order).with_for_update()).all()
+    if any(order.status == "cancelled" for order in existing) or any(item.get("status") == "cancelled" for item in items):
+        raise HTTPException(status_code=409, detail="Cancelled orders must be retained as refund records")
     if any(delivery_requirements(order) for order in existing):
         raise HTTPException(status_code=409, detail="Orders with delivery details cannot be bulk-replaced. Use individual order actions.")
     database.execute(delete(Order))

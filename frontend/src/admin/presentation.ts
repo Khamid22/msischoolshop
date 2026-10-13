@@ -4,10 +4,12 @@ export { formatCoins } from '../utils/currency';
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   paid: 'Оплачен', packed: 'Собран', ready: 'Готов к выдаче', collected: 'Выдан',
   activating: 'Активация', connected: 'Подключён', sent: 'Отправлен', received: 'Получен',
+  cancelled: 'Отменён',
 };
 export const ACTION_LABELS: Record<OrderStatus, string> = {
   paid: 'В оплаченные', packed: 'Собрать', ready: 'Готов к выдаче', collected: 'Выдать',
   activating: 'Начать активацию', connected: 'Подключить', sent: 'Отправить', received: 'Подтвердить получение',
+  cancelled: 'Отменить',
 };
 export const productTitle = (product?: Product) => product?.name || product?.nameKey || 'Товар';
 export const orderTitle = (order: Order) => order.items.map((item) => `${item.variant?.label || productTitle(item.product)} × ${item.quantity}`).join(', ') || 'Покупка';

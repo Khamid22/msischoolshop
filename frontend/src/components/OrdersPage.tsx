@@ -19,6 +19,7 @@ const STATUS_KEY: Record<OrderStatus, string> = {
   connected: 'statusConnected',
   sent: 'statusSent',
   received: 'statusReceived',
+  cancelled: 'statusCancelled',
 };
 
 const STATUS_ORDER: Record<FulfillmentType, OrderStatus[]> = {
@@ -37,6 +38,7 @@ function statusFlow(order: Order): OrderStatus[] {
 }
 
 function isComplete(order: Order): boolean {
+  if (order.status === 'cancelled') return true;
   const flow = statusFlow(order);
   return (order.status || 'paid') === flow[flow.length - 1];
 }
@@ -121,16 +123,16 @@ export default function OrdersPage({ selectedOrderId, onNavigate, onSelect }: {
           <span><strong>{activeOrder.items[0]?.variant?.label || activeOrder.items[0]?.product.name || t(activeOrder.items[0]?.product.nameKey)}</strong><small>{t('quantity')}: {activeOrder.items[0]?.quantity} · {formatCoins(activeOrder.totalPrice)} <Coin /></small></span>
         </div>
 
-        <ol className="order-timeline">
+        {activeOrder.status === 'cancelled' ? <p role="status">{t('orderRefunded')}</p> : <ol className="order-timeline">
           {activeFlow.map((status, index) => (
             <li className={index <= currentIndex ? 'order-timeline__step order-timeline__step--done' : 'order-timeline__step'} key={status}>
               <span>{index < currentIndex ? <CheckIcon /> : index + 1}</span>
               <small>{t(STATUS_KEY[status])}</small>
             </li>
           ))}
-        </ol>
+        </ol>}
 
-        <OrderDeliveryDetails key={`${userId}:${activeOrder.id}`} order={activeOrder} onSaved={updateOrder} />
+        {activeOrder.status !== 'cancelled' ? <OrderDeliveryDetails key={`${userId}:${activeOrder.id}`} order={activeOrder} onSaved={updateOrder} /> : null}
 
         {fulfillmentType(activeOrder) === 'physical_pickup' && activeOrder.pickupCode && !isComplete(activeOrder) ? (
           <div className="active-order__pickup">

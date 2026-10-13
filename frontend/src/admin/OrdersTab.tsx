@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updateAdminOrderStatus } from '../api';
+import { cancelAdminOrder, updateAdminOrderStatus } from '../api';
 import { SearchIcon } from '../components/icons';
 import type { Order, OrderStatus } from '../types';
 import { ACTION_LABELS, STATUS_LABELS, deliveryAnswerLines, downloadCsv, formatCoins, formatDate, orderNeedsAction, orderStatusLabel, orderTitle } from './presentation';
@@ -12,10 +12,14 @@ export function OrdersTab({ orders, refresh }: { orders: Order[]; refresh: () =>
   const filtered = orders.filter((order) => `${orderTitle(order)} ${order.customerName} ${order.customerPhone} ${order.id} ${order.pickupCode || ''}`.toLowerCase().includes(search.toLowerCase())
     && (status === 'all' || order.status === status || (status === 'action' && orderNeedsAction(order))
       || (status === 'information_required' && order.informationRequired)));
-  async function advance(order: Order) {
-    if (!order.nextStatus || busyId) return;
+  async function advance(order: Order, cancel = false) {
+    if (busyId || (cancel ? !order.canCancel : !order.nextStatus)) return;
     setBusyId(order.id); setError('');
-    try { await updateAdminOrderStatus(order.id, order.nextStatus); await refresh(); }
+    try {
+      if (cancel) await cancelAdminOrder(order.id);
+      else if (order.nextStatus) await updateAdminOrderStatus(order.id, order.nextStatus);
+      await refresh();
+    }
     catch (failure) { setError(failure instanceof Error ? failure.message : 'Не удалось обновить статус.'); }
     finally { setBusyId(''); }
   }
@@ -32,12 +36,18 @@ export function OrdersTab({ orders, refresh }: { orders: Order[]; refresh: () =>
       <td data-label="Товары">{orderTitle(order)}{order.pickupCode ? <small className="cell-subline pickup-code">Код: {order.pickupCode}</small> : null}{order.pickupSlot ? <small className="cell-subline">{order.pickupSlot}</small> : null}
         {order.deliveryRequirements?.map((requirement) => <div className="order-delivery-info" key={requirement.itemIndex}>
           {deliveryAnswerLines(requirement).map((line, index) => <strong className="cell-subline" key={index}>{line}</strong>)}
-          <small className="cell-subline">{requirement.submittedAt ? `Ученик отправил ${formatDate(requirement.submittedAt)}` : 'Ожидаем данные от ученика'}</small>
+          <small className="cell-subline">{requirement.submittedAt ? `Ученик отправил ${formatDate(requirement.submittedAt)}` : order.status === 'cancelled' ? 'Данные не отправлены' : 'Ожидаем данные от ученика'}</small>
         </div>)}
       </td>
       <td data-label="Статус"><span className={`order-status order-status--${order.status}`}>{orderStatusLabel(order)}</span></td>
       <td data-label="Сумма" className="numeric">Ⓒ {formatCoins(order.totalPrice)}</td>
-      <td className="actions-cell">{order.informationRequired ? <span className="muted">Ожидаем данные</span> : order.nextStatus ? <button className="button button--small button--primary" disabled={Boolean(busyId)} onClick={() => void advance(order)}>{busyId === order.id ? 'Сохраняем…' : ACTION_LABELS[order.nextStatus as OrderStatus]}</button> : <span className="done-label">✓ Завершён</span>}</td>
+      <td className="actions-cell"><div className="order-actions">
+        {order.status === 'cancelled' ? <span className="muted">Монеты возвращены</span>
+          : order.informationRequired ? <span className="muted">Ожидаем данные</span>
+            : order.nextStatus ? <button className="button button--small button--primary" disabled={Boolean(busyId)} onClick={() => void advance(order)}>{busyId === order.id ? 'Сохраняем…' : ACTION_LABELS[order.nextStatus as OrderStatus]}</button>
+              : <span className="done-label">✓ Завершён</span>}
+        {order.canCancel ? <button className="button button--small button--danger" disabled={Boolean(busyId)} onClick={() => void advance(order, true)}>Отменить</button> : null}
+      </div></td>
     </tr>)}</tbody></table></div>{!filtered.length ? <div className="empty-row">Заказы не найдены</div> : null}</section>
   </div>;
 }

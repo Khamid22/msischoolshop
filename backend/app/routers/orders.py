@@ -9,6 +9,7 @@ from ..coin_ledger import change_coins, current_balance
 from ..database import get_db
 from ..catalog_pricing import price_after_discount
 from ..models import Notification, Order, Product, User
+from ..order_cancellation import cancel_order
 from ..order_delivery_details import information_required, save_delivery_details
 from ..order_fulfillment import (
     fulfillment_type_from_order,
@@ -142,8 +143,17 @@ def update_delivery_details(
     ))
 
 
+@router.post("/{order_id}/cancel")
+def cancel_purchase(
+    order_id: str, claims: dict = Depends(require_admin), database: Session = Depends(get_db),
+) -> dict:
+    return order_to_dict(cancel_order(database, order_id, claims["sub"]))
+
+
 @router.patch("/{order_id}/status", dependencies=[Depends(require_admin)])
 def update_order_status(order_id: str, data: OrderStatusUpdate, database: Session = Depends(get_db)) -> dict:
+    if data.status == "cancelled":
+        raise HTTPException(status_code=409, detail="Use the cancellation action to refund the order")
     order = database.scalar(select(Order).where(Order.id == order_id).with_for_update())
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -168,9 +178,11 @@ def update_order_status(order_id: str, data: OrderStatusUpdate, database: Sessio
 
 @router.delete("/{order_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_order(order_id: str, database: Session = Depends(get_db)) -> Response:
-    order = database.get(Order, order_id)
+    order = database.scalar(select(Order).where(Order.id == order_id).with_for_update())
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.status == "cancelled":
+        raise HTTPException(status_code=409, detail="Cancelled orders must be retained as refund records")
     database.delete(order)
     database.commit()
     return Response(status_code=204)
@@ -178,6 +190,9 @@ def delete_order(order_id: str, database: Session = Depends(get_db)) -> Response
 
 @router.delete("", status_code=204, dependencies=[Depends(require_admin)])
 def clear_orders(database: Session = Depends(get_db)) -> Response:
+    orders = database.scalars(select(Order).with_for_update()).all()
+    if any(order.status == "cancelled" for order in orders):
+        raise HTTPException(status_code=409, detail="Cancelled orders must be retained as refund records")
     database.execute(delete(Order))
     database.commit()
     return Response(status_code=204)

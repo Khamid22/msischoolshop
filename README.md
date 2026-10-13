@@ -84,6 +84,12 @@ VITE_CUSTOMER_SUPPORT_URL=https://msischool.up.railway.app/customer-support/shop
 
 Railway sets `DATABASE_URL` from the existing `msi-database` service, uses `DATABASE_SCHEMA=msi_shop`, and disables demo seeding. Keep `SEED_DEMO_DATA=false` in production so fake catalog and student records are not inserted.
 
+## Order cancellation
+
+Admin order history offers a red outlined **Отменить** button beside the fulfillment action. Staff may cancel paid, packed, ready or activating orders, including purchases awaiting student details; sent or completed orders cannot be cancelled. `POST /api/orders/{id}/cancel` locks the order and buyer, refunds the exact paid total through the canonical LMS coin ledger (local balance for SQLite users), restores tracked stock for existing products/variants, records a refund notification and marks the order `cancelled` in one transaction. Retries return the same cancelled order without a second refund. Existing delivery answers remain in the history, and cancelled orders are excluded from sales and Student Picks.
+
+Cancelled orders cannot be deleted or replaced through the legacy bulk admin endpoint because they retain refund idempotency. No schema migration is required. Coverage: `backend/tests/test_order_cancellation.py`, PostgreSQL refund/concurrency/rollback checks in `backend/tests/test_coin_ledger_postgres.py`, and the cancellation browser scenarios in `frontend/tests/admin.spec.ts` at 390, 1280 and 1440 px.
+
 ## Student Picks
 
 The homepage loads `/api/student-picks`, which ranks active products by all-time purchased quantity, including paid orders awaiting fulfillment and completed orders. Ties use catalogue position and product ID. Existing purchases count immediately; historical product IDs preserved as variant IDs by catalogue consolidation map to the current product. Ambiguous variant IDs are ignored, and current product IDs take priority. Hidden/deleted products without an active replacement and orders outside paid fulfillment stages do not appear.

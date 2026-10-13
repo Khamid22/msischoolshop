@@ -35,7 +35,7 @@ def current_balance(database: Session, user: User) -> int:
 
 def change_coins(database: Session, user: User, amount: int, *, source: str, note: str) -> None:
     balance = current_balance(database, user)
-    if balance + amount < 0:
+    if amount < 0 and balance + amount < 0:
         raise HTTPException(status_code=409, detail="Insufficient balance")
     student_id = lms_student_id(user)
     if student_id is not None and amount:

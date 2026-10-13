@@ -10,11 +10,12 @@ export type OrderStatus =
   | 'activating'
   | 'connected'
   | 'sent'
-  | 'received';
+  | 'received'
+  | 'cancelled';
 
 export type FulfillmentType = 'physical_pickup' | 'digital_activation' | 'digital_delivery';
 
-export type NotificationType = 'welcome' | 'spend' | 'topup' | 'information_required';
+export type NotificationType = 'welcome' | 'spend' | 'topup' | 'refund' | 'information_required';
 
 export interface AppNotification {
   id: string;
@@ -163,6 +164,7 @@ export interface Order {
   fulfillmentType?: FulfillmentType;
   statusFlow?: OrderStatus[];
   nextStatus?: OrderStatus;
+  canCancel?: boolean;
   pickupCode?: string;
   pickupSlot?: string;
   originalPrice?: number;
