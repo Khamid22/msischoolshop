@@ -163,7 +163,7 @@ test('product create, filters, edit zero discount, persistence and deletion', as
   await dialog.getByLabel('Название', { exact: true }).fill(title);
   await dialog.getByLabel('Цена, коины').fill('100');
   await dialog.getByRole('combobox', { name: 'После покупки', exact: true }).selectOption('physical_pickup');
-  await dialog.getByLabel('Остаток', { exact: false }).fill('4');
+  await dialog.getByLabel('Количество в наличии', { exact: false }).fill('4');
   await dialog.getByLabel('Скидка, %').fill('25');
   await dialog.locator('input[type=file]').setInputFiles(image);
   await expect(dialog.getByAltText('Предпросмотр товара')).toBeVisible();

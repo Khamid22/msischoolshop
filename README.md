@@ -41,6 +41,22 @@ Each profile refresh reads the student's active group, current MSI Coin total, p
 - `backend/msishop.db` is generated locally on first startup and is ignored by Git.
 - `Dockerfile` and `railway.toml` provide a reproducible Railway build and health check.
 
+## Product availability
+
+In the admin catalog, create or edit a product and set **Количество в наличии**
+(available quantity). This works for physical and digital products. Enter a whole
+number: `0` means sold out; leave the field empty for no quantity limit.
+Variants can have their own quantities. A variant with an empty quantity uses the
+shared product quantity; variants with their own quantities use separate stock.
+
+Students see the available quantity on product cards and in product details,
+including each variant. Sold-out items remain visible but cannot be purchased.
+Cards total active variants, counting shared stock once; if an active variant has
+no limit, the card shows “In stock” without a number. The catalog refreshes every
+30 seconds while visible, on return to the app, and after checkout. The backend
+checks current stock and deducts it once in the purchase transaction, including
+when the same purchase request is retried. No database migration is needed.
+
 ## Verify
 
 Digital products can request after-purchase actions in the catalogue editor: instructions, up to five links, and up to ten text, numeric Player ID, email or confirmation fields. Each field may be required or optional; calendar dates are not supported. The buyer sees the form immediately after checkout and in **My orders**. Staff see all answers and the submission time in the orders table and CSV export. Required answers must be complete before fulfillment starts. Failed submissions keep the draft; retrying a saved submission does not charge coins or add another audit entry.

@@ -11,13 +11,14 @@ import Coin from './Coin';
 import './ShopPage.scss';
 
 interface Props {
+  products: Product[];
   categories: CatalogCategory[];
   onOpenProduct: (product: Product) => void;
   onBrowseCollection: (collection: ProductCollection) => void;
   onBannerClick: (banner: BannerType) => void;
 }
 
-export default function ShopPage({ categories, onOpenProduct, onBrowseCollection, onBannerClick }: Props) {
+export default function ShopPage({ products, categories, onOpenProduct, onBrowseCollection, onBannerClick }: Props) {
   const { lang, t } = useLang();
   const { user, openAuth } = useAuth();
   const [studentPicks, setStudentPicks] = useState<Product[]>([]);
@@ -102,7 +103,7 @@ export default function ShopPage({ categories, onOpenProduct, onBrowseCollection
           {loading
             ? Array.from({ length: 8 }, (_, index) => <SkeletonCard key={index} />)
             : studentPicks.map((product, index) => (
-              <ProductCard key={product.id} product={product} onOpen={onOpenProduct} enterDelay={index * 45} />
+              <ProductCard key={product.id} product={products.find((item) => item.id === product.id) || product} onOpen={onOpenProduct} enterDelay={index * 45} />
             ))}
         </div>
       </section>

@@ -45,7 +45,7 @@ export interface ProductVariant {
   id: string;
   label: string;
   price: number;
-  stock?: number;
+  stock?: number | null;
   active: boolean;
 }
 

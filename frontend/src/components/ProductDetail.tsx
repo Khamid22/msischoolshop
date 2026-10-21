@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatCoins, getProductPrice, getUnitPrice } from '../utils/currency';
 import FavoriteButton from './FavoriteButton';
 import Coin from './Coin';
+import ProductAvailability from './ProductAvailability';
+import { getProductStock, getVariantStock } from '../utils/productStock';
 import { ArrowLeftIcon, CheckIcon } from './icons';
 import type { Product, ProductVariant } from '../types';
 import './ProductDetail.scss';
@@ -23,7 +25,8 @@ export default function ProductDetail({ product, onClose }: Props) {
 
   useEffect(() => {
     if (!product) return;
-    setVariant(product.variants?.find((item) => item.active !== false && (item.stock === undefined || item.stock > 0)) || null);
+    setVariant((current) => product.variants?.find((item) => item.id === current?.id && item.active !== false)
+      || product.variants?.find((item) => getVariantStock(product, item) !== 0) || null);
     setActiveImage(product.images?.[0] || product.image);
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -45,8 +48,8 @@ export default function ProductDetail({ product, onClose }: Props) {
   const isPhysical = product.fulfillmentType
     ? product.fulfillmentType === 'physical_pickup'
     : product.type === 'physical';
-  const isUnavailable = Boolean(product.variants?.length && !variant)
-    || Boolean(variant && variant.stock !== undefined && variant.stock <= 0);
+  const stock = variant ? getVariantStock(product, variant) : getProductStock(product);
+  const isUnavailable = product.active === false || stock === 0 || Boolean(product.variants?.length && !variant);
 
   const handleAdd = () => {
     if (isUnavailable) return;
@@ -94,6 +97,8 @@ export default function ProductDetail({ product, onClose }: Props) {
             {finalPrice < productPrice ? <span className="detail__price-old">{formatCoins(productPrice)}</span> : null}
           </div>
 
+          <ProductAvailability stock={stock} />
+
           {hasStudentDiscount ? (
             <div className="detail__student">
               <span className="detail__student-icon"><CheckIcon /></span>
@@ -107,7 +112,7 @@ export default function ProductDetail({ product, onClose }: Props) {
               <span className="detail__section-title" id="product-options-title">{product.variantLabel || t('chooseOption')}</span>
               <div className="detail__variants" role="group" aria-labelledby="product-options-title">
                 {variants.map((option) => (
-                  <button key={option.id} className={variant?.id === option.id ? 'detail__variant detail__variant--active' : 'detail__variant'} type="button" aria-pressed={variant?.id === option.id} disabled={option.stock !== undefined && option.stock <= 0} onClick={() => setVariant(option)}><span>{option.label}</span><strong>{formatCoins(getUnitPrice(product, user, option.price))} <Coin /></strong></button>
+                  <button key={option.id} className={variant?.id === option.id ? 'detail__variant detail__variant--active' : 'detail__variant'} type="button" aria-pressed={variant?.id === option.id} disabled={getVariantStock(product, option) === 0} onClick={() => setVariant(option)}><span>{option.label}<ProductAvailability stock={getVariantStock(product, option)} /></span><strong>{formatCoins(getUnitPrice(product, user, option.price))} <Coin /></strong></button>
                 ))}
               </div>
             </section>

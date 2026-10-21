@@ -3,6 +3,7 @@ import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCoins } from '../utils/currency';
+import { ApiError } from '../api';
 import Coin from './Coin';
 import { ArrowLeftIcon, CheckIcon } from './icons';
 import './CheckoutDrawer.scss';
@@ -48,15 +49,22 @@ export default function CheckoutDrawer() {
     }
     const slot = PICKUP_SLOTS.find((item) => item.id === selectedSlot) || PICKUP_SLOTS[0];
     setSubmitting(true);
-    const ok = await submitOrder({
-      customerName: user.name,
-      customerPhone: user.phone,
-      deliveryAddress: isPhysical ? slot.place : '',
-      deliveryMethod: isPhysical ? 'pickup' : 'digital',
-      pickupSlot: isPhysical ? `${slot.time} · ${slot.place}` : undefined,
-    });
-    if (!ok) setError(t('insufficientBalance'));
-    setSubmitting(false);
+    try {
+      const ok = await submitOrder({
+        customerName: user.name,
+        customerPhone: user.phone,
+        deliveryAddress: isPhysical ? slot.place : '',
+        deliveryMethod: isPhysical ? 'pickup' : 'digital',
+        pickupSlot: isPhysical ? `${slot.time} · ${slot.place}` : undefined,
+      });
+      if (!ok) setError(t('insufficientBalance'));
+    } catch (failure) {
+      setError(t(failure instanceof ApiError && failure.message === 'Not enough stock'
+        ? 'outOfStock' : failure instanceof ApiError && failure.message === 'Insufficient balance'
+          ? 'insufficientBalance' : 'purchaseFailed'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

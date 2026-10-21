@@ -52,16 +52,36 @@ export default function App() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchProducts(), fetchCategories()])
-      .then(([nextProducts, nextCategories]) => {
-        setProducts(nextProducts);
-        setCategories(nextCategories);
-      })
-      .catch(() => {
-        setProducts([]);
-        setCategories([]);
-      })
-      .finally(() => setLoading(false));
+    let active = true;
+    let request = 0;
+    const refresh = () => {
+      const current = ++request;
+      Promise.all([fetchProducts(), fetchCategories()])
+        .then(([nextProducts, nextCategories]) => {
+          if (!active || current !== request) return;
+          setProducts(nextProducts);
+          setCategories(nextCategories);
+          setSelectedProduct((selected) => selected
+            ? nextProducts.find((product) => product.id === selected.id) || null
+            : null);
+        })
+        // A failed refresh must not discard the catalog or the open product.
+        .catch(() => {})
+        .finally(() => { if (active && current === request) setLoading(false); });
+    };
+    const refreshVisible = () => { if (!document.hidden) refresh(); };
+    refresh();
+    const interval = window.setInterval(refreshVisible, 30_000);
+    window.addEventListener('focus', refreshVisible);
+    window.addEventListener('msi:catalog', refresh);
+    document.addEventListener('visibilitychange', refreshVisible);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshVisible);
+      window.removeEventListener('msi:catalog', refresh);
+      document.removeEventListener('visibilitychange', refreshVisible);
+    };
   }, []);
 
   const changeView = useCallback((next: View, orderId?: string) => {
@@ -104,6 +124,7 @@ export default function App() {
                       />
                     ) : view === 'home' ? (
                       <ShopPage
+                        products={products}
                         categories={categories}
                         onOpenProduct={setSelectedProduct}
                         onBrowseCollection={openCollection}

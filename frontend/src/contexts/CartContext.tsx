@@ -75,10 +75,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setIsCheckoutOpen(false);
       localStorage.setItem('msi_current_user', JSON.stringify(result.user));
       window.dispatchEvent(new Event('msi:notifications'));
+      window.dispatchEvent(new Event('msi:catalog'));
       await refreshUser();
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      window.dispatchEvent(new Event('msi:catalog'));
+      throw error;
     }
   }, [currentItem, purchaseRequestId, refreshUser, user]);
 

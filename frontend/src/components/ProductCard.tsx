@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatCoins, getBasePrice, getProductPrice, getUnitPrice } from '../utils/currency';
 import FavoriteButton from './FavoriteButton';
 import Coin from './Coin';
+import ProductAvailability from './ProductAvailability';
+import { getProductStock } from '../utils/productStock';
 import './ProductCard.scss';
 
 interface Props {
@@ -59,6 +61,7 @@ export default function ProductCard({ product, onOpen, enterDelay }: Props) {
           {product.type ? <span>{t(product.type === 'digital' ? 'filterDigital' : 'filterPhysical')}</span> : null}
         </div>
 
+        <ProductAvailability stock={getProductStock(product)} />
         <div className="product-card__footer">
           <div className="product-card__price-wrap">
             {comparePrice !== null ? (

@@ -162,7 +162,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       ...current,
       variants: [
         ...current.variants,
-        { id: variantId(), label: '', price: current.price, stock: isPhysical ? 0 : undefined, active: true },
+        { id: variantId(), label: '', price: current.price, stock: null, active: true },
       ],
     }));
   };
@@ -199,7 +199,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       price: draft.variants.length ? Math.min(...draft.variants.map((variant) => variant.price)) : draft.price,
       type: isPhysical ? 'physical' : 'digital',
       fulfillmentType: draft.fulfillmentType,
-      stock: isPhysical && !draft.variants.length && draft.stock !== "" ? draft.stock : null,
+      stock: draft.stock === "" ? null : draft.stock,
       downloadUrl: isPhysical ? "" : draft.downloadUrl.trim(),
       licenseKey: isPhysical ? "" : draft.licenseKey.trim(),
       weight: isPhysical ? draft.weight : 0,
@@ -207,7 +207,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
       variants: draft.variants.map((variant) => ({
         ...variant,
         label: variant.label.trim(),
-        stock: isPhysical ? variant.stock : undefined,
+        stock: variant.stock ?? null,
       })),
       discount: draft.discount,
       rating: draft.rating === '' ? null : Number(draft.rating),
@@ -246,7 +246,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
               <label className="field field--wide"><span>Описание</span><textarea rows={3} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
               <label className="field"><span>Скидка, %</span><input type="number" min="0" max="100" value={draft.discount} onChange={(event) => setDraft({ ...draft, discount: Number(event.target.value) })} /></label>
               <label className="field"><span>Рейтинг</span><input type="number" min="0" max="5" step="0.1" value={draft.rating} onChange={(event) => setDraft({ ...draft, rating: event.target.value === '' ? '' : Number(event.target.value) })} placeholder="Не показывать" /></label>
-              {isPhysical && !draft.variants.length ? <label className="field"><span>Остаток (пусто — без лимита)</span><input type="number" min="0" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: event.target.value === "" ? "" : Number(event.target.value) })} /></label> : null}
+              <label className="field field--wide"><span>{draft.variants.length ? 'Общее количество для вариантов без своего остатка' : 'Количество в наличии'}</span><input type="number" min="0" step="1" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: event.target.value === '' ? '' : Number(event.target.value) })} placeholder="Без ограничения" /><small className="stock-help">0 — нет в наличии. Пустое поле — без ограничения. Ученики увидят доступное количество.</small></label>
               {isPhysical ? <label className="field"><span>Вес, г</span><input type="number" min="0" value={draft.weight} onChange={(event) => setDraft({ ...draft, weight: Number(event.target.value) })} /></label> : <><label className="field field--wide"><span>Ссылка на скачивание / активацию</span><input type="url" value={draft.downloadUrl} onChange={(event) => setDraft({ ...draft, downloadUrl: event.target.value })} placeholder="https://…" /></label><label className="field field--wide"><span>Ключ / лицензия</span><textarea value={draft.licenseKey} onChange={(event) => setDraft({ ...draft, licenseKey: event.target.value })} /></label></>}
               <div className="editor-switches field--wide">
                 <label className="check-field"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Показывать в магазине</span></label>
@@ -259,7 +259,7 @@ export function ProductEditorModal({ categories, product, close, saved }: Props)
                   <label className="field"><span>Цена, коины</span><input type="number" min="0" step="1" value={variant.price} onChange={(event) => updateVariant(index, { price: Number(event.target.value) })} required /></label>
                   <button className="icon-button icon-button--danger" type="button" onClick={() => setDraft((current) => ({ ...current, variants: current.variants.filter((_, variantIndex) => variantIndex !== index) }))} aria-label={`Удалить вариант ${variant.label}`}><TrashIcon /></button>
                 </div>)}
-                {isPhysical && draft.variants.length > 0 ? <details><summary>Остатки вариантов</summary>{draft.variants.map((variant, index) => <label className="field" key={variant.id}><span>{variant.label || `Вариант ${index + 1}`}</span><input type="number" min="0" value={variant.stock ?? 0} onChange={(event) => updateVariant(index, { stock: Number(event.target.value) })} aria-label={`Остаток ${variant.label}`} /></label>)}</details> : null}
+                {draft.variants.length > 0 ? <details><summary>Количество по вариантам</summary><p>Пустое поле использует общее количество товара.</p>{draft.variants.map((variant, index) => <label className="field" key={variant.id}><span>{variant.label || `Вариант ${index + 1}`}</span><input type="number" min="0" step="1" value={variant.stock ?? ''} onChange={(event) => updateVariant(index, { stock: event.target.value === '' ? null : Number(event.target.value) })} placeholder="Общее количество" aria-label={`Количество ${variant.label}`} /></label>)}</details> : null}
               </section>
             </div>
 

@@ -132,6 +132,7 @@ tbody tr:hover { background:color-mix(in srgb,var(--admin-accent) 7%,transparent
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .field { display: grid; gap: 7px; color: var(--admin-muted); font-size: 12px; font-weight: 700; }
 .field--wide { grid-column: 1 / -1; }
+.field .stock-help { color: var(--admin-text); font-size: .75rem; line-height: 1.5; font-weight: 400; }
 .field input, .field textarea, .field select { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: 9px; outline: 0; color: var(--admin-muted); background: var(--admin-surface); font-weight: 500; }
 .field textarea { resize: vertical; }
 .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--admin-accent); box-shadow: 0 0 0 3px rgba(36, 52, 116, .1); }

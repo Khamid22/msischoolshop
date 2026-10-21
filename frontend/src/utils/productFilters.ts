@@ -1,5 +1,6 @@
 import type { FilterState, Product, ProductCollection } from '../types';
 import { getProductPrice } from './currency';
+import { getProductStock } from './productStock';
 
 const STUDY_PRODUCT_IDS = new Set([
   'calc-2in1',
@@ -42,7 +43,7 @@ export function filterProducts(
     const price = getProductPrice(product);
     if (filters.minPrice > 0 && price < filters.minPrice) return false;
     if (filters.maxPrice > 0 && price > filters.maxPrice) return false;
-    if (filters.inStock && product.type === 'physical' && (product.stock ?? 0) <= 0) return false;
+    if (filters.inStock && getProductStock(product) === 0) return false;
     if (filters.courseLinked && !product.course) return false;
 
     if (query) {
