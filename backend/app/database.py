@@ -62,6 +62,10 @@ def initialize_database() -> None:
     _ensure_catalog_columns()
     _seed_catalog_categories()
 
+    from .media import externalize_inline_images
+
+    externalize_inline_images()
+
     if SEED_DEMO_DATA:
         from .seed import seed_database
 

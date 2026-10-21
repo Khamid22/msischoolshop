@@ -11,6 +11,7 @@ from ..coin_ledger import user_balances
 from ..sales_analytics import SalesAnalytics, SalesRange, sales_analytics
 from ..config import ADMIN_PASSWORD
 from ..database import get_db
+from ..media import store_image, store_product_images
 from ..models import Banner, CatalogCategory, GrantLog, News, Notification, Order, Product, User
 from ..order_delivery_details import delivery_requirements
 from ..schemas import (
@@ -139,6 +140,7 @@ def sync_products(database: Session, items: list[dict]) -> None:
         apply_fields(product, fields, PRODUCT_FIELDS)
         normalize_product_fulfillment(product, set(fields))
         normalize_product_variant_price(product)
+        store_product_images(database, product)
         database.add(product)
 
 
@@ -148,6 +150,7 @@ def sync_banners(database: Session, items: list[dict]) -> None:
         data = BannerCreate.model_validate(raw)
         banner = Banner(id=str(raw.get("id") or f"banner-{uuid4().hex[:12]}"), position=position)
         apply_fields(banner, data.model_dump(), BANNER_FIELDS)
+        banner.image = store_image(database, banner.image) or ""
         database.add(banner)
 
 
@@ -157,7 +160,7 @@ def sync_news(database: Session, items: list[dict]) -> None:
         data = NewsCreate.model_validate(raw)
         database.add(News(
             id=str(raw.get("id") or f"news-{uuid4().hex[:12]}"), position=position,
-            title=data.title, description=data.description, image=data.image,
+            title=data.title, description=data.description, image=store_image(database, data.image),
             date=data.date or datetime.now(timezone.utc).isoformat(), active=data.active,
         ))
 

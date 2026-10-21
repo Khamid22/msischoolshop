@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..media import store_image, store_product_images
 from ..models import Banner, CatalogCategory, News, PickupSlot, Product
 from ..order_fulfillment import default_fulfillment_type, normalize_fulfillment_type
 from ..schemas import (
@@ -73,12 +74,13 @@ def normalize_product_fulfillment(product: Product, changed_fields: set[str]) ->
         product.delivery_form = None
 
 
-def normalize_product_media(product: Product) -> None:
+def normalize_product_media(database: Session, product: Product) -> None:
     images = [item.strip() for item in (product.images or []) if item.strip()]
     if product.image and product.image.strip() and product.image.strip() not in images:
         images.insert(0, product.image.strip())
     product.images = images[:6]
     product.image = product.images[0] if product.images else ""
+    store_product_images(database, product)
 
 
 def normalize_product_variant_price(product: Product) -> None:
@@ -167,7 +169,7 @@ def create_product(data: ProductCreate, database: Session = Depends(get_db)) -> 
     require_category(database, fields.get("categoryId"))
     apply_fields(product, fields, PRODUCT_FIELDS)
     normalize_product_fulfillment(product, set(fields))
-    normalize_product_media(product)
+    normalize_product_media(database, product)
     normalize_product_variant_price(product)
     database.add(product)
     database.commit()
@@ -183,7 +185,7 @@ def update_product(product_id: str, data: ProductUpdate, database: Session = Dep
     require_category(database, fields.get("categoryId"))
     apply_fields(product, fields, PRODUCT_FIELDS)
     normalize_product_fulfillment(product, set(fields))
-    normalize_product_media(product)
+    normalize_product_media(database, product)
     normalize_product_variant_price(product)
     database.commit()
     return product_to_dict(product, include_delivery_form=True)
@@ -217,6 +219,7 @@ def get_banner(banner_id: str, database: Session = Depends(get_db)) -> dict:
 def create_banner(data: BannerCreate, database: Session = Depends(get_db)) -> dict:
     banner = Banner(id=f"banner-{uuid4().hex[:12]}", position=next_position(database, Banner))
     apply_fields(banner, data.model_dump(), BANNER_FIELDS)
+    banner.image = store_image(database, banner.image) or ""
     database.add(banner)
     database.commit()
     return banner_to_dict(banner)
@@ -228,6 +231,7 @@ def update_banner(banner_id: str, data: BannerUpdate, database: Session = Depend
     if banner is None:
         raise HTTPException(status_code=404, detail="Banner not found")
     apply_fields(banner, data.model_dump(exclude_unset=True), BANNER_FIELDS)
+    banner.image = store_image(database, banner.image) or ""
     database.commit()
     return banner_to_dict(banner)
 
@@ -260,7 +264,7 @@ def get_news(news_id: str, database: Session = Depends(get_db)) -> dict:
 def create_news(data: NewsCreate, database: Session = Depends(get_db)) -> dict:
     item = News(
         id=f"news-{uuid4().hex[:12]}", position=next_position(database, News), title=data.title,
-        description=data.description, image=data.image,
+        description=data.description, image=store_image(database, data.image),
         date=data.date or datetime.now(timezone.utc).isoformat(), active=data.active,
     )
     database.add(item)
@@ -274,6 +278,7 @@ def update_news(news_id: str, data: NewsUpdate, database: Session = Depends(get_
     if item is None:
         raise HTTPException(status_code=404, detail="News item not found")
     apply_fields(item, data.model_dump(exclude_unset=True), NEWS_FIELDS)
+    item.image = store_image(database, item.image)
     database.commit()
     return news_to_dict(item)
 

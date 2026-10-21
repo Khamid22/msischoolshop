@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Boolean, Float, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Float, Integer, JSON, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -144,3 +144,15 @@ class GrantLog(Base):
     amount: Mapped[int] = mapped_column(Integer)
     operation_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
     created_at: Mapped[str] = mapped_column(String(50), index=True)
+
+
+class MediaFile(Base):
+    """An uploaded image, stored once and addressed by its SHA-256 digest."""
+
+    __tablename__ = "media_files"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    content_type: Mapped[str] = mapped_column(String(100))
+    size: Mapped[int] = mapped_column(Integer)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[str] = mapped_column(String(50))
