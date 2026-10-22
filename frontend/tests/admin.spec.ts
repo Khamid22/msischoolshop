@@ -156,6 +156,63 @@ test('simple named variants persist and appear with their prices in the storefro
   await expect(page.locator('.checkout-drawer')).toContainText('792');
 });
 
+for (const width of [390, 1280, 1440]) {
+  test(`product number fields can be cleared and retyped at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const title = `Number fields ${randomUUID().slice(0, 8)}`;
+    await page.getByRole('button', { name: 'Добавить товар' }).click();
+    const editor = page.getByRole('dialog');
+    await editor.getByLabel('Название', { exact: true }).fill(title);
+    await editor.getByRole('combobox', { name: 'После покупки', exact: true }).selectOption('physical_pickup');
+    await editor.locator('input[type=file]').setInputFiles(image);
+    await expect(editor.getByAltText('Предпросмотр товара')).toBeVisible();
+    const price = editor.getByLabel('Цена, коины');
+    await expect(price).toHaveValue('');
+    for (const label of ['Цена, коины', 'Скидка, %', 'Вес, г']) {
+      const field = editor.getByLabel(label);
+      await field.fill('7');
+      await field.press('Backspace');
+      await expect(field).toHaveValue('');
+      await field.pressSequentially('25');
+      await expect(field).toHaveValue('25');
+      await field.clear();
+      await expect(field).toHaveValue('');
+    }
+    await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+    await expect(editor).toBeVisible();
+    expect(await price.evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
+    await price.fill('0');
+    await page.screenshot({ path: `/private/tmp/msi-shop-number-inputs-${width}.png` });
+    await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+    await expect(editor).toBeHidden();
+    await page.reload();
+    await page.getByLabel('Поиск по названию').fill(title);
+    await page.getByRole('row').filter({ hasText: title }).getByRole('button', { name: 'Редактировать' }).click();
+    await expect(price).toHaveValue('0');
+    await expect(editor.getByLabel('Скидка, %')).toHaveValue('');
+    await expect(editor.getByLabel('Вес, г')).toHaveValue('');
+    await editor.getByRole('button', { name: 'Добавить вариант' }).click();
+    await editor.getByLabel('Название варианта').fill('Small');
+    await price.clear();
+    await expect(price).toHaveValue('');
+    await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+    await expect(editor).toBeVisible();
+    expect(await price.evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
+    await price.pressSequentially('42');
+    await page.route('**/api/products/*', (route) => route.fulfill({ status: 503, json: { detail: 'Try again' } }));
+    await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+    await expect(editor.getByRole('alert')).toContainText('Try again');
+    await expect(price).toHaveValue('42');
+    await page.unroute('**/api/products/*');
+    await editor.getByRole('button', { name: 'Сохранить товар' }).click();
+    await expect(editor).toBeHidden();
+    await page.reload();
+    await page.getByLabel('Поиск по названию').fill(title);
+    await page.getByRole('row').filter({ hasText: title }).getByRole('button', { name: 'Редактировать' }).click();
+    await expect(price).toHaveValue('42');
+  });
+}
+
 test('product create, filters, edit zero discount, persistence and deletion', async ({ page }) => {
   const title = `Browser product ${Date.now()}`;
   await page.getByRole('button', { name: 'Добавить товар' }).click();
